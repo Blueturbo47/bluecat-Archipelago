@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 from BaseClasses import Entrance, Region
 from enum import StrEnum
 from rule_builder import rules
+from rules import DoLRules
 import entrance_rando
 
 
@@ -139,6 +140,7 @@ class DolRegion_Names(StrEnum):
 
         # Other Regions
     bog = "The Bog"
+    tentacle_plains = "Tentacle Plains"
 
         # Soft Bad Ends
     # Prison and Island goes to ocean
@@ -219,7 +221,7 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         
 
         def __init__(self, region_name:str, sub_regions:list = [], sub_regions_oneway_outgoing:list = [], 
-                    sub_regions_oneway_incoming:list = [], extra_rules:list = []):
+                    sub_regions_oneway_incoming:list = [], extra_rules:list = [[], []]):
             self.region_name = region_name
             self.sub_regions = sub_regions
             self.sub_regions_oneway_outgoing = sub_regions_oneway_outgoing
@@ -253,24 +255,19 @@ def create_and_connect_regions(world: DoLWorld) -> None:
 
             for outgoing in self.sub_regions:
                 outgoingRegion = world.get_region(outgoing.name())
-                if not self.extra_rules:
+                if not outgoing in self.extra_rules[0]:
                     match(connection_type):
                         case "exit":
                             self.self_region.add_exits # TODO:
                         case "entrance":
                             outgoingRegion.add_exits # TODO:
                         case _:
-                            self.self_region.connect(outgoingRegion, f"{outgoing.name()} in/at {self.name()}")
+                            self.self_region.connect(outgoingRegion, f"{outgoingRegion.name} in/at {self.name()}")
+                            outgoingRegion.connect(self.self_region, f"Leaving {outgoingRegion.name} from {self.name()}")
                 else:
                     # TODO: ADD RULES
                     newrule = rules
-                    match(connection_type):
-                        case "exit":
-                            self.self_region.add_exits # TODO:
-                        case "entrance":
-                            outgoingRegion.add_exits # TODO:
-                        case _:
-                            self.self_region.connect(outgoingRegion, f"{outgoing.name()} in/at {self.name()}")
+
 
         def add_connection(self, connection_list:list, connection_type:str = ""):
             """
@@ -288,9 +285,9 @@ def create_and_connect_regions(world: DoLWorld) -> None:
 
     world_regions: list[Area] = []
     
-    regions = DolRegion_Names
-
     # Soft Bad Ends
+        # Tentacle Plains
+    world_regions.append(tentacle_plains := Area(DolRegion_Names.tentacle_plains)) # not a bad end, but needs to be before asylum
         # Pirate Ship connect to Island or Ocean
     world_regions.append(pirate_ship := Area(DolRegion_Names.pirate_ship))
         # Prison and Island connect to Ocean
@@ -298,7 +295,11 @@ def create_and_connect_regions(world: DoLWorld) -> None:
     world_regions.append(island := Area(DolRegion_Names.island))
         # Brothel and Asylum connect to forest
     world_regions.append(underground_brothel := Area(DolRegion_Names.underground_brothel))
-    world_regions.append(asylum := Area(DolRegion_Names.asylum))
+    world_regions.append(asylum := Area(DolRegion_Names.asylum, sub_regions_oneway_outgoing=[tentacle_plains], 
+            extra_rules= [
+                [tentacle_plains],
+                [["TODO: tentacle toggle"]]
+            ]))
         # Kylars Manor connect to Danube Street
     world_regions.append(kylar_manor := Area(DolRegion_Names.kylar_manor))
         # Mine connect to Flats
@@ -341,7 +342,7 @@ def create_and_connect_regions(world: DoLWorld) -> None:
     world_regions.append(bog := Area(DolRegion_Names.bog, [moor], sub_regions_oneway_incoming=[forest], 
             extra_rules=[
                 [forest, moor], 
-                ["TODO: bog can be discovered in forest in a few ways", "TODO: moor to bog requires $bogprogress 1"]
+                [["TODO: bog can be discovered in forest in a few ways"], ["TODO: moor to bog requires $bogprogress 1"]]
             ]))
 
 
@@ -375,7 +376,7 @@ def create_and_connect_regions(world: DoLWorld) -> None:
                 residential_drain
             ], extra_rules=[
                 [avery_mansion],
-                ["TODO: requires $avery_mansion"]
+                [["TODO: requires $avery_mansion"]]
             ]))
 
         # Barb Street
@@ -393,13 +394,17 @@ def create_and_connect_regions(world: DoLWorld) -> None:
             ]))
 
         # Domus Street  
-    world_regions.append(orphanage := Area(DolRegion_Names.orphanage))
+    world_regions.append(orphanage := Area(DolRegion_Names.orphanage, [tentacle_plains],
+            extra_rules = [
+                [tentacle_plains],
+                [[DoLRules.deviancy_5, "TODO: tentacle toggle"]]
+            ]))
     world_regions.append(domus_houses := Area(DolRegion_Names.domus_houses))
 
     world_regions.append(
             domus_street := Area(DolRegion_Names.domus_street, [
                 orphanage, domus_houses, residential_alleyways, 
-                residential_drain
+                residential_drain, tentacle_plains
             ]))
 
     # Commercial
@@ -412,7 +417,7 @@ def create_and_connect_regions(world: DoLWorld) -> None:
                 commercial_alleyways
             ], extra_rules = [
                 [strip_club],
-                ["TODO: fake id requirement"]
+                [["TODO: fake id requirement"]]
             ]))
 
         # Starfish Street
@@ -473,7 +478,7 @@ def create_and_connect_regions(world: DoLWorld) -> None:
                 park, commercial_drain, commercial_alleyways
             ], extra_rules = [
                 [photography_studio],
-                ["TODO: photgraphy studio discovery"]
+                [["TODO: photgraphy studio discovery"]]
             ]))
 
         # Wolf Street
@@ -485,14 +490,14 @@ def create_and_connect_regions(world: DoLWorld) -> None:
                 commercial_drain, commercial_alleyways
             ], extra_rules = [
                 [soup_kitchen],
-                ["TODO: soup kitchen discovery"]
+                [["TODO: soup kitchen discovery"]]
             ]))
 
         # Oxford Street
     world_regions.append(school := Area(DolRegion_Names.school, [park, industrial_alleyways, commercial_drain], 
             extra_rules = [
                 [commercial_drain],
-                ["TODO: history ? grade"]
+                [[DoLRules.history_3]]
             ]))
     world_regions.append(museum := Area(DolRegion_Names.museum))
     world_regions.append(
@@ -514,26 +519,26 @@ def create_and_connect_regions(world: DoLWorld) -> None:
                 farmlands_road
             ], extra_rules = [
                 [brothel],
-                ["TODO: $brothelknown >= 1"]
+                [["TODO: $brothelknown >= 1"]]
             ]))
 
         # Mer Street
     world_regions.append(docks := Area(DolRegion_Names.docks, sub_regions_oneway_outgoing=[ocean],
             extra_rules=[
                 [ocean], # night docks connects to ocean
-                ["TODO: skul c grade"]
+                [[DoLRules.skulduggery_4]]
             ]))
     world_regions.append(coastal_path := Area(DolRegion_Names.coastal_path, [meadow], 
             extra_rules=[
                 [meadow],
-                ["TODO: $historytrait >= 3"]
+                [[DoLRules.history_4]]
             ]))
     world_regions.append(
             mer_street := Area(DolRegion_Names.mer_street, [
                 docks, coastal_path, industrial_alleyways, industrial_drain
             ], extra_rules=[
                 [coastal_path],
-                ["TODO: $historytrait >= 3"]
+                [[DoLRules.history_4]]
             ]))
 
         # Elk Street
@@ -559,29 +564,31 @@ def create_and_connect_regions(world: DoLWorld) -> None:
     # since if you're in town, you have access to the bus, therefore have access to every stop in town
     town = Area(DolRegion_Names.town, in_town)
 
-    badends = [prison, island, underground_brothel, asylum, dog_pound_ending, mines, eden_cabin, kylar_manor]
+    badends = [prison, island, underground_brothel, asylum, dog_pound_ending, mines, eden_cabin, kylar_manor, pirate_ship]
 
     # Running through world options
     def badend_connections():
         badend_connect_list_entrances = [
-            [], #prison: 1 (:: Police Prison Intro)
-            [], #island: 2 (:: Pirate Passout Wake)
-            [orphanage, hospital].extend(in_town), #underground_brothel: 3 (:: Underground Intro), briar hack can be included but can become impossible
+            [police_station], #prison: 1 (:: Police Prison Intro) logic is police station to make it simple
+            [pirate_ship], #island: 2 (:: Pirate Passout Wake)
+            [orphanage, hospital].extend(in_town), #underground_brothel: 3 (:: Underground Intro), briar hack can be included but can become impossible, hospital means its accessable anywhere in town
             in_town, #asylum: 4 (:: Asylum Intro)
-            [dog_pound], #dog_pound_ending: 5 () (:: Pound Assault Caught AND :: Pound Abudction), require wolf TF for Pound Abduction 
-            [], #mines: 6
-            [], #eden_cabin: 7
-            [], #kylar_manor: 8
+            [dog_pound], #dog_pound_ending: 5 (:: Pound Assault Caught AND :: Pound Abudction), require wolf TF for Pound Abduction 
+            [flats], #mines: 6 (:: Flats Auction 8)
+            [forest], #eden_cabin: 7
+            [school], #kylar_manor: 8 requires meeting kylar so school required
+            [ocean], #pirate_ship 9 (:: Smuggler Pub Zephyr) requires temple (complex logic so unincluded) OR passout in sea (:: Pirate Intro AND :: Passout Pirates Hot Cold)
         ]
-        badend_connect_list_exits = [
+        badend_connect_list_exits = [ # TODO: finish out exits
             [], #prison: 1
             [], #island: 2
-            [], #underground_brothel: 3
+            [ocean], #underground_brothel: 3
             [], #asylum: 4
             [], #dog_pound_ending: 5
-            [], #mines: 6
+            [residential_drain], #mines: 6
             [forest], #eden_cabin: 7
             [], #kylar_manor: 8
+            [island], #pirate_ship 9
         ]
         if world.options.randomize_badends:
             world.random.shuffle(badend_connect_list_entrances)
@@ -611,6 +618,9 @@ def create_and_connect_regions(world: DoLWorld) -> None:
             # harvest_street.add_connection() # column 11
         
         print("TODO: randomization")
+
+    for reg in in_town:
+        reg.add_connection([hospital])
 
     
    
