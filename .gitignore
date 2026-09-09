@@ -199,3 +199,8 @@ _speedups.html
 .LSOverride
 Thumbs.db
 [Dd]esktop.ini
+
+
+
+# remove later
+worlds/DoL/test.py

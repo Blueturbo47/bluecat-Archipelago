@@ -7,7 +7,7 @@ from worlds.AutoWorld import World
 from . import items, locations, regions, rules
 from . import options as dol_options  # rename due to a name conflict with World.options
 
-from .regions import DolRegion_Names
+from .regions import DoLRegion_Names
 
 class DoLWorld(World):
     """
@@ -27,44 +27,24 @@ class DoLWorld(World):
 
     location_name_to_id = locations.LOCATION_NAME_TO_ID
     item_name_to_id = items.ITEM_NAME_TO_ID
-    origin_region_name = DolRegion_Names.orphanage
+    origin_region_name = DoLRegion_Names.orphanage
 
     def randomize_start(self) -> None:
         # Starting region
         regionnum = self.options.randomize_start
+        randomizeablestarts = [
+            DoLRegion_Names.orphanage, DoLRegion_Names.danube_street, DoLRegion_Names.barb_street, 
+            DoLRegion_Names.domus_street, DoLRegion_Names.starfish_street, DoLRegion_Names.cliff_street, 
+            DoLRegion_Names.high_street, DoLRegion_Names.nightingale_street, DoLRegion_Names.wolf_street, 
+            DoLRegion_Names.connudatus_street, DoLRegion_Names.oxford_street, DoLRegion_Names.harvest_street, 
+            DoLRegion_Names.mer_street, DoLRegion_Names.elk_street]
         if regionnum == 1:
-            regionnum = self.random.randint(2, 99)
-        match(regionnum):
-            case 0:  # option_dontRandomize
-                self.origin_region_name = DolRegion_Names.orphanage
-            case 2:  # danube_street
-                self.origin_region_name = DolRegion_Names.danube_street
-            case 3:  # barb_street
-                self.origin_region_name = DolRegion_Names.barb_street
-            case 4:  # domus_street
-                self.origin_region_name = DolRegion_Names.domus_street
-            case 5:  # starfish_street
-                self.origin_region_name = DolRegion_Names.starfish_street
-            case 6:  # cliff_street
-                self.origin_region_name = DolRegion_Names.cliff_street
-            case 7:  # high_street
-                self.origin_region_name = DolRegion_Names.high_street
-            case 8:  # nightingale_street
-                self.origin_region_name = DolRegion_Names.nightingale_street
-            case 9:  # wolf_street
-                self.origin_region_name = DolRegion_Names.wolf_street
-            case 10:  # connudatus_street
-                self.origin_region_name = DolRegion_Names.connudatus_street
-            case 11:  # oxford_street
-                self.origin_region_name = DolRegion_Names.oxford_street
-            case 12:  # harvest_street
-                self.origin_region_name = DolRegion_Names.harvest_street
-            case 13:  # mer_street
-                self.origin_region_name = DolRegion_Names.mer_street
-            case 14:  # elk_street
-                self.origin_region_name = DolRegion_Names.elk_street
-            case 15:  # orphanage
-                self.origin_region_name = DolRegion_Names.orphanage
+            regionnum = self.random.randint(0, len(randomizeablestarts) - 1)
+        elif regionnum != 0:
+            regionnum -= 1
+        self.origin_region_name = randomizeablestarts[regionnum]
+        
+        
 
     def create_regions(self) -> None:
         regions.create_and_connect_regions(self)
