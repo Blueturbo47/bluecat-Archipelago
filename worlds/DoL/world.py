@@ -3,9 +3,8 @@ from typing import Any
 
 from worlds.AutoWorld import World
 
-# Imports of your world's files must be relative.
 from . import items, locations, regions, rules
-from . import options as dol_options  # rename due to a name conflict with World.options
+from . import options as dol_options
 
 from .regions import DoLRegion_Names
 

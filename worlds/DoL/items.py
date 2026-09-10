@@ -12,15 +12,15 @@ ITEM_NAME_TO_ID = {
 }
 
 DEFAULT_ITEM_CLASSIFICATIONS = {
-    "": ItemClassification.progression,
-    "": ItemClassification.progression | ItemClassification.useful,
-    "": ItemClassification.progression,
-    "": ItemClassification.progression,
-    "": ItemClassification.useful,
-    "": ItemClassification.filler,
-    "Force Combat Encounter Trap": ItemClassification.trap, # TBA
-    "Force Stalk Encounter Trap": ItemClassification.trap, # TBA
-    "Teleportion Trap": ItemClassification.trap, # TBA
+    #"": ItemClassification.progression,
+    #"": ItemClassification.progression | ItemClassification.useful,
+    #"": ItemClassification.progression,
+    #"": ItemClassification.progression,
+    #"": ItemClassification.useful,
+    "Money": ItemClassification.filler,
+    #"Force Combat Encounter Trap": ItemClassification.trap, # TBA
+    #"Force Stalk Encounter Trap": ItemClassification.trap, # TBA
+    #"Teleportion Trap": ItemClassification.trap, # TBA
 }
 
 class DoLItem(Item):

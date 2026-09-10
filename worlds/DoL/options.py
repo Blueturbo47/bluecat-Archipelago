@@ -115,6 +115,9 @@ class RandomizeTentacleAreas:
 class ShopLocations(Choice):
     """
     Randomize the location of shops
+
+    Between themselves means that all shopping centre shops, the pharmacy, and forest shop \
+        will be added to a pool and then redistributed between them
     """
 
     dont_randomize = 0
@@ -150,7 +153,7 @@ class ParasiticPregnancy(Toggle):
     
     This toggle also assumes: \
         Swarms, Spiders, Bees, Wasps, Lurkers, Slimes, Slugs, and plantpeople are enabled. \
-        If you have one off please disable it
+        If you have one off please disable this
 
     Restricts some checks if disabled
     """
@@ -245,6 +248,7 @@ class DoLOptions(PerGameCommonOptions):
     randomize_start: RandomizeStart
     walkable_town: WalkableTown
     randomize_tentacleareas: RandomizeTentacleAreas
+    shop_locations: ShopLocations
     
     tentacles: Tentacles
     pregnancy: Pregnancy
