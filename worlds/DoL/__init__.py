@@ -1,1 +1,1 @@
-from .world import DoLWorld as DolWorld
+from .world import DoLWorld as DoLWorld

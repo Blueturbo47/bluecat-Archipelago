@@ -18,7 +18,6 @@ class TrapChance(Range):
 class RandomizeTransformations(Toggle):
     """
     Add transformations into the pool?
-
     If disabled you will be able to get a transformation normally, and will disable checks and connections that require transformations
     """
 
@@ -29,7 +28,6 @@ class MultipleRuns(Toggle):
     Enable checks that may require multiple runs. Ex: "Falling, Falling, Falling..." feat
     """
     display_name = "Multiple Runs Toggle"
-    default = False
 
 class DontRestrictRNG(Toggle):
     """
@@ -37,15 +35,21 @@ class DontRestrictRNG(Toggle):
     """
 
     display_name = "Don't Restrict RNG"
+
+class RandomizeArtifacts(Toggle):
+    """
+    Do you want to randomize Museum Artifacts?
+    """
+
+    display_name = "Randomize Artifacts"
     
 # -------------- Entrance Randomizer Options
 
 class RandomizeEntrances(Toggle):
     """
-    Randomizes where each exit leads to. 
-    
-    Badends and very minor areas are not randomized. \
-        Ex: The Lake in forest and the Underground Brothel
+    Randomizes where each exit leads to
+    Badends and very minor areas are not randomized
+    Ex: The Lake in forest and the Underground Brothel
 
     This disables the bus by default, to re-enable enable WalkableTown
     """
@@ -55,7 +59,6 @@ class RandomizeEntrances(Toggle):
 class RandomizeBadends(Toggle):
     """
     Randomizes where bad ends leave and the location you enter them within themselves. 
-    
     Ex: going to the Underground Brothel now takes you to the Prison, and leaving the Prison takes you to the Flats
 
     If Bad End Entrance Randomizer is enabled this does nothing, otherwise works as expected
@@ -65,7 +68,8 @@ class RandomizeBadends(Toggle):
 
 class RandomizeEntrancesBadends(Toggle):
     """
-    If entrance randomizer is enabled, this causes it to add badends to the pool instead. Don't accidently walk into one!
+    If entrance randomizer is enabled, this causes it to add badends to the pool instead
+    Don't accidently walk into one!
     """
 
     display_name = "Bad End Entrance Randomizer"
@@ -73,7 +77,6 @@ class RandomizeEntrancesBadends(Toggle):
 class WalkableTown(Toggle):
     """
     If Entrance Randomizer is enabled, enables the bus, and prevents street to street randomization.
-    
     Ex: Domus street -> Danube Street always leads to Danube Street
     """
 
@@ -86,27 +89,26 @@ class RandomizeStart(Choice):
     display_name = "Change Starting Location"
 
     option_dontRandomize = 0
-    random = 1
-    danube_street = 2
-    barb_street = 3
-    domus_street = 4
-    starfish_street = 5
-    cliff_street = 6
-    high_street = 7
-    nightingale_street = 8
-    wolf_street = 9
-    connudatus_street = 10
-    oxford_street = 11
-    harvest_street = 12
-    mer_street = 13
-    elk_street = 14
+    option_randomLocation = 1
+    option_danube_street = 2
+    option_barb_street = 3
+    option_domus_street = 4
+    option_starfish_street = 5
+    option_cliff_street = 6
+    option_high_street = 7
+    option_nightingale_street = 8
+    option_wolf_street = 9
+    option_connudatus_street = 10
+    option_oxford_street = 11
+    option_harvest_street = 12
+    option_mer_street = 13
+    option_elk_street = 14
 
     default = option_dontRandomize
 
-class RandomizeTentacleAreas:
+class RandomizeTentacleAreas(Toggle):
     """
-    Randomize where Tentacle Plains and Tentacle Forest entrances are? Note: this makes Asylum much easier to leave, \
-        but makes it a requirement to check there
+    Randomize where Tentacle Plains and Tentacle Forest entrances are? Note: this makes Asylum much easier to leave, but makes it a requirement to check there
 
     This will do nothing if tentacles are not enabled
     """
@@ -116,15 +118,14 @@ class ShopLocations(Choice):
     """
     Randomize the location of shops
 
-    Between themselves means that all shopping centre shops, the pharmacy, and forest shop \
-        will be added to a pool and then redistributed between them
+    Between themselves means that all shopping centre shops, the pharmacy, and forest shop will be added to a pool and then redistributed between them
     """
 
-    dont_randomize = 0
-    between_themselves = 1
-    anywhere = 2
+    option_dont_randomize = 0
+    option_between_themselves = 1
+    option_anywhere = 2
 
-    default = anywhere
+    default = option_dont_randomize
 
 # -------------- Game World Options
 
@@ -132,33 +133,43 @@ class Tentacles(Toggle):
     """
     Are tentacles enabled in your world?
 
-    Restricts some areas if disabled (TODO: maybe feats?)
-    """
+    Restricts some areas if disabled 
+    """ # TODO: maybe feats?
 
     display_name = "Tentacle Toggle"
+    default = True
 
 class Pregnancy(Toggle):
     """
     Is (non-parasitic) pregnancy enabled in your world?
 
-    Restricts some feats if disabled (TODO: double check)
+    Restricts some checks and paths if disabled
     """
 
     display_name = "Pregnancy Toggle"
+    default = True
     
 
 class ParasiticPregnancy(Toggle):
     """
     Is parasitic pregnancy enabled in your world? 
     
-    This toggle also assumes: \
-        Swarms, Spiders, Bees, Wasps, Lurkers, Slimes, Slugs, and plantpeople are enabled. \
-        If you have one off please disable this
+    This toggle also assumes the following are enabled:
+    - Swarms
+    - Spiders
+    - Bees
+    - Wasps
+    - Lurkers
+    - Slimes
+    - Slugs 
+    - Plant People
+    If you have one off please disable this
 
     Restricts some checks if disabled
     """
 
     display_name = "Parasitic Pregnancy Toggle"
+    default = True
 
 class AnimalTransformations(Toggle):
     """
@@ -168,6 +179,7 @@ class AnimalTransformations(Toggle):
     """
 
     display_name = "Animal Transformations Toggle"
+    default = True
 
 class DivineTransformations(Toggle):
     """
@@ -177,6 +189,7 @@ class DivineTransformations(Toggle):
     """
 
     display_name = "Divine Transformations Toggle"
+    default = True
 
 class Beastiality(Toggle):
     """
@@ -186,6 +199,7 @@ class Beastiality(Toggle):
     """ # TODO: check if this also disables farm
 
     display_name = "Beastiality Toggle"
+    default = True
 
 class Lactation(Toggle):
     """
@@ -195,6 +209,7 @@ class Lactation(Toggle):
     """
 
     display_name = "Lactation Toggle"
+    default = True
 
 class SoftVore(Toggle):
     """
@@ -204,6 +219,7 @@ class SoftVore(Toggle):
     """
 
     display_name = "Soft Vore Toggle"
+    default = True
 
 class Parasites(Toggle):
     """
@@ -215,6 +231,7 @@ class Parasites(Toggle):
     """
 
     display_name = "Parasites Toggle"
+    default = True
 
 class Anal(Toggle):
     """
@@ -224,6 +241,7 @@ class Anal(Toggle):
     """
 
     display_name = "Anal Toggle"
+    default = True
 
 class Bodywriting(Toggle):
     """
@@ -233,14 +251,15 @@ class Bodywriting(Toggle):
     """
 
     display_name = "Bodywriting Toggle"
-
-# TODO: add more options
+    default = True
 
 
 @dataclass
 class DoLOptions(PerGameCommonOptions):
     trap_chance: TrapChance
+    dont_restrict_rng: DontRestrictRNG
     randomize_transformations: RandomizeTransformations
+    randomize_artifacts: RandomizeArtifacts
     
     randomize_entrances: RandomizeEntrances
     randomize_badends: RandomizeBadends
@@ -249,6 +268,7 @@ class DoLOptions(PerGameCommonOptions):
     walkable_town: WalkableTown
     randomize_tentacleareas: RandomizeTentacleAreas
     shop_locations: ShopLocations
+    
     
     tentacles: Tentacles
     pregnancy: Pregnancy
@@ -278,11 +298,11 @@ option_groups = [
     ),
 ]
 
-option_presets = {
-    "standard": {
-        # TODO
-    },
-    "long": {
-        # TODO
-    },
-}
+# option_presets = {
+#     "standard": {
+#         # TODO
+#     },
+#     "long": {
+#         # TODO
+#     },
+# }

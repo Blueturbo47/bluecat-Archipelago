@@ -6,7 +6,7 @@ from worlds.AutoWorld import World
 from . import items, locations, regions, rules
 from . import options as dol_options
 
-from .regions import DoLRegion_Names
+from .data import DoLRegion_Names
 
 class DoLWorld(World):
     """
@@ -24,8 +24,8 @@ class DoLWorld(World):
     options_dataclass = dol_options.DoLOptions
     options: dol_options.DoLOptions  #  This has to be a colon
 
-    location_name_to_id = locations.LOCATION_NAME_TO_ID
-    item_name_to_id = items.ITEM_NAME_TO_ID
+    location_name_to_id = {key.value: val_tuple[0] for key, val_tuple in locations.LOCATION_DATA.items()}
+    item_name_to_id = {key.value: val for key, val in items.ITEM_NAME_TO_ID.items()}
     origin_region_name = DoLRegion_Names.orphanage
 
     def randomize_start(self) -> None:
@@ -43,7 +43,6 @@ class DoLWorld(World):
             regionnum -= 1
         self.origin_region_name = randomizeablestarts[regionnum]
         
-        
 
     def create_regions(self) -> None:
         regions.create_and_connect_regions(self)
@@ -55,13 +54,16 @@ class DoLWorld(World):
     def create_items(self) -> None:
         items.create_all_items(self)
 
-    def create_item(self, name: str) -> items.DoLWorld:
+    def create_item(self, name: str) -> items.DoLItem:
         return items.create_item_with_correct_classification(self, name)
 
     def get_filler_item_name(self) -> str:
         return items.get_random_filler_item_name(self)
 
     def fill_slot_data(self) -> Mapping[str, Any]:
-        return self.options.as_dict(
-            "",
+        return self.options.as_dict( # just add toggles here for now I guess?
+            "tentacles", "pregnancy", "parasitic_pregnancy", 
+            "animal_transformations", "divine_transformations", "beastiality", 
+            "lactation", "softvore", "parasites", 
+            "anal", "bodywriting",
         )

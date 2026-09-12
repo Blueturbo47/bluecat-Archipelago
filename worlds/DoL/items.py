@@ -1,14 +1,28 @@
 from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from enum import StrEnum
 
 from BaseClasses import Item, ItemClassification
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .world import DoLWorld
 
+class DoLItemNames(StrEnum):
+        # Money
+    money_100 = "100 Dollars"
+
 ITEM_NAME_TO_ID = {
-    # TODO: Add Checks
+        # Progression
+    # DoLItemNames.progressionitem: 100
+
+        # Useful
+    # DoLItemNames.usefulitem: 500
+
+        # Filler
+    DoLItemNames.money_100: 1000
+
+        # Trap
+    # DoLItemNames.trap: 1500
 }
 
 DEFAULT_ITEM_CLASSIFICATIONS = {
@@ -17,7 +31,7 @@ DEFAULT_ITEM_CLASSIFICATIONS = {
     #"": ItemClassification.progression,
     #"": ItemClassification.progression,
     #"": ItemClassification.useful,
-    "Money": ItemClassification.filler,
+    DoLItemNames.money_100: ItemClassification.filler,
     #"Force Combat Encounter Trap": ItemClassification.trap, # TBA
     #"Force Stalk Encounter Trap": ItemClassification.trap, # TBA
     #"Teleportion Trap": ItemClassification.trap, # TBA
@@ -28,24 +42,22 @@ class DoLItem(Item):
 
 
 def get_random_filler_item_name(world: DoLWorld) -> str:
-    if world.random.randint(0, 99) < world.options.trap_chance:
-        return "" # TODO: replace with traps
-    return "" # TODO: replace with money?
+    # if world.random.randint(0, 99) < world.options.trap_chance:
+    #     return "" # TODO: replace with traps
+    return DoLItemNames.money_100
 
 
 def create_item_with_correct_classification(world: DoLWorld, name: str) -> DoLItem:
     classification = DEFAULT_ITEM_CLASSIFICATIONS[name]
-    return DoLItem(name, classification, ITEM_NAME_TO_ID[name], world.player)
+    id = ITEM_NAME_TO_ID[name]
+    print(f"returning dolitem with {name}, {classification}, {id}")
+    return DoLItem(name, classification, id, world.player)
 
 
 def create_all_items(world: DoLWorld) -> None:
 
     itempool: list[Item] = [
-        world.create_item(""),
-        world.create_item(""),
-        world.create_item(""),
-        world.create_item(""),
-        world.create_item(""),
+        world.create_item(DoLItemNames.money_100),
     ]
 
     # itempool size example

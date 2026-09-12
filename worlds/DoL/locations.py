@@ -1,14 +1,18 @@
 from __future__ import annotations
-from enum import StrEnum
+from enum import StrEnum, Enum
 
 from typing import TYPE_CHECKING
 
 from BaseClasses import ItemClassification, Location
 
 from . import items
+from .data import DoLRegion_Names
 
 if TYPE_CHECKING:
     from .world import DoLWorld
+
+class DoLLocationTypes(StrEnum):
+    artifact = "Artifact"
 
 class DoLLocationNames(StrEnum):
     # Antiques
@@ -117,94 +121,306 @@ class DoLLocationNames(StrEnum):
     antique_dildo = "antique Dildo : Sewers"
     # antique_horn = "" also found in maze
     antique_watch = "antique Watch : Sewers"
-    
-    
 
-    
-
-LOCATION_NAME_TO_ID = {
+LOCATION_DATA:dict[DoLLocationNames, tuple[int, DoLLocationTypes, list[DoLRegion_Names]]] = {
     # Antiques
-    DoLLocationNames.antique_ivorystatuette: 100,
-    DoLLocationNames.antique_silvercoin: 101,
-    DoLLocationNames.antique_crystal: 102,
-    DoLLocationNames.antique_silverblade: 103,
-    DoLLocationNames.antique_coppercoin: 104,
-    DoLLocationNames.antique_silvergoblet: 105,
-    DoLLocationNames.antique_fetish: 106,
-    DoLLocationNames.antique_goldcoin: 107,
-    DoLLocationNames.antique_forestdagger: 108,
-    DoLLocationNames.antique_forestgem: 109,
-    DoLLocationNames.antique_arrow: 110,
-    DoLLocationNames.antique_ivorynecklace: 111,
-    DoLLocationNames.antique_ivorybox: 112,
-    DoLLocationNames.antique_silverring: 113,
-    DoLLocationNames.antique_goldnecklace: 114,
-    DoLLocationNames.antique_chastitybelt: 115,
-    DoLLocationNames.antique_stonetalisman: 116,
-    DoLLocationNames.antique_horn: 117,
-    DoLLocationNames.antique_snuffer: 118,
-    DoLLocationNames.antique_bucket: 119,
-    DoLLocationNames.antique_silvermanacle: 120,
-    DoLLocationNames.antique_whip: 121,
-    DoLLocationNames.antique_goldring: 122,
-    DoLLocationNames.antique_bell: 123,
-    DoLLocationNames.antique_bullet: 124,
-    DoLLocationNames.antique_artilleryshell: 125,
-    DoLLocationNames.antique_grenade: 126,
-    DoLLocationNames.antique_goldbrooch: 127,
-    DoLLocationNames.antique_silverbrooch: 128,
-    DoLLocationNames.antique_islanderarrow: 129,
-    DoLLocationNames.antique_islandermask: 130,
-    DoLLocationNames.antique_obsidiandisc: 131,
-    DoLLocationNames.antique_trilobitefossil: 132,
-    DoLLocationNames.antique_baileyminesign: 133,
-    DoLLocationNames.antique_incenseburner: 134,
-    DoLLocationNames.antique_cup: 135,
-    DoLLocationNames.antique_silvermask: 136,
-    DoLLocationNames.antique_silveramulet: 137,
-    DoLLocationNames.antique_hourglass: 138,
-    DoLLocationNames.antique_swordcane: 139,
-    DoLLocationNames.antique_chocolate: 140,
-    DoLLocationNames.antique_teacaddy: 141,
-    DoLLocationNames.antique_woodenfigurine: 142,
-    DoLLocationNames.antique_copperring: 143,
-    DoLLocationNames.antique_goldcompass: 144,
-    DoLLocationNames.antique_coppercompass: 145,
-    DoLLocationNames.antique_coralring: 146,
-    DoLLocationNames.antique_diamond: 147,
-    DoLLocationNames.antique_brassstatuette: 148,
-    DoLLocationNames.antique_golddagger: 149,
-    DoLLocationNames.antique_goldamulet: 150,
-    DoLLocationNames.antique_goldmask: 151,
-    DoLLocationNames.antique_silvercompass: 152,
-    DoLLocationNames.antique_leathermap: 153,
-    DoLLocationNames.antique_cutlass: 154,
-    DoLLocationNames.antique_silverdagger: 155,
-    DoLLocationNames.antique_rustedcutlass: 156,
-    DoLLocationNames.antique_pinkcrystal: 157,
-    DoLLocationNames.antique_candlestick: 158,
-    DoLLocationNames.antique_dildo: 159,
-    DoLLocationNames.antique_watch: 160,
+    DoLLocationNames.antique_ivorystatuette: (100, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.temple
+                ]),
+
+    DoLLocationNames.antique_silvercoin: (101, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.temple,
+                    DoLRegion_Names.moor
+                ]),
+
+    DoLLocationNames.antique_crystal: (102, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.temple
+                ]),
+
+    DoLLocationNames.antique_silverblade: (103, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.temple
+                ]),
+
+    DoLLocationNames.antique_coppercoin: (104, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.temple
+                ]),
+
+    DoLLocationNames.antique_silvergoblet: (105, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.temple
+                ]),
+
+    DoLLocationNames.antique_fetish: (106, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.temple
+                ]),
+
+    DoLLocationNames.antique_goldcoin: (107, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.temple
+                ]),
+
+    DoLLocationNames.antique_forestdagger: (108, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.forest
+                ]),
+
+    DoLLocationNames.antique_forestgem: (109, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.forest
+                ]),
+
+    DoLLocationNames.antique_arrow: (110, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.forest
+                ]),
+
+    DoLLocationNames.antique_ivorynecklace: (111, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.forest_lake
+                ]),
+
+    DoLLocationNames.antique_ivorybox: (112, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.forest_lake
+                ]),
+
+    DoLLocationNames.antique_silverring: (113, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.forest_lake
+                ]),
+
+    DoLLocationNames.antique_goldnecklace: (114, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.forest_lake
+                ]),
+
+    DoLLocationNames.antique_chastitybelt: (115, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.forest_lake
+                ]),
+
+    DoLLocationNames.antique_stonetalisman: (116, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.meadow
+                ]),
+
+    DoLLocationNames.antique_horn: (117, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.moor, # maze
+                    DoLRegion_Names.residential_drain, # lower sewers 
+                    DoLRegion_Names.commercial_drain, # TODO: replace with deep sewers location?
+                    DoLRegion_Names.industrial_drain
+                ]),
+
+    DoLLocationNames.antique_snuffer: (118, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.moor, # maze
+                ]),
+
+    DoLLocationNames.antique_bucket: (119, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.moor, # maze
+                ]),
+
+    DoLLocationNames.antique_silvermanacle: (120, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.moor, # maze
+                ]),
+
+    DoLLocationNames.antique_whip: (121, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.moor, # maze
+                ]),
+
+    DoLLocationNames.antique_goldring: (122, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.moor
+                ]),
+
+    DoLLocationNames.antique_bell: (123, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.moor
+                ]),
+
+    DoLLocationNames.antique_bullet: (124, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.moor,
+                    DoLRegion_Names.bird_tower
+                ]),
+
+    DoLLocationNames.antique_artilleryshell: (125, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.moor
+                ]),
+
+    DoLLocationNames.antique_grenade: (126, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.riding_school
+                ]),
+
+    DoLLocationNames.antique_goldbrooch: (127, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.dance_studio
+                ]),
+
+    DoLLocationNames.antique_silverbrooch: (128, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.orphanage
+                ]),
+
+    DoLLocationNames.antique_islanderarrow: (129, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.island
+                ]),
+
+    DoLLocationNames.antique_islandermask: (130, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.island
+                ]),
+
+    DoLLocationNames.antique_obsidiandisc: (131, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.island
+                ]),
+
+    DoLLocationNames.antique_trilobitefossil: (132, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.island
+                ]),
+
+    DoLLocationNames.antique_baileyminesign: (133, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.landfill
+                ]),
+
+    DoLLocationNames.antique_incenseburner: (134, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.landfill
+                ]),
+
+    DoLLocationNames.antique_cup: (135, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.landfill
+                ]),
+
+    DoLLocationNames.antique_silvermask: (136, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.manors
+                ]),
+
+    DoLLocationNames.antique_silveramulet: (137, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.compound
+                ]),
+
+    DoLLocationNames.antique_hourglass: (138, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.pirate_ship
+                ]),
+
+    DoLLocationNames.antique_swordcane: (139, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.pirate_ship
+                ]),
+
+    DoLLocationNames.antique_chocolate: (140, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.pirate_ship
+                ]),
+
+    DoLLocationNames.antique_teacaddy: (141, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.pirate_ship
+                ]),
+
+    DoLLocationNames.antique_woodenfigurine: (142, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.pirate_ship
+                ]),
+
+    DoLLocationNames.antique_copperring: (143, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.pirate_ship
+                ]),
+
+    DoLLocationNames.antique_goldcompass: (144, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.pirate_ship
+                ]),
+
+    DoLLocationNames.antique_coppercompass: (145, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.ocean
+                ]),
+
+    DoLLocationNames.antique_coralring: (146, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.ocean
+                ]),
+
+    DoLLocationNames.antique_diamond: (147, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.ocean
+                ]),
+
+    DoLLocationNames.antique_brassstatuette: (148, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.temple
+                ]),
+
+    DoLLocationNames.antique_golddagger: (149, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.avery_mansion
+                ]),
+
+    DoLLocationNames.antique_goldamulet: (150, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.avery_mansion
+                ]),
+
+    DoLLocationNames.antique_goldmask: (151, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.avery_mansion
+                ]),
+
+    DoLLocationNames.antique_silvercompass: (152, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.beach
+                ]),
+
+    DoLLocationNames.antique_leathermap: (153, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.beach
+                ]),
+
+    DoLLocationNames.antique_cutlass: (154, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.beach
+                ]),
+
+    DoLLocationNames.antique_silverdagger: (155, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.beach
+                ]),
+
+    DoLLocationNames.antique_rustedcutlass: (156, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.beach
+                ]),
+
+    DoLLocationNames.antique_pinkcrystal: (157, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.commercial_drain,
+                    DoLRegion_Names.industrial_drain, # TODO: replace with deep sewers location?
+                    DoLRegion_Names.residential_drain,
+                ]),
+
+    DoLLocationNames.antique_candlestick: (158, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.commercial_drain,
+                    DoLRegion_Names.industrial_drain, # TODO: replace with deep sewers location?
+                    DoLRegion_Names.residential_drain,
+                ]),
+
+    DoLLocationNames.antique_dildo: (159, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.commercial_drain,
+                    DoLRegion_Names.industrial_drain, # TODO: replace with deep sewers location?
+                    DoLRegion_Names.residential_drain,
+                ]),
+
+    DoLLocationNames.antique_watch: (160, DoLLocationTypes.artifact, [
+                    DoLRegion_Names.commercial_drain,
+                    DoLRegion_Names.industrial_drain, # TODO: replace with deep sewers location?
+                    DoLRegion_Names.residential_drain,
+                ]),
+
 }
 
 
 class DolWorldLocation(Location):
     game = "APQuest"
 
-
-def get_location_names_with_ids(location_names: list[str]) -> dict[str, int | None]:
-    return {location_name: LOCATION_NAME_TO_ID[location_name] for location_name in location_names}
-
-
 def create_all_locations(world: DoLWorld) -> None:
     create_regular_locations(world)
     create_events(world)
 
+# def location_logic()
+
+
+# based on the location type we need to
+# check if that location type is banned
+# if not go through every region in the location
+# add the location id
 
 def create_regular_locations(world: DoLWorld) -> None:
-    # TODO: get regions list and add the locations
-   print("todo create locations")
+    LOCATION_TYPE_DATA = {
+        DoLLocationTypes.artifact: world.options.randomize_artifacts
+    }
+
+    # i = {locationname : (locationid, locationtype, [locationregions])}
+    for locname in LOCATION_DATA:
+        loctuple = LOCATION_DATA[locname]
+        locid = loctuple[0]
+        loctype = loctuple[1]
+        locregions = loctuple[2]
+        # cross reference the locationtype via locationtypedata to the world option
+        # so if the world option dictates we can disable a location type
+        option = LOCATION_TYPE_DATA[loctype]
+        if option:
+            # for regionname in locregions:
+            region = world.get_region(locregions[0]) # TODO: make this work for different locations, discord said something about events, else a new region
+            region.add_locations({locname: locid}, DolWorldLocation)
+
 
 
 def create_events(world: DoLWorld) -> None:
-    print("todo create events")
+    danube = world.get_region(DoLRegion_Names.danube_street)
+    danube.add_event("testevent", "victory", location_type=DolWorldLocation, item_type=items.DoLItem)
+    # TODO: create events

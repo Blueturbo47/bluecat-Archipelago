@@ -1,15 +1,16 @@
 from __future__ import annotations
+from enum import Enum
+
+from rule_builder.options import OptionFilter
+from rule_builder.rules import Has, HasAll, Rule, CanReachRegion
+
+from .options import *
+from .data import DoLRegion_Names
 
 from typing import TYPE_CHECKING
-from enum import Enum
-from rule_builder.options import OptionFilter
-from rule_builder.rules import Has, HasAll, Rule, FieldResolver
-from .options import * # TODO: replace this with nonstar and make an enum or something
-
 if TYPE_CHECKING:
     from .world import DoLWorld
 
-# TODO: fill out rules
 class DoLRules(Enum):
     skulduggery_1 = Has("Progressive Skulduggery Rank", 1) # F+ 
     skulduggery_2 = Has("Progressive Skulduggery Rank", 2) # D
@@ -132,10 +133,10 @@ class DoLRules(Enum):
     feet_5 = Has("Progressive Feet Rank", 5) # S
 
     science_1 = Has("Progressive Science Rank", 1) # D : 0
-    science_1 = Has("Progressive Science Rank", 2) # C : 1
-    science_1 = Has("Progressive Science Rank", 3) # B : 2
-    science_1 = Has("Progressive Science Rank", 4) # A : 3
-    science_1 = Has("Progressive Science Rank", 5) # A* : 4
+    science_2 = Has("Progressive Science Rank", 2) # C : 1
+    science_3 = Has("Progressive Science Rank", 3) # B : 2
+    science_4 = Has("Progressive Science Rank", 4) # A : 3
+    science_5 = Has("Progressive Science Rank", 5) # A* : 4
 
     math_1 = Has("Progressive Math Rank", 1) # D : 0
     math_2 = Has("Progressive Math Rank", 2) # C : 1
@@ -189,79 +190,83 @@ class DoLRules(Enum):
     deviancy_4 = Has("Progressive Deviancy Rank", 4) # scandalous
     deviancy_5 = Has("Progressive Deviancy Rank", 5) # crave
     deviancy_6 = Has("Progressive Deviancy Rank", 6) # lust
-
+    # if needed later add weapon skills here too
+    
+    # Item checks
     fakeid = Has("Fake ID")
 
-    # if needed later add weapon skills here too
+    # Area Checks
+    # access_orphanage = CanReachRegion(DoLRegion_Names.orphanage)
 
     # Game Options:
-    multipleruns_toggle = OptionFilter(MultipleRuns)
-    rng_toggle = OptionFilter(DontRestrictRNG)
+    multipleruns_toggle = OptionFilter(MultipleRuns, MultipleRuns.option_false)
+    rng_toggle = OptionFilter(DontRestrictRNG, DontRestrictRNG.option_true)
 
     # World Options:
-    anal_toggle = OptionFilter(Anal)
-    tentacles_toggle = OptionFilter(Tentacles)
-    lactation_toggle = OptionFilter(Lactation)
-    softvore_toggle = OptionFilter(SoftVore)
-    beastiality_toggle = OptionFilter(Beastiality)
-    parasites_toggle = OptionFilter(Parasites)
+    anal_toggle = OptionFilter(Anal, Anal.option_true)
+    tentacles_toggle = OptionFilter(Tentacles, Tentacles.option_true)
+    lactation_toggle = OptionFilter(Lactation, Lactation.option_true)
+    softvore_toggle = OptionFilter(SoftVore, SoftVore.option_true)
+    beastiality_toggle = OptionFilter(Beastiality, Beastiality.option_true)
+    parasites_toggle = OptionFilter(Parasites, Parasites.option_true)
     # swarms_toggle = OptionFilter(Swarms)
-    bodywriting_toggle = OptionFilter(Bodywriting)
+    bodywriting_toggle = OptionFilter(Bodywriting, Bodywriting.option_true)
 
-    pregnancy_toggle = OptionFilter(Pregnancy)
-    parasiticpregnancy_toggle = OptionFilter(ParasiticPregnancy)
+    pregnancy_toggle = OptionFilter(Pregnancy, Pregnancy.option_true)
+    parasiticpregnancy_toggle = OptionFilter(ParasiticPregnancy, ParasiticPregnancy.option_true)
 
-    animal_transformation_toggle = OptionFilter(AnimalTransformations)
-    divine_transformation_toggle = OptionFilter(DivineTransformations)
+    animal_transformation_toggle = OptionFilter(AnimalTransformations, AnimalTransformations.option_true)
+    divine_transformation_toggle = OptionFilter(DivineTransformations, DivineTransformations.option_true)
 
 
     # Transformations:
-    randomize_transformations = OptionFilter(RandomizeTransformations)
-    wolf_tf = Rule(Has("Wolf Transformation") & randomize_transformations & animal_transformation_toggle)
+    randomize_transformations = OptionFilter(RandomizeTransformations, RandomizeTransformations.option_true)
+    wolf_tf = Has("Wolf Transformation") & randomize_transformations
+    harpy_tf = Has("Harpy Transformation")
 
-    flight = Rule(Has("Flight"))
+    flight = Has("Flight")
 
     # Sexual Traits
-    bitch_trait = Rule(beastiality_toggle)
-    prey_trait = Rule(tentacles_toggle)
-    tasty_trait = Rule(softvore_toggle)
-    milkaddict_trait = Rule(lactation_toggle)
+    bitch_trait = beastiality_toggle
+    prey_trait = tentacles_toggle
+    tasty_trait = softvore_toggle
+    milkaddict_trait = lactation_toggle
 
     # Area Rulings:
-    tentacle_plains = Rule(tentacles_toggle & deviancy_6) # TODO: check this devi rank
-    tentacle_forest = Rule(tentacles_toggle)
+    tentacle_plains = tentacles_toggle & deviancy_6 # TODO: check this devi rank
+    tentacle_forest = tentacles_toggle
 
     # avery_mansion_score = Rule(housekeeping_4) # replace with adoption papers check
 
-    # Feat Rulings:
-    # no_control = Rule(beastiality_toggle) # "beastiality or monster people"? so doesn't require any toggle?
-    # equinerescue_feat = Rule(beastiality_toggle) # TODO: double check that this requires beastiality, I dobut it
-    # headpack_feat = Rule(beastiality_toggle) # TODO: double check that this requires beastiality, I dobut it
-    # foodchain_feat = Rule(beastiality_toggle) # TODO: double check that this requires beastiality, I dobut it
-    knot_feat = Rule(beastiality_toggle)
+    # # Feat Rulings:
+    # # no_control = Rule(beastiality_toggle) # "beastiality or monster people"? so doesn't require any toggle?
+    # # equinerescue_feat = Rule(beastiality_toggle) # TODO: double check that this requires beastiality, I dobut it
+    # # headpack_feat = Rule(beastiality_toggle) # TODO: double check that this requires beastiality, I dobut it
+    # # foodchain_feat = Rule(beastiality_toggle) # TODO: double check that this requires beastiality, I dobut it
+    # knot_feat = beastiality_toggle
 
-    sexspecialist_feat = Rule(anal_toggle)
-    pridefarm_feat = Rule(lactation_toggle)
-    crimmostfowl_feat = Rule(bodywriting_toggle) # sydney will write on you unless you have bodywriting **off**
+    # sexspecialist_feat = anal_toggle
+    # pridefarm_feat = lactation_toggle
+    # crimmostfowl_feat = bodywriting_toggle # sydney will write on you unless you have bodywriting **off**
 
-    animal_transformation_feat = Rule(animal_transformation_toggle) # all feats that require an animal tf
-    angel_feat = Rule(divine_transformation_toggle & multipleruns_toggle)
-    fallenangel_feat = Rule(divine_transformation_toggle & multipleruns_toggle)
-    demon_feat = Rule(divine_transformation_toggle)
+    # animal_transformation_feat = animal_transformation_toggle # all feats that require an animal tf
+    # angel_feat = divine_transformation_toggle & multipleruns_toggle
+    # fallenangel_feat = divine_transformation_toggle & multipleruns_toggle
+    # demon_feat = divine_transformation_toggle
     
-    specialtraitcollector_feat = Rule(bitch_trait & prey_trait & tasty_trait & milkaddict_trait)
+    # specialtraitcollector_feat = bitch_trait & prey_trait & tasty_trait & milkaddict_trait
     
-    broodmother_feat = Rule(parasiticpregnancy_toggle & tentacles_toggle & beastiality_toggle)
-    # zoologist also here ^
-    earslime_feat = Rule(parasites_toggle & parasiticpregnancy_toggle) # change if I ever swap parasitic preg toggle
-    # ear slime amalgam also here ^
-    giantslug_feat = Rule(parasiticpregnancy_toggle) # change if I ever swap parasitic preg toggle
-    redemption_feat = Rule(divine_transformation_toggle)
+    # broodmother_feat = parasiticpregnancy_toggle & tentacles_toggle & beastiality_toggle
+    # # zoologist also here ^
+    # earslime_feat = parasites_toggle & parasiticpregnancy_toggle # change if I ever swap parasitic preg toggle
+    # # ear slime amalgam also here ^
+    # giantslug_feat = parasiticpregnancy_toggle # change if I ever swap parasitic preg toggle
+    # redemption_feat = divine_transformation_toggle
     
-    getpregnant_feat = Rule(pregnancy_toggle)
-    fatherhood_feat = Rule(pregnancy_toggle)
-    mpreg_feat = Rule(pregnancy_toggle & parasites_toggle)
-    hailmary_feat = Rule(pregnancy_toggle & multipleruns_toggle)
+    # getpregnant_feat = pregnancy_toggle
+    # fatherhood_feat = pregnancy_toggle
+    # mpreg_feat = pregnancy_toggle & parasites_toggle
+    # hailmary_feat = pregnancy_toggle & multipleruns_toggle
 
 
 
