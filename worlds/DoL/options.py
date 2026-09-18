@@ -15,17 +15,25 @@ class TrapChance(Range):
     range_end = 100
     default = 0
 
-class RandomizeTransformations(Toggle):
+class RandomizeTransformations(Choice):
     """
-    Add transformations into the pool?
-    If disabled you will be able to get a transformation normally, and will disable checks and connections that require transformations
+    Add transformations into the pool? You will be able to stack transformations. 
+    Note: flight is a seperate check from wings, you must find both your wings and flight
+    
+    - tfparts: Randomize individual parts of transformations like wings or horns.
+    - transformations: Randomize whole transformations, instead of each part of a transformations
+    - disabled: do not randomize transformations, and do not include any checks or paths that require a transformation
     """
-
+    option_tfparts = 1
+    option_transformations = 2
+    option_disabled = 0
     disply_name = "Randomize Transformations"
+    default = option_disabled
 
 class MultipleRuns(Toggle):
     """
-    Enable checks that may require multiple runs. Ex: "Falling, Falling, Falling..." feat
+    Enable checks that may require multiple runs. Ex: Reaching Angel TF.
+    Angel TF will still be randomized in the pool if Randomize Transformations is also enabled
     """
     display_name = "Multiple Runs Toggle"
 
@@ -36,12 +44,21 @@ class DontRestrictRNG(Toggle):
 
     display_name = "Don't Restrict RNG"
 
-class RandomizeArtifacts(Toggle):
+class RandomizeAntiques(Toggle):
     """
-    Do you want to randomize Museum Artifacts?
+    Do you want to randomize Museum Antiques?
     """
 
-    display_name = "Randomize Artifacts"
+    display_name = "Randomize Antiques"
+    default = True
+
+class RandomizeSkills(Toggle):
+    """
+    Do you want to randomize skill ranks ex: Exhibitionism, Math, or Thigh Skill
+    (Purity, Beauty, and Awareness excluded)
+    """
+    display_name = "Randomize Skill Ranks"
+    default = True
     
 # -------------- Entrance Randomizer Options
 
@@ -50,11 +67,26 @@ class RandomizeEntrances(Toggle):
     Randomizes where each exit leads to
     Badends and very minor areas are not randomized
     Ex: The Lake in forest and the Underground Brothel
+    Note: Fainting still takes you to the Hospital
 
     This disables the bus by default, to re-enable enable WalkableTown
     """
 
     display_name = "Entrance Randomizer"
+
+class PoolOneWayRandomization(Toggle):
+    """
+    If enabled, this causes paths that are one-way (Prison -> Beach) to only be randomized within themselves,
+    instead of being in a global pool where they can come up randomly anywhere.
+
+    Example: 'Oxford Street' -> 'Forest Lake'
+    Forest Lake can swap Beach from 'Prison' -> 'Beach'
+    Forest Lake cannot swap Cafe 'Cliff Street' <-> 'Cafe'
+
+    This mostly only effects bad-ends
+    """
+    display_name = "Pool One Way Randomization"
+
 
 class RandomizeBadends(Toggle):
     """
@@ -68,7 +100,7 @@ class RandomizeBadends(Toggle):
 
 class RandomizeEntrancesBadends(Toggle):
     """
-    If entrance randomizer is enabled, this causes it to add badends to the pool instead
+    If entrance randomizer is enabled, this causes it to add badends to the pool aswell
     Don't accidently walk into one!
     """
 
@@ -108,7 +140,8 @@ class RandomizeStart(Choice):
 
 class RandomizeTentacleAreas(Toggle):
     """
-    Randomize where Tentacle Plains and Tentacle Forest entrances are? Note: this makes Asylum much easier to leave, but makes it a requirement to check there
+    Randomize where Tentacle Plains and Tentacle Forest entrances are? 
+    Note: this makes Asylum much easier to leave, but makes it a requirement to check there
 
     This will do nothing if tentacles are not enabled
     """
@@ -129,12 +162,13 @@ class ShopLocations(Choice):
 
 # -------------- Game World Options
 
+
 class Tentacles(Toggle):
     """
     Are tentacles enabled in your world?
 
-    Restricts some areas if disabled 
-    """ # TODO: maybe feats?
+    Restricts some areas and checks if disabled 
+    """
 
     display_name = "Tentacle Toggle"
     default = True
@@ -149,7 +183,6 @@ class Pregnancy(Toggle):
     display_name = "Pregnancy Toggle"
     default = True
     
-
 class ParasiticPregnancy(Toggle):
     """
     Is parasitic pregnancy enabled in your world? 
@@ -259,9 +292,11 @@ class DoLOptions(PerGameCommonOptions):
     trap_chance: TrapChance
     dont_restrict_rng: DontRestrictRNG
     randomize_transformations: RandomizeTransformations
-    randomize_artifacts: RandomizeArtifacts
+    randomize_antiques: RandomizeAntiques
+    randomize_skills: RandomizeSkills
     
     randomize_entrances: RandomizeEntrances
+    pool_onewayrandomization: PoolOneWayRandomization
     randomize_badends: RandomizeBadends
     randomize_entrances_badends: RandomizeEntrancesBadends
     randomize_start: RandomizeStart

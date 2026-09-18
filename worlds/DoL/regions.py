@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from BaseClasses import Entrance, Region
 
 from .rules import DoLRules
-from .data import DoLRegion_Names
+from .data import DoLRegionNames
 
 if TYPE_CHECKING:
     from .world import DoLWorld
@@ -24,10 +24,12 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         :param connection_type: (optional) 'exit' or 'entrance'
         """
 
-        def __init__(self, area:"Area", rules:list[DoLRules] | None = None, connection_type:str = "", note:str = ""):
+        def __init__(self, area:Area, rules:list[DoLRules] | None = None, connection_type:str = "", note:str = ""):
             self.area = area
             self.rules = rules if rules is not None else []
             self.connection_type = connection_type
+            self.note = note
+
 
         def has_rules(self):
             return True if not self.rules else False
@@ -39,15 +41,26 @@ def create_and_connect_regions(world: DoLWorld) -> None:
             self.rules.extend(rules)
 
         def pop_rules(self):
-            rules = self.rules
-            self.rules = []
+            rules, self.rules = self.rules, []
             return rules
 
         def return_rules(self):
             return self.rules
 
-        def change_connectionType(self, connection_type:str):
+
+        def set_connectionType(self, connection_type:str):
             self.connection_type = connection_type
+
+        def return_connectionType(self):
+            return self.connection_type
+
+
+        def pop_area(self):
+            area, self.area = self.area, None
+            return area
+
+        def set_area(self, area:Area):
+            self.area = area
 
         def return_area(self):
             return self.area
@@ -58,8 +71,14 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         def return_areaRegion(self):
             return self.area.return_region()
 
-        def return_connectionType(self):
-            return self.connection_type
+        
+
+        def pop_note(self):
+            note, self.note = self.note, ""
+            return note
+
+        def set_note(self, newnote:str):
+            self.note = newnote
 
     class Area:
         """
@@ -95,7 +114,7 @@ def create_and_connect_regions(world: DoLWorld) -> None:
 
         
 
-        def __init__(self, region_name:DoLRegion_Names, sub_regions:list[AreaConnection] | None = None):
+        def __init__(self, region_name:DoLRegionNames, sub_regions:list[AreaConnection] | None = None):
             self.region_name = region_name
             self.sub_regions = sub_regions if sub_regions is not None else []
 
@@ -113,6 +132,7 @@ def create_and_connect_regions(world: DoLWorld) -> None:
             """
             Adds the **finalized** region to the multiworld
             """
+            # print(f"Adding '{self.region_name}' with connections '{self.self_region.entrances}'")
             multiworld.regions.append(self.self_region)
 
         def connect(self):
@@ -128,26 +148,26 @@ def create_and_connect_regions(world: DoLWorld) -> None:
             connection_type (optional): 'exit' or 'entrance'
             """
 
-           
-            
             connectiontype = connection.return_connectionType()
 
             # we have to check if an entrance/exit exists incase we randomize into the same place leading to the same place multiple times
             # also exists by default via faiting and entering hospital on nightingale
             # we could remove this code later by referencing every entrance via an extra note on the name and adding it to connection data
             # TODO: this ^
-            entrancelist = [e.name for e in multiworld.get_entrances(player)]            
-            allow_entrance = not f"{connection.return_areaName()} -> {self.self_region.name}" in entrancelist # entrance: someone coming in
-            allow_exit = not f'{self.self_region.name} -> {connection.return_areaName()}' in entrancelist # exit: us going away
+            # entrancelist = [e.name for e in multiworld.get_entrances(player)]            
+            allow_entrance = True
+            allow_exit = True
+            # allow_entrance = not f"{connection.return_areaName()} -> {self.self_region.name}" in entrancelist # entrance: someone coming in
+            # allow_exit = not f'{self.self_region.name} -> {connection.return_areaName()}' in entrancelist # exit: us going away
             # print(f"{allow_entrance}: {connection.return_areaName()} -> {self.self_region.name}, {allow_exit}: {self.self_region.name} -> {connection.return_areaName()}")
             # print(f"Adding connection {self.self_region.name} -> {connection.return_areaName()} | Type: {connection.return_connectionType()} | With rules {connection.return_rules()}")
 
             # TODO: rules for connections
             if (connectiontype == "entrance" or connectiontype == None or connectiontype == "") and allow_entrance:
-                connection.return_areaRegion().connect(self.self_region, f"{connection.return_areaName()} -> {self.self_region.name}")
+                connection.return_areaRegion().connect(self.self_region, f"{connection.return_areaName()} -> {self.self_region.name} | {connection.note}")
 
             if (connectiontype == "exit" or connectiontype == None or connectiontype == "") and allow_exit:
-                self.self_region.connect(connection.return_areaRegion(), f"{self.self_region.name} -> {connection.return_areaName()}")
+                self.self_region.connect(connection.return_areaRegion(), f"{self.self_region.name} -> {connection.return_areaName()} | {connection.note}")
 
             
 
@@ -193,266 +213,307 @@ def create_and_connect_regions(world: DoLWorld) -> None:
     
     # Soft Bad Ends
         # Tentacle Plains (not a bad end, but needs to be before asylum)
-    world_regions.append(tentacle_plains := Area(DoLRegion_Names.tentacle_plains)) 
+    world_regions.append(tentacle_plains := Area(DoLRegionNames.tentacle_plains)) 
         # Refer to logic at bottom where entrances/exits are
-    badends.append(prison := Area(DoLRegion_Names.prison))
-    badends.append(island := Area(DoLRegion_Names.island))
-    badends.append(underground_brothel := Area(DoLRegion_Names.underground_brothel))
-    badends.append(asylum := Area(DoLRegion_Names.asylum ))
-    badends.append(dog_pound_ending := Area(DoLRegion_Names.dog_pound_ending))
-    badends.append(mines := Area(DoLRegion_Names.mines))
-    badends.append(eden_cabin := Area(DoLRegion_Names.eden_cabin))
-    badends.append(kylar_manor := Area(DoLRegion_Names.kylar_manor))
-    badends.append(pirate_ship := Area(DoLRegion_Names.pirate_ship)) 
-    badends.append(bird_tower := Area(DoLRegion_Names.bird_tower))
-    badends.append(remy_farm := Area(DoLRegion_Names.remy_farm))
-    badends.append(wolf_cave := Area(DoLRegion_Names.wolf_cave))
+    badends.append(prison := Area(DoLRegionNames.prison))
+    badends.append(island := Area(DoLRegionNames.island))
+    badends.append(underground_brothel := Area(DoLRegionNames.underground_brothel))
+    badends.append(asylum := Area(DoLRegionNames.asylum ))
+    badends.append(dog_pound_ending := Area(DoLRegionNames.dog_pound_ending))
+    badends.append(mines := Area(DoLRegionNames.mines))
+    badends.append(eden_cabin := Area(DoLRegionNames.eden_cabin))
+    badends.append(kylar_manor := Area(DoLRegionNames.kylar_manor))
+    badends.append(pirate_ship := Area(DoLRegionNames.pirate_ship)) 
+    badends.append(bird_tower := Area(DoLRegionNames.bird_tower))
+    badends.append(remy_farm := Area(DoLRegionNames.remy_farm))
+    badends.append(wolf_cave := Area(DoLRegionNames.wolf_cave))
 
     # Outside Town
         
     # Forest (danube, wolf, and nightingale street enter forest)
-    forest_shop = Area(DoLRegion_Names.forest_shop)
-    world_regions.append(forest_lake := Area(DoLRegion_Names.forest_lake))
+    # forest_shop not a world region due to shop randomization
+    shops.append(forest_shop := Area(DoLRegionNames.forest_shop))
+    world_regions.append(forest_lake := Area(DoLRegionNames.forest_lake))
 
-    # Don't connect forest shop here incase shop randomizer
-    world_regions.append(forest := Area(DoLRegion_Names.forest, [ 
-                AreaConnection(forest_lake)]))
-    shops.append(forest_shop)
+    # don't connect forest shop here incase shop randomizer, we don't want the
+    # connection to be inside the world_regions pool
+    world_regions.append(forest := Area(DoLRegionNames.forest, [ 
+                AreaConnection(forest_lake, note="via Forest Lake from Forest")]))
+    # we need connection to be after decleration
+    forest_shop.append(AreaConnection(forest, note="via Forest Shop from Forest"))
     
     # Ocean
-    world_regions.append(ocean := Area(DoLRegion_Names.ocean))
+    world_regions.append(ocean := Area(DoLRegionNames.ocean))
 
     # Outskirts
-        # Farmlands
-    world_regions.append(alex_farm := Area(DoLRegion_Names.alex_farm))
-    world_regions.append(riding_school := Area(DoLRegion_Names.riding_school))
-    world_regions.append(meadow := Area(DoLRegion_Names.meadow))
-    world_regions.append(manors := Area(DoLRegion_Names.manors))
-    world_regions.append(farmlands_road := Area(DoLRegion_Names.farmlands_road))
-    world_regions.append(farmlands := Area(DoLRegion_Names.farmlands, [
-                AreaConnection(manors), 
-                AreaConnection(meadow), 
-                AreaConnection(riding_school), 
-                AreaConnection(alex_farm), 
-                AreaConnection(farmlands_road)]))
+    # Farmlands
+    world_regions.append(alex_farm := Area(DoLRegionNames.alex_farm))
+    world_regions.append(riding_school := Area(DoLRegionNames.riding_school))
+    world_regions.append(meadow := Area(DoLRegionNames.meadow))
+    world_regions.append(manors := Area(DoLRegionNames.manors))
+    world_regions.append(farmlands_road := Area(DoLRegionNames.farmlands_road))
+    world_regions.append(farmlands := Area(DoLRegionNames.farmlands, [
+                AreaConnection(manors, note="via Manors from the Farmlands"), 
+                AreaConnection(meadow, note="via Meadow from the Farmlands"), 
+                AreaConnection(riding_school, note="via Riding School from the Farmlands"), 
+                AreaConnection(alex_farm, note="via Alex's Farm from the Farmlands"), 
+                AreaConnection(farmlands_road, note="via Town Road from the Farmlands")]))
 
-        # Moor
-    world_regions.append(moor := Area(DoLRegion_Names.moor))
+    # Moor
+    world_regions.append(moor := Area(DoLRegionNames.moor))
 
         # Other Areas
     # bog connects forest to moor, but not back
-    world_regions.append(bog := Area(DoLRegion_Names.bog, [
-                AreaConnection(moor, ["TODO: moor to bog requires $bogprogress 1"]), 
-                AreaConnection(forest, ["TODO: bog can be discovered in forest in a few ways"], "entrance")]))
+    world_regions.append(bog := Area(DoLRegionNames.bog, [
+                AreaConnection(moor, 
+                                ["TODO: moor to bog requires $bogprogress 1"], 
+                                note="via Moor from the Bog"), 
+                AreaConnection(forest, 
+                                ["TODO: bog can be discovered in forest in a few ways"], 
+                                "entrance", 
+                                "via Bog from the Forest")]))
 
 
     # Inside Town
     # Note: for every street, connections to other streets are not connected
     # this is because the walkable town randomization rule
-        # Other
-    world_regions.append(park := Area(DoLRegion_Names.park))
-    world_regions.append(beach := Area(DoLRegion_Names.beach))
 
-        # Drainage and Alleyways
-    world_regions.append(residential_drain := Area(DoLRegion_Names.residential_drain))
-    world_regions.append(commercial_drain := Area(DoLRegion_Names.commercial_drain, [
-                AreaConnection(residential_drain)]))
-    world_regions.append(industrial_drain := Area(DoLRegion_Names.industrial_drain, [
-                AreaConnection(commercial_drain)]))
+    # Other
+    world_regions.append(park := Area(DoLRegionNames.park))
+    world_regions.append(beach := Area(DoLRegionNames.beach))
 
-    world_regions.append(residential_alleyways := Area(DoLRegion_Names.residential_alleyways, [
-                AreaConnection(residential_drain)]))
-    world_regions.append(commercial_alleyways := Area(DoLRegion_Names.commercial_alleyways, [
-                AreaConnection(commercial_drain), 
-                AreaConnection(residential_alleyways)]))
-    world_regions.append(industrial_alleyways := Area(DoLRegion_Names.industrial_alleyways, [
-                AreaConnection(industrial_drain), 
-                AreaConnection(commercial_alleyways)]))
+
+    # Drainage and Alleyways
+    world_regions.append(residential_drain := Area(DoLRegionNames.residential_drain))
+    world_regions.append(commercial_drain := Area(DoLRegionNames.commercial_drain, [
+                AreaConnection(residential_drain, note="via Residential Drain from the Commercial Drain")]))
+    world_regions.append(industrial_drain := Area(DoLRegionNames.industrial_drain, [
+                AreaConnection(commercial_drain, note="via Commercial Drain from the Industrial Drain")]))
+
+    world_regions.append(residential_alleyways := Area(DoLRegionNames.residential_alleyways, [
+                AreaConnection(residential_drain, note="via Residential Drain from its Alleyways")]))
+    world_regions.append(commercial_alleyways := Area(DoLRegionNames.commercial_alleyways, [
+                AreaConnection(commercial_drain, note="via Commercial Drain from its Alleyways"), 
+                AreaConnection(residential_alleyways, note="via Residential Alleyways from the Commercial Alleyways")]))
+    world_regions.append(industrial_alleyways := Area(DoLRegionNames.industrial_alleyways, [
+                AreaConnection(industrial_drain, note="via Industrial Drain from its Alleyways"), 
+                AreaConnection(commercial_alleyways, note="via Commercial Alleyways from the Industrial Alleyways")]))
 
 
     # Residential
-        # Danube Street
-    world_regions.append(spa := Area(DoLRegion_Names.spa))
-    world_regions.append(avery_mansion := Area(DoLRegion_Names.avery_mansion)) # TODO: links to this
-    world_regions.append(danube_houses := Area(DoLRegion_Names.danube_houses))
-    world_regions.append(danube_street := Area(DoLRegion_Names.danube_street, [
-                AreaConnection(spa), 
-                AreaConnection(avery_mansion, ["TODO: requires averyMansionScore() gte 130", "TODO: orphanage access"]), 
-                AreaConnection(danube_houses), 
-                AreaConnection(forest), 
-                AreaConnection(residential_alleyways), 
-                AreaConnection(residential_drain)]))
+    # Danube Street
+    world_regions.append(spa := Area(DoLRegionNames.spa))
+    world_regions.append(avery_mansion := Area(DoLRegionNames.avery_mansion)) # TODO: links to this
+    world_regions.append(danube_houses := Area(DoLRegionNames.danube_houses))
+    world_regions.append(danube_street := Area(DoLRegionNames.danube_street, [
+                AreaConnection(spa, note="via the Spa from Danube Street"), 
+                AreaConnection(avery_mansion, 
+                               ["TODO: requires averyMansionScore() gte 130", "TODO: orphanage access"], 
+                               note="via Avery's Mansion from Danube Street"), 
+                AreaConnection(danube_houses, note="via Danube Houses from Danube Street"), 
+                AreaConnection(forest, note="via Forest from Danube Street"), 
+                AreaConnection(residential_alleyways, note="via Residential Alleyways from Danube Street"), 
+                AreaConnection(residential_drain, note="via Residential Drain from Danube Street")]))
 
-        # Barb Street
-    world_regions.append(tentacle_forest := Area(DoLRegion_Names.tentacle_forest))
-    world_regions.append(hookah_parlour := Area(DoLRegion_Names.hookah_parlour))
-    world_regions.append(flats := Area(DoLRegion_Names.flats, [
-                AreaConnection(hookah_parlour)]))
-    world_regions.append(dance_studio := Area(DoLRegion_Names.dance_studio))
-    world_regions.append(police_station := Area(DoLRegion_Names.police_station))
-    world_regions.append(
-            barb_street := Area(DoLRegion_Names.barb_street, [
-                AreaConnection(dance_studio), 
-                AreaConnection(police_station), 
-                AreaConnection(flats), 
-                AreaConnection(residential_alleyways), 
-                AreaConnection(residential_drain)]))
 
-        # Domus Street  
+    # Barb Street
+    world_regions.append(tentacle_forest := Area(DoLRegionNames.tentacle_forest))
+    world_regions.append(hookah_parlour := Area(DoLRegionNames.hookah_parlour))
+    world_regions.append(flats := Area(DoLRegionNames.flats, [
+                AreaConnection(hookah_parlour, note="via Hookah Parlour from the Flats")]))
+    world_regions.append(dance_studio := Area(DoLRegionNames.dance_studio))
+    world_regions.append(police_station := Area(DoLRegionNames.police_station))
+    world_regions.append(barb_street := Area(DoLRegionNames.barb_street, [
+                AreaConnection(dance_studio, note="via Dance Studio from Barb Street"), 
+                AreaConnection(police_station, note="via Police Station from Barb Street"), 
+                AreaConnection(flats, note="via Flats from Barb Street"), 
+                AreaConnection(residential_alleyways, note="via Residential Alleyway from Barb Street"), 
+                AreaConnection(residential_drain, note="via Residential Drain from Barb Street")]))
+
+
+    # Domus Street  
     # note: not connecting tentacle plains here due to randomization
-    world_regions.append(orphanage := Area(DoLRegion_Names.orphanage))
-    world_regions.append(domus_houses := Area(DoLRegion_Names.domus_houses))
-    world_regions.append(domus_street := Area(DoLRegion_Names.domus_street, [
-                AreaConnection(orphanage), 
-                AreaConnection(domus_houses), 
-                AreaConnection(residential_alleyways),
-                AreaConnection(residential_drain)]))
+    world_regions.append(orphanage := Area(DoLRegionNames.orphanage))
+    world_regions.append(domus_houses := Area(DoLRegionNames.domus_houses))
+    world_regions.append(domus_street := Area(DoLRegionNames.domus_street, [
+                AreaConnection(orphanage, note="via Orphanage from Domus Street"), 
+                AreaConnection(domus_houses, note="via Domus Houses from Domus Street"), 
+                AreaConnection(residential_alleyways, note="via Residential Alleyways from Domus Street"),
+                AreaConnection(residential_drain, note="via Residential Drain from Domus Street")]))
 
     # Commercial
-        # Connudatus Street
-    world_regions.append(strip_club := Area(DoLRegion_Names.strip_club))
-    world_regions.append(connudatus_street := Area(DoLRegion_Names.connudatus_street, [
-                AreaConnection(strip_club, [DoLRules.fakeid]), 
-                AreaConnection(commercial_drain), 
-                AreaConnection(residential_alleyways), 
-                AreaConnection(commercial_alleyways)]))
+    # Connudatus Street
+    world_regions.append(strip_club := Area(DoLRegionNames.strip_club))
+    world_regions.append(connudatus_street := Area(DoLRegionNames.connudatus_street, [
+                AreaConnection(strip_club, 
+                               [DoLRules.fakeid],
+                               note="via Strip Club from Connudatus Street"), 
+                AreaConnection(commercial_drain, note="via Commercial Drain from Connudatus Street"), 
+                AreaConnection(residential_alleyways, note="via Residential Alleyways from Connudatus Street"), 
+                AreaConnection(commercial_alleyways, note="via Commercial Alleyways from Connudatus Street")]))
 
         # Starfish Street
-    world_regions.append(arcade := Area(DoLRegion_Names.arcade))
-    world_regions.append(chalets := Area(DoLRegion_Names.chalets))
-    world_regions.append(dog_pound := Area(DoLRegion_Names.dog_pound))
-    world_regions.append(starfish_street := Area(DoLRegion_Names.starfish_street, [
-                AreaConnection(arcade), 
-                AreaConnection(chalets), 
-                AreaConnection(dog_pound), 
-                AreaConnection(beach), 
-                AreaConnection(park), 
-                AreaConnection(commercial_drain)]))
+    world_regions.append(arcade := Area(DoLRegionNames.arcade))
+    world_regions.append(chalets := Area(DoLRegionNames.chalets))
+    world_regions.append(dog_pound := Area(DoLRegionNames.dog_pound))
+    world_regions.append(starfish_street := Area(DoLRegionNames.starfish_street, [
+                AreaConnection(arcade, note="via Arcade from Starfish Street"), 
+                AreaConnection(chalets, note="via Chalets from Starfish Street"), 
+                AreaConnection(dog_pound, note="via Dog Pound from Starfish Street"), 
+                AreaConnection(beach, note="via Beach from Starfish Street"), 
+                AreaConnection(park, note="via Park from Starfish Street"), 
+                AreaConnection(commercial_drain, note="via Commercial Drain from Starfish Street")]))
 
 
-        # Cliff Street
-    world_regions.append(mayors_office := Area(DoLRegion_Names.mayors_office))
-    world_regions.append(cafe := Area(DoLRegion_Names.cafe))
-    world_regions.append(cliff_street := Area(DoLRegion_Names.cliff_street, [
-                AreaConnection(mayors_office), 
-                AreaConnection(cafe), 
-                AreaConnection(beach), 
-                AreaConnection(commercial_drain), 
-                AreaConnection(commercial_alleyways)]))
+    # Cliff Street
+    world_regions.append(mayors_office := Area(DoLRegionNames.mayors_office))
+    world_regions.append(cafe := Area(DoLRegionNames.cafe))
+    world_regions.append(cliff_street := Area(DoLRegionNames.cliff_street, [
+                AreaConnection(mayors_office, note="via Mayor's Office from Cliff Street"), 
+                AreaConnection(cafe, note="via Cafe from Cliff Street"), 
+                AreaConnection(beach, note="via Beach from Cliff Street"), 
+                AreaConnection(commercial_drain, note="via Commercial Drain from Cliff Street"), 
+                AreaConnection(commercial_alleyways, note="via Commercial Alleyways from Cliff Street")]))
 
-        # High Street
-    shopping_centre_rooftop = Area(DoLRegion_Names.shopping_centre_rooftop)
-    shopping_centre_hairdressers = Area(DoLRegion_Names.shopping_centre_hairdressers)
-    shopping_centre_petshop = Area(DoLRegion_Names.shopping_centre_petshop)
-    shopping_centre_tattooparlour = Area(DoLRegion_Names.shopping_centre_tattooparlour)
-    shopping_centre_furnitureshop = Area(DoLRegion_Names.shopping_centre_furnitureshop)
-    shopping_centre_supermarket = Area(DoLRegion_Names.shopping_centre_supermarket)
-    shopping_centre_clothingshop = Area(DoLRegion_Names.shopping_centre_clothingshop)
-    shopping_centre_tailor = Area(DoLRegion_Names.shopping_centre_tailor)
-    shopping_centre_cosmeticsshop = Area(DoLRegion_Names.shopping_centre_cosmeticsshop)
-    shopping_centre_toystore = Area(DoLRegion_Names.shopping_centre_toystore)
-    # don't connect here because option to determine if we want to randomize this or not
-    world_regions.append(shopping_centre := Area(DoLRegion_Names.shopping_centre))
-    shopping_centre_areas = [
-                shopping_centre_clothingshop, 
-                shopping_centre_furnitureshop, 
-                shopping_centre_cosmeticsshop,
-                shopping_centre_hairdressers, 
-                shopping_centre_petshop, 
-                shopping_centre_rooftop,
-                shopping_centre_supermarket, 
-                shopping_centre_tailor, 
-                shopping_centre_tattooparlour,
-                shopping_centre_toystore]
-    shops.extend(shopping_centre_areas)
+
+    # High Street
+    world_regions.append(shopping_centre_rooftop := Area(DoLRegionNames.shopping_centre_rooftop)) # TODO: rooftop connections
+    shops.append(shopping_centre_hairdressers := Area(DoLRegionNames.shopping_centre_hairdressers))
+    shops.append(shopping_centre_petshop := Area(DoLRegionNames.shopping_centre_petshop))
+    shops.append(shopping_centre_tattooparlour := Area(DoLRegionNames.shopping_centre_tattooparlour))
+    shops.append(shopping_centre_furnitureshop := Area(DoLRegionNames.shopping_centre_furnitureshop))
+    shops.append(shopping_centre_supermarket := Area(DoLRegionNames.shopping_centre_supermarket))
+    shops.append(shopping_centre_clothingshop := Area(DoLRegionNames.shopping_centre_clothingshop))
+    shops.append(shopping_centre_tailor := Area(DoLRegionNames.shopping_centre_tailor))
+    shops.append(shopping_centre_cosmeticsshop := Area(DoLRegionNames.shopping_centre_cosmeticsshop))
+    shops.append(shopping_centre_toystore := Area(DoLRegionNames.shopping_centre_toystore))
+    # don't put shopping_centre_x in world_regions because option to determine if we want to randomize its connections or not
+    # we can put shopping_centre in however because we will not be hosting the connections there
+    world_regions.append(shopping_centre := Area(DoLRegionNames.shopping_centre, [
+                AreaConnection(shopping_centre_rooftop, note="via Rooftop from Shopping Centre")]))
     
-    world_regions.append(office_building := Area(DoLRegion_Names.office_building))
-    world_regions.append(
-            high_street := Area(DoLRegion_Names.high_street, [
-                AreaConnection(office_building), 
-                AreaConnection(shopping_centre), 
-                AreaConnection(park), 
-                AreaConnection(commercial_drain), 
-                AreaConnection(commercial_alleyways)]))
+    # need connections after decleration
+    shopping_centre_hairdressers.append(AreaConnection(shopping_centre, note="via Hairdressers from Shopping Centre"))
+    shopping_centre_petshop.append(AreaConnection(shopping_centre, note="via Pet Shop from Shopping Centre"))
+    shopping_centre_tattooparlour.append(AreaConnection(shopping_centre, note="via Tattoo Parlour from Shopping Centre"))
+    shopping_centre_furnitureshop.append(AreaConnection(shopping_centre, note="via Furniture Shop from Shopping Centre"))
+    shopping_centre_supermarket.append(AreaConnection(shopping_centre, note="via Supermarket from Shopping Centre"))
+    shopping_centre_clothingshop.append(AreaConnection(shopping_centre, note="via Clothing Shop from Shopping Centre"))
+    shopping_centre_tailor.append(AreaConnection(shopping_centre, note="via Tailor from Shopping Centre"))
+    shopping_centre_cosmeticsshop.append(AreaConnection(shopping_centre, note="via Cosmetics Shop from Shopping Centre"))
+    shopping_centre_toystore.append(AreaConnection(shopping_centre, note="via Toy Store from Shopping Centre"))
 
-        # Nightingale Street
+        
+    world_regions.append(office_building := Area(DoLRegionNames.office_building))
+    world_regions.append(high_street := Area(DoLRegionNames.high_street, [
+                AreaConnection(office_building, note="via Office Building from High Street"), 
+                AreaConnection(shopping_centre, note="via Shopping Centre from High Street"), 
+                AreaConnection(park, note="via Park from High Street"), 
+                AreaConnection(commercial_drain, note="via Commercial Drain from High Street"), 
+                AreaConnection(commercial_alleyways, note="via Commercial Alleyways from High Street")]))
+
+
+    # Nightingale Street
     # don't connect pharmacy here because option to determine if we want to randomize this or not
-    pharmacy = Area(DoLRegion_Names.pharmacy)
-    world_regions.append(hospital := Area(DoLRegion_Names.hospital))
-    world_regions.append(photography_studio := Area(DoLRegion_Names.photography_studio))
-    world_regions.append(nightingale_street := Area(DoLRegion_Names.nightingale_street, [
-                AreaConnection(hospital), 
-                AreaConnection(photography_studio, ["TODO: photgraphy studio discovery"]), 
-                AreaConnection(forest), 
-                AreaConnection(park), 
-                AreaConnection(commercial_drain), 
-                AreaConnection(commercial_alleyways)]))
-    shops.append(pharmacy)
+    shops.append(pharmacy := Area(DoLRegionNames.pharmacy))
+    world_regions.append(hospital := Area(DoLRegionNames.hospital))
+    world_regions.append(photography_studio := Area(DoLRegionNames.photography_studio))
+    world_regions.append(nightingale_street := Area(DoLRegionNames.nightingale_street, [
+                AreaConnection(hospital, note="via Hospital from Nightingale Street"), 
+                AreaConnection(photography_studio, 
+                               ["TODO: photgraphy studio discovery"],
+                               note="via Photography Studio from Nightingale Street"), 
+                AreaConnection(forest, note="via Forest from Nightingale Street"), 
+                AreaConnection(park, note="via Park from Nightingale Street"), 
+                AreaConnection(commercial_drain, note="via Commercial Drain from Nightingale Street"), 
+                AreaConnection(commercial_alleyways, note="via Commercial Alleyways from Nightingale Street")]))
+    pharmacy.append(AreaConnection(hospital, note="via Pharmacy in Hospital"))
 
-        # Wolf Street
-    world_regions.append(temple := Area(DoLRegion_Names.temple))
-    world_regions.append(soup_kitchen := Area(DoLRegion_Names.soup_kitchen))
-    world_regions.append(wolf_street := Area(DoLRegion_Names.wolf_street, [
-                AreaConnection(temple), 
-                AreaConnection(soup_kitchen), 
-                AreaConnection(forest), 
-                AreaConnection(commercial_drain), 
-                AreaConnection(commercial_alleyways)]))
 
-        # Oxford Street
-    world_regions.append(school := Area(DoLRegion_Names.school, [
-                AreaConnection(park), 
-                AreaConnection(industrial_alleyways), 
-                AreaConnection(commercial_drain, [DoLRules.history_3])]))
-    world_regions.append(museum := Area(DoLRegion_Names.museum))
-    world_regions.append(oxford_street := Area(DoLRegion_Names.oxford_street, [
-                AreaConnection(school), 
-                AreaConnection(museum), 
-                AreaConnection(commercial_alleyways),
-                AreaConnection(commercial_drain), 
-                AreaConnection(industrial_alleyways), 
-                AreaConnection(park),
-                AreaConnection(forest_lake), # student walking to lake
-                AreaConnection(orphanage, connection_type="entrance"), # :: Robin Walk School 
+    # Wolf Street
+    world_regions.append(temple := Area(DoLRegionNames.temple))
+    world_regions.append(soup_kitchen := Area(DoLRegionNames.soup_kitchen))
+    world_regions.append(wolf_street := Area(DoLRegionNames.wolf_street, [
+                AreaConnection(temple, note="via Temple from Wolf Street"), 
+                AreaConnection(soup_kitchen, note="via Soup Kitchen from Wolf Street"), 
+                AreaConnection(forest, note="via Forest from Wolf Street"), 
+                AreaConnection(commercial_drain, note="via Commercial Drain from Wolf Street"), 
+                AreaConnection(commercial_alleyways, note="via Commercial Alleyways from Wolf Street")]))
+
+
+    # Oxford Street
+    world_regions.append(school := Area(DoLRegionNames.school, [
+                AreaConnection(park, note="via Park from School"), 
+                AreaConnection(industrial_alleyways, note="via Industrial Alleyways from School"), 
+                AreaConnection(commercial_drain, 
+                               [DoLRules.history_3],
+                               note="via Commercial Drain from School Toilets")]))
+    world_regions.append(museum := Area(DoLRegionNames.museum))
+    world_regions.append(oxford_street := Area(DoLRegionNames.oxford_street, [
+                AreaConnection(school, note="via School from Oxford Street"), 
+                AreaConnection(museum, note="via Museum from Oxford Street"), 
+                AreaConnection(commercial_alleyways, note="via Commercial Alleyways from Oxford Street"),
+                AreaConnection(commercial_drain, note="via Commercial Drain from Oxford Street"), 
+                AreaConnection(industrial_alleyways, note="via Industrial Alleyways from Oxford Street"), 
+                AreaConnection(park, note="via Park from Oxford Street"),
+                AreaConnection(forest_lake, 
+                               connection_type="entrance", 
+                               note="via Forest Lake from Oxford Street Afterschool Students"), # student walking to lake
+                AreaConnection(orphanage, 
+                               connection_type="entrance",
+                               note="via Orphanage from Oxford Street Afterschool Robin"), # :: Robin Walk School 
                 ]))
     
     # Industrial
-        # Harvest Street
-    world_regions.append(brothel := Area(DoLRegion_Names.brothel))
-    world_regions.append(pub := Area(DoLRegion_Names.pub))
-    world_regions.append(bus_station := Area(DoLRegion_Names.bus_station))
-    world_regions.append(factory := Area(DoLRegion_Names.factory))
-    world_regions.append(harvest_street := Area(DoLRegion_Names.harvest_street, [
-                AreaConnection(brothel), 
-                AreaConnection(pub), 
-                AreaConnection(bus_station), 
-                AreaConnection(factory), 
-                AreaConnection(industrial_drain), 
-                AreaConnection(industrial_alleyways),
-                AreaConnection(farmlands_road)]))
+    # Harvest Street
+    world_regions.append(brothel := Area(DoLRegionNames.brothel))
+    world_regions.append(pub := Area(DoLRegionNames.pub))
+    world_regions.append(bus_station := Area(DoLRegionNames.bus_station))
+    world_regions.append(factory := Area(DoLRegionNames.factory))
+    world_regions.append(harvest_street := Area(DoLRegionNames.harvest_street, [
+                AreaConnection(brothel, note="via Brothel from Harvest Street"), 
+                AreaConnection(pub, note="via Pub from Harvest Street"), 
+                AreaConnection(bus_station, note="via Bus Station from Harvest Street"), 
+                AreaConnection(factory, note="via Factory from Harvest Street"), 
+                AreaConnection(industrial_drain, note="via Industrial Drain from Harvest Street"), 
+                AreaConnection(industrial_alleyways, note="via Industrial Alleyways from Harvest Street"),
+                AreaConnection(farmlands_road, note="via Farmlands Road")]))
 
-        # Mer Street
-    world_regions.append(docks := Area(DoLRegion_Names.docks, [
-                AreaConnection(ocean, [DoLRules.skulduggery_4], "exit")]))
-    world_regions.append(coastal_path := Area(DoLRegion_Names.coastal_path, [
-                AreaConnection(meadow)]))
-    world_regions.append(mer_street := Area(DoLRegion_Names.mer_street, [
-                AreaConnection(docks), 
-                AreaConnection(coastal_path, [DoLRules.history_4]), 
-                AreaConnection(industrial_alleyways), 
-                AreaConnection(industrial_drain)]))
+    # Mer Street
+    world_regions.append(docks := Area(DoLRegionNames.docks, [
+                AreaConnection(ocean, 
+                               [DoLRules.skulduggery_4], 
+                               "exit",
+                               "via Ocean from Docks")]))
+    world_regions.append(coastal_path := Area(DoLRegionNames.coastal_path, [
+                AreaConnection(meadow, note="via Meadow from Costal Path")]))
+    world_regions.append(mer_street := Area(DoLRegionNames.mer_street, [
+                AreaConnection(docks, note="via Docks from Mer Street"), 
+                AreaConnection(coastal_path, 
+                               [DoLRules.history_4],
+                               note="via Costal Path from Mer Street"), 
+                AreaConnection(industrial_alleyways, note="via Industrial Alleyways from Mer Street"), 
+                AreaConnection(industrial_drain, note="via Industrial Drain from Mer Street")]))
 
-        # Elk Street
-    world_regions.append(landfill := Area(DoLRegion_Names.landfill))
-    world_regions.append(adult_shop := Area(DoLRegion_Names.adult_shop))
-    world_regions.append(compound := Area(DoLRegion_Names.compound))
+    # Elk Street
+    world_regions.append(landfill := Area(DoLRegionNames.landfill)) #
+    world_regions.append(adult_shop := Area(DoLRegionNames.adult_shop))
+    world_regions.append(compound := Area(DoLRegionNames.compound))
     world_regions.append(
-            elk_street := Area(DoLRegion_Names.elk_street, [
-                AreaConnection(landfill, ["TODO: landfill discovery"]), 
-                AreaConnection(adult_shop, ["TODO: adult shop built"]), 
-                AreaConnection(compound),
-                AreaConnection(industrial_alleyways), 
-                AreaConnection(industrial_drain)]))
+            elk_street := Area(DoLRegionNames.elk_street, [
+                AreaConnection(landfill, 
+                               ["TODO: landfill discovery"], 
+                               note="via Landfill from Mer Street"), 
+                AreaConnection(adult_shop, 
+                               ["TODO: adult shop built"],
+                               note="via Adult Shop from Mer Street"), 
+                AreaConnection(compound,
+                               ["TODO: compound discovery"],
+                               note="via Compound from Mer Street"),
+                AreaConnection(industrial_alleyways,
+                               note="via Industrial Alleyways from Mer Street"), 
+                AreaConnection(industrial_drain,
+                               note="via Industrial Drain from Mer Street")]))
 
 
     in_town = [danube_street, barb_street, domus_street, 
@@ -486,27 +547,33 @@ def create_and_connect_regions(world: DoLWorld) -> None:
     # Extra definitions of logic functions
 
     class RandomizationPool:
+        # Randomization System:
+        # go through every area passed as a list
+        # remove every connection in every area in that region and add it to a pool
+        # world.random.shuffle that pool
+        # add all connections back, keeping intact their to rules to enter the connection, number of connections for the area, 
+        # and its connection note to make it easier to see where you have to come from
+            # Note: unless you have the option to prevent this, this will make oneway connections
+            # randomize into the pool. Otherwise oneway connections only randomize within themselves
+
         def __init__(self, largearealist:list[Area]):
             self.arealist = largearealist
 
         def seperate(pool:list[Area]):
             """
-            Takes a list of areas, removes its connections, and sorts them into 3 lists based on connection_type
+            Takes a list of areas, removes its connections, and sorts them into 2 lists based on connection_type
             """
             newpool_normal:list[AreaConnection] = []
-            newpool_exit:list[AreaConnection] = []
-            newpool_entrance:list[AreaConnection] = []
+            newpool_exitentrance:list[AreaConnection] = []
             for area in pool:
                 connections = area.pop_areas()
                 for connect in connections:
                     match(connect.return_connectionType()):
-                        case("exit"):
-                            newpool_exit.append(connect)
-                        case("entrance"):
-                            newpool_entrance.append(connect)
+                        case("exit" | "entrance"):
+                            newpool_exitentrance.append(connect)
                         case _:
                             newpool_normal.append(connect)
-            return newpool_normal, newpool_exit, newpool_entrance
+            return newpool_normal, newpool_exitentrance
     
         def strip(self, pool:list[AreaConnection]):
             """
@@ -517,26 +584,25 @@ def create_and_connect_regions(world: DoLWorld) -> None:
             """
             pool_size = len(pool)
             newpool:list[AreaConnection] = []
-            pool_rules:list[list[DoLRules]] = []
+            pool_areas:list[Area] = []
             for connection in pool:
                 # reason for implementation of connections rules like this:
                 # since we're gonna just be changing the destination, the requirements to reach the destination still need to be in place
                 # for example:
-                #   index0: beach   [none]
-                #   index1: ocean   [flight]
-                #   index2: forest  [skul 5, dev 5]
+                #   index0: ocean -> beach  [none]          note="leaving the ocean"
+                #   index1: prisn -> ocean  [flight]        note="flying away"
+                #   index2: cabin -> forst  [skul 5, dev 5] note="adopting a dog"
                 # needs to turn to
-                #   index0: ocean   [none]
-                #   index1: forest  [flight]
-                #   index2: beach   [skul 5, dev 5]
+                #   index0: ocean -> ocean  [none]          note="leaving the ocean"
+                #   index1: prisn -> forst  [flight]        note="flying away"
+                #   index2: cabin -> beach  [skul 5, dev 5] note="adopting a dog"
 
-                # pool_rules = [[rule], [rule], ...]
                 
-                pool_rules.append(connection.pop_rules())
-                newpool.append(connection) # add the cleaned connections into the pool
-            return pool_size, newpool, pool_rules
+                pool_areas.append(connection.pop_area())
+                newpool.append(connection) # add the cleaned connection into the pool
+            return pool_size, newpool, pool_areas
 
-        def shuffleback(self, pool:list[AreaConnection], pool_size:list[int], pool_rules:list[list[DoLRules]]):
+        def shuffleback(self, pool:list[AreaConnection], pool_size:list[int], pool_areas:list[Area]):
             """
             Takes the original list of areas, the list of connections they all have, the size of area, and the rules for the connections
 
@@ -547,14 +613,17 @@ def create_and_connect_regions(world: DoLWorld) -> None:
                 i = 0
                 while i < pool_size[areanum]:
                     connection = pool[i]
-                    connection.extend_rules(pool_rules.pop(0))
+                    connection.set_area(pool_areas.pop(0))
                     area.append(connection)
                     i += 1
 
         def run(self):
             print(f"Randomization pool started randomization containing {self.arealist[0].name()}")
-            for pooltype in (self.seperate(self.arealist)):
-                self.shuffleback(self.strip(pooltype))
+            if world.options.pool_onewayrandomization:
+                for pooltype in self.seperate(self.arealist):
+                    self.shuffleback(self.strip(pooltype))
+            else:
+                self.shuffleback(self.strip(self.arealist))
             return self.arealist
 
     
@@ -566,12 +635,12 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         # prison: 1
         # logic is hospital for high arrest chance
         prison.extend([
-            AreaConnection(hospital, connection_type="entrance") # :: Police Prison Intro
+            AreaConnection(hospital, connection_type="entrance", note="via Being caught by Police or Turning yourself in with >=5000 Crime Score") # :: Police Prison Intro
         ])  
 
         # island: 2
         island.extend([
-            AreaConnection(pirate_ship, connection_type="entrance") # :: Pirate Passout Wake, Pirate End Run, Pirate End Islanders
+            AreaConnection(pirate_ship, connection_type="entrance", note="via: On the Pirate Ship, passout or become a mate and asking Zephyr") # :: Pirate Passout Wake, Pirate End Run, Pirate End Islanders
         ])  
 
         # underground_brothel: 3
@@ -579,52 +648,51 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         # :: Briar Hack Fail can be included but can become impossible,
         #    just make sure to send this passage / add purpose fail
         underground_brothel.extend([
-            AreaConnection(orphanage, connection_type="entrance"),  # :: Rent Intro ($rentsale)
-            AreaConnection(hospital, connection_type="entrance")     # :: Hospital Arrest Molestation Finish
+            AreaConnection(orphanage, connection_type="entrance", note="via Failing to pay Bailey"), # :: Rent Intro ($rentsale)
+            AreaConnection(hospital, connection_type="entrance", note="via Failing to run from the Hospital Police") # :: Hospital Arrest Molestation Finish
         ])
 
         # asylum: 4
         # faints can lead to hospital leading to asylum
         asylum.extend([
-            AreaConnection(hospital, connection_type="entrance") # :: Asylum Intro
+            AreaConnection(hospital, connection_type="entrance", note="via Harper abduction") # :: Asylum Intro
         ])  
 
         # dog_pound_ending: 5
         # require wolf TF for Pound Abduction
         # **if add, fix extend**
         dog_pound_ending.extend([
-            AreaConnection(dog_pound, connection_type="entrance")  # :: Pound Assault Caught
+            AreaConnection(dog_pound, connection_type="entrance", note="via Having 'fun' with the Dog Pound Dogs, often close to closing time")  # :: Pound Assault Caught
         ]) 
-        # :: Pound Abudction
-        for street in in_town:
-            dog_pound_ending.append(AreaConnection(street, [DoLRules.wolf_tf], connection_type="entrance"))
+        for street in in_town: # :: Pound Abudction
+            dog_pound_ending.append(AreaConnection(street, [DoLRules.wolf_tf], connection_type="entrance", note="via Abduction with Wolf Appearance"))
 
         # mines: 6
         mines.extend([
-            AreaConnection(flats, connection_type="entrance") # :: Flats Auction 8
+            AreaConnection(flats, connection_type="entrance", note="via Abduction in the Flats") # :: Flats Auction 8
         ])  
 
         # eden_cabin: 7
         eden_cabin.extend([
-            AreaConnection(forest, connection_type="entrance"),    # :: Forest Hunter Molestation Finish
-            AreaConnection(orphanage, connection_type="entrance")  # :: rentsale ($rentsale 1) via widget"rentEdenTrade"
+            AreaConnection(forest, connection_type="entrance", note="via Meeting Eden in the Forest"), # :: Forest Hunter Molestation Finish
+            AreaConnection(orphanage, connection_type="entrance", note="via Failing to pay Bailey")  # :: rentsale ($rentsale 1) via widget"rentEdenTrade"
         ])
 
         # kylar_manor: 8
         # requires meeting kylar so school required
         kylar_manor.extend([
-            AreaConnection(school, connection_type="entrance") # :: Kylar Abduction Intro via widget"kylarwatched"
+            AreaConnection(school, connection_type="entrance", note="via Kylar Abduction") # :: Kylar Abduction Intro via widget"kylarwatched"
         ])
 
         # pirate_ship: 9
         pirate_ship.extend([
-            AreaConnection(ocean, connection_type="entrance"),  # :: Pirate Intro, Passout Pirates Hot Cold
-            AreaConnection(pub, ["TODO: rule temple access"], "entrance")  # :: Smuggler Pub Zephyr
+            AreaConnection(ocean, connection_type="entrance", note="via Passing out in the ocean"),  # :: Pirate Intro (Passout Pirates Hot Cold, Passout Pirate)
+            AreaConnection(pub, ["TODO: rule temple access"], "entrance", "via Meeting Zephyr in the Pub, knowing about the Spear")  # :: Smuggler Pub Zephyr
         ])
 
         # bird_tower: 10
         bird_tower.extend([
-            AreaConnection(moor, connection_type="entrance") # :: Bird Capture, Moor Bird Wake
+            AreaConnection(moor, connection_type="entrance", note="via Abduction from the Great Hawk") # :: Bird Capture, Moor Bird Wake
         ])
 
         # remy_farm: 11
@@ -638,16 +706,16 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         # intown -> Street Van Help -> Street Van Journey
         # Street Van Journey -> Street Van Fight Finish, Street Van Submit -> Livestock Intro
         remy_farm.extend([
-            AreaConnection(orphanage, connection_type="entrance"),  # :: Street Van Bailey
-            AreaConnection(moor, connection_type="entrance"),       # :: Moor Abduction Remy Wake
+            AreaConnection(orphanage, connection_type="entrance", note="via Failing to pay Bailey"),  # :: Street Van Bailey
+            AreaConnection(moor, connection_type="entrance", note="via Abduction in the Moor"),       # :: Moor Abduction Remy Wake
             AreaConnection(remy_farm, # TODO: remy estate
-                           connection_type="entrance"),  # :: Passout Estate Remy Hot Cold, widget"blackjackCaughtCheatingSurrender"
-            AreaConnection(cliff_street, ["TODO: rule access cafe"], "entrance")  # :: Chef Blackmail Livestock 2
+                           connection_type="entrance", note="via Passing out or losing blackjack in Remy's Estate"),  # :: Passout Estate Remy Hot Cold, widget"blackjackCaughtCheatingSurrender"
+            AreaConnection(cliff_street, ["TODO: rule access cafe"], "entrance", "via Making Sam mad and being on Cliff Street")  # :: Chef Blackmail Livestock 2
         ])
 
         # wolf_cave: 12
         wolf_cave.extend([
-            AreaConnection(forest, connection_type="entrance") # :: Forest Wolf Cave Intro
+            AreaConnection(forest, connection_type="entrance", note="via Wolves in the Forest") # :: Forest Wolf Cave Intro
         ])
 
 
@@ -655,79 +723,82 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         
         # prison: 1
         prison.extend([
-            AreaConnection(orphanage, connection_type="exit"), # :: Prison End Car Silent, Prison End Car Thank, Prison End Car Angry
-            AreaConnection(docks, connection_type="exit"), # :: Prison Kylar Escape Ask, Prison Kylar Escape Nod, Prison Wren Escape 3
-            AreaConnection(ocean, [DoLRules.swimming_10], "exit"), # :: Prison Escape, Passout Rut 2
-            AreaConnection(beach, [DoLRules.flight], "exit") # :: Prison Soar Escape
+            AreaConnection(orphanage, connection_type="exit", note="via Leaving the Prison normally"), # :: Prison End Car Silent, Prison End Car Thank, Prison End Car Angry
+            AreaConnection(docks, connection_type="exit", note="via Leaving the Prion with the Boat"), # :: Prison Kylar Escape Ask, Prison Kylar Escape Nod, Prison Wren Escape 3
+            # note: 2 ocean connections, however one doesn't require swimming 10
+            AreaConnection(ocean, [DoLRules.swimming_10], "exit", "via Swimming away the Prison"), # :: Prison Escape
+            AreaConnection(ocean, connection_type="exit", note="via Passing out in the Prison's rut"), # ::Passout Rut 2
+            AreaConnection(beach, [DoLRules.flight], "exit", "via Flying away from the Prison") # :: Prison Soar Escape
         ])
 
         # island: 2
         island.extend([
-            AreaConnection(pirate_ship, connection_type="exit"), # :: Islander End Hand
-            AreaConnection(mer_street, connection_type="exit"), # :: Island Sail
-            AreaConnection(ocean, connection_type="exit"), # :: Islander End Swim, Islander End Throw, Islander Enforce (req: Angel tf)
-            AreaConnection(hospital, [DoLRules.pregnancy_toggle], "exit") # :: Pregnancy Island
+            AreaConnection(pirate_ship, connection_type="exit", note="via Handing over the spear to Zephyr"), # :: Islander End Hand
+            AreaConnection(mer_street, connection_type="exit", note="via Sailing away in a Raft from the Island"), # :: Island Sail
+            AreaConnection(ocean, connection_type="exit", note="via Successfully running with the Island Spear"), # :: Islander End Swim, Islander End Throw, Islander Enforce (req: Angel tf)
+            AreaConnection(hospital, [DoLRules.pregnancy_toggle], "exit", note="via Leaving the Island due to Pregnancy") # :: Pregnancy Island
         ])
 
         # underground_brothel: 3
         underground_brothel.extend([
-            AreaConnection(ocean, connection_type="exit"), # :: Underground Lake
-            AreaConnection(forest, connection_type="exit") # :: Underground Presentation Molestation Finish, Underground Hunt, Underground Cell Sneak, widget "undergroundEscapeForestStart"
+            AreaConnection(ocean, connection_type="exit", note="via Digging out from the Underground Brothel"), # :: Underground Lake
+            AreaConnection(forest, connection_type="exit", note="via Running to the Forest from the Underground Brothel") # :: Underground Presentation Molestation Finish, Underground Hunt, Underground Cell Sneak, widget "undergroundEscapeForestStart"
         ])
 
         # asylum: 4
         asylum.extend([
-            AreaConnection(forest, connection_type="exit"), # :: Asylum Escape, Tentacle Escape, Tentacle Wolf Escape, Eden Asylum Rescue
-            AreaConnection(orphanage, connection_type="exit") # :: Asylum Return, Pregnancy Birth Asylum End (req: preg), Tentacle Plains Resist
+            AreaConnection(forest, connection_type="exit", note="via Running from the Asylum"), # :: Asylum Escape, Tentacle Escape, Tentacle Wolf Escape, Eden Asylum Rescue
+            AreaConnection(orphanage, connection_type="exit", note="via Leaving the Asylum to the Orphanage") # :: Asylum Return, Pregnancy Birth Asylum End (req: preg), Tentacle Plains Resist
         ])
 
         # dog_pound_ending: 5
         dog_pound_ending.extend([
-            AreaConnection(starfish_street, connection_type="exit") # :: Pound Escape Front, Pound Escape Free Dress, Pound Escape Free No Dress
+            AreaConnection(starfish_street, connection_type="exit", note="via Escaping the Dog Pound Bad-End") # :: Pound Escape Front, Pound Escape Free Dress, Pound Escape Free No Dress
         ])
 
         # mines: 6
         mines.extend([
-            AreaConnection(residential_drain, connection_type="exit"), # :: Mines Guards Escape, Mines Passout Warn 3, Mines Passout Run 2
-            AreaConnection(flats, connection_type="exit") # :: Mines Escape
+            AreaConnection(residential_drain, connection_type="exit", note="via Escaping from the Guards or Passing out in the Mines"), # :: Mines Guards Escape, Mines Passout Warn 3, Mines Passout Run 2
+            AreaConnection(flats, connection_type="exit", note="via Escaping from the Mines") # :: Mines Escape
         ])
 
         # eden_cabin: 7
         eden_cabin.extend([
-            AreaConnection(forest, connection_type="exit") # :: Cabin Night Escape, Eden Cabin Escape, widget"clearingactions" above Eden Cabin Escape
+            AreaConnection(forest, connection_type="exit", note="via Running from Eden's Cabin") # :: Cabin Night Escape, Eden Cabin Escape, widget"clearingactions" above Eden Cabin Escape
         ])
 
         # kylar_manor: 8
         # note: Kylar Abduction Stockholm End (one time event) leads to the park
         # :: Kylar Abduction Release 4, Kylar Abduction Free Rescue [Thank, Angry, Silent, Reassure, Mock], Kylar Abduction Free Leave 2, TODO: non escape
         kylar_manor.extend([
-            AreaConnection(danube_street, connection_type="exit") 
+            AreaConnection(danube_street, connection_type="exit", note="via Running or Leaving Kylar's Mansion") 
         ])
 
         # pirate_ship: 9
+        # exit to island is already an entrance from island, so it does not need to be randomized
         pirate_ship.extend([
-            AreaConnection(island, connection_type="exit"), # :: Pirate End Run, Pirate End Wait
-            AreaConnection(ocean, connection_type="exit"), # :: Pirate Railing Dive Night, Pirate Railing Dive Day
-            AreaConnection(mer_street, connection_type="exit") # :: Pirate Return
+            #AreaConnection(island, connection_type="exit", note="via: On the Pirate Ship, passout or become a mate and asking Zephyr"), # :: Pirate Passout Wake, Pirate End Run, Pirate End Islanders
+            AreaConnection(ocean, connection_type="exit", note="via Diving from the Pirate Ship"), # :: Pirate Railing Dive Night, Pirate Railing Dive Day
+            AreaConnection(mer_street, connection_type="exit", note="via Having Zephyr return you to town") # :: Pirate Return
         ])
 
         # bird_tower: 10
         # (leaving -> "castle" -> moor), Bird Tower [Farmlands, Forest, Town]
         bird_tower.extend([
-            AreaConnection(farmlands, [DoLRules.flight], "exit"), # :: Bird Tower Farmlands
-            AreaConnection(moor, connection_type="exit") # :: Bird Tower Rope Escape, Bird Tower Base Leave, Bird Tower Glide [ , 2]
+            AreaConnection(farmlands, [DoLRules.flight], "exit", note="via flying from the Great Hawk's Tower"), # :: Bird Tower Farmlands
+            AreaConnection(moor, connection_type="exit", note="via leaving the Great Hawk's Tower") # :: Bird Tower Rope Escape, Bird Tower Base Leave, Bird Tower Glide ['', 2]
         ])
 
         # remy_farm: 11
         # eden escape possible, but requires access to eden regardless
         remy_farm.extend([
-            AreaConnection(forest, connection_type="exit") # all lead to :: Livestock Escape Town
+            AreaConnection(forest, connection_type="exit", note="via Escaping Remy's Farm") # all lead to :: Livestock Escape Town
         ])
 
         # wolf_cave: 12
         wolf_cave.extend([
-            AreaConnection(forest, connection_type="exit"), # :: Forest Wolf Cave Rape End, Forest Wolf Cave Escape
-            AreaConnection(ocean, connection_type="exit") # :: Wolf Cave Descent
+            AreaConnection(forest, connection_type="exit", note="via Running from the Wolves Cave"), # :: Forest Wolf Cave Rape End, Forest Wolf Cave Escape
+            AreaConnection(ocean, connection_type="exit", note="via Digging out from the Wolves Cave") # :: Wolf Cave Descent
         ])
 
         
@@ -735,7 +806,6 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         # don't randomize if we have badend entrances also just randomized, because then its just effectively doing the same thing
         if world.options.randomize_badends and not world.options.randomize_entrances_badends:
             badends = RandomizationPool(badends).run()
-
 
     def tentacle_connections():
         asylum.append(
@@ -783,43 +853,30 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         # column 9
         # harvest_street.extend([AreaConnection(mer_street), AreaConnection(elk_street)
         #                        ])
+            
 
-    # Running through world options
+    # -------- Start: Randomization --------
 
-    # if we want things to be randomized we have to connect them before randomization
     if not world.options.walkable_town: walkabletown_connections()
     if world.options.randomize_entrances_badends: 
         badend_connections()
         world_regions.extend(badends)
     if world.options.randomize_tentacleareas: tentacle_connections()
+    if world.options.shop_locations == 2: world_regions.extend(shops)
+    if world.options.randomize_entrances: world_regions = RandomizationPool(world_regions).run()
 
-    if world.options.shop_locations == 2: 
-        for area in shopping_centre_areas: shopping_centre.append(AreaConnection(area))
-        world_regions.extend(shops)
-    
-    if world.options.randomize_entrances:
-        # Randomization System:
-        # go through every area defined in world_regions
-        # remove every connection in every area in that region and add it to a pool
-        # world.random.shuffle that pool
-        # add all connections back, keeping intact their to rules to enter the connection, area sizes, and connection type
-            # connection types are shuffled whithin themselves, 
-            # so areas that are exit only only lead to other connections that are exit only
-        # explained further in the RandomizationPool class
-        # any areas not defined world_regions will not be randomized, and can be added after this
-        world_regions = RandomizationPool(world_regions).run()
+    # -------- Post: World Randomization --------
 
-    if world.options.shop_locations == 1:
-        shops = RandomizationPool(shops).run()
+    if world.options.shop_locations == 1: shops = RandomizationPool(shops).run()
+
+    # -------- Post: Randomization --------
     world_regions.extend(shops)
-
-    # Post-Randomization
 
     # add connections to hospital via fainting in the street
     # don't not include nightingale, because the hospital might of been randomzied away!
     for reg in in_town: 
         # print(f"adding {reg.name()}'s connection to Hospital")
-        reg.append(AreaConnection(hospital, connection_type="entrance"))
+        reg.append(AreaConnection(hospital, connection_type="entrance", note="via Fainting"))
 
     if world.options.walkable_town: walkabletown_connections()
     if not world.options.randomize_entrances_badends: 
@@ -827,10 +884,18 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         world_regions.extend(badends)
     if not world.options.randomize_tentacleareas: tentacle_connections()
 
-    # TODO: import and add rules and items here
+    world_regions.append(in_town := Area(DoLRegionNames.in_town, [
+        AreaConnection(domus_street), AreaConnection(barb_street), AreaConnection(danube_street),
+        AreaConnection(connudatus_street), AreaConnection(cliff_street), AreaConnection(wolf_street),
+        AreaConnection(high_street), AreaConnection(starfish_street), AreaConnection(nightingale_street),
+        AreaConnection(oxford_street), AreaConnection(mer_street), AreaConnection(elk_street),
+        AreaConnection(harvest_street)
+    ])) # debug region used for some checks to determine that this character is in town
 
     for reg in world_regions:
         subareas = []
+        if len(reg.sub_regions) > 0:
+            print(reg.sub_regions[0].return_areaName())
         for sub in reg.sub_regions:
             subareas.append(sub.return_areaName())
         # print(f"attempting to connect {reg.name()} with connections {subareas}")
