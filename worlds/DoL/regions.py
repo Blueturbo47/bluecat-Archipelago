@@ -71,7 +71,6 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         def return_areaRegion(self):
             return self.area.return_region()
 
-        
 
         def pop_note(self):
             note, self.note = self.note, ""
@@ -112,8 +111,6 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         - add_to_multiworld(): adds the finalized region to the world
         """
 
-        
-
         def __init__(self, region_name:DoLRegionNames, sub_regions:list[AreaConnection] | None = None):
             self.region_name = region_name
             self.sub_regions = sub_regions if sub_regions is not None else []
@@ -150,26 +147,12 @@ def create_and_connect_regions(world: DoLWorld) -> None:
 
             connectiontype = connection.return_connectionType()
 
-            # we have to check if an entrance/exit exists incase we randomize into the same place leading to the same place multiple times
-            # also exists by default via faiting and entering hospital on nightingale
-            # we could remove this code later by referencing every entrance via an extra note on the name and adding it to connection data
-            # TODO: this ^
-            # entrancelist = [e.name for e in multiworld.get_entrances(player)]            
-            allow_entrance = True
-            allow_exit = True
-            # allow_entrance = not f"{connection.return_areaName()} -> {self.self_region.name}" in entrancelist # entrance: someone coming in
-            # allow_exit = not f'{self.self_region.name} -> {connection.return_areaName()}' in entrancelist # exit: us going away
-            # print(f"{allow_entrance}: {connection.return_areaName()} -> {self.self_region.name}, {allow_exit}: {self.self_region.name} -> {connection.return_areaName()}")
-            # print(f"Adding connection {self.self_region.name} -> {connection.return_areaName()} | Type: {connection.return_connectionType()} | With rules {connection.return_rules()}")
-
             # TODO: rules for connections
-            if (connectiontype == "entrance" or connectiontype == None or connectiontype == "") and allow_entrance:
+            if (connectiontype == "entrance" or connectiontype == None or connectiontype == ""):
                 connection.return_areaRegion().connect(self.self_region, f"{connection.return_areaName()} -> {self.self_region.name} | {connection.note}")
 
-            if (connectiontype == "exit" or connectiontype == None or connectiontype == "") and allow_exit:
+            if (connectiontype == "exit" or connectiontype == None or connectiontype == ""):
                 self.self_region.connect(connection.return_areaRegion(), f"{self.self_region.name} -> {connection.return_areaName()} | {connection.note}")
-
-            
 
         def extend(self, connection_list:list[AreaConnection]):
             """
@@ -516,14 +499,14 @@ def create_and_connect_regions(world: DoLWorld) -> None:
                                note="via Industrial Drain from Mer Street")]))
 
 
-    in_town = [danube_street, barb_street, domus_street, 
+    in_town_regions = [danube_street, barb_street, domus_street, 
             starfish_street, cliff_street, high_street,
             nightingale_street, wolf_street, connudatus_street,
             oxford_street, harvest_street, mer_street,
             elk_street]
 
     in_town_connections:list[AreaConnection] = []
-    for street in in_town:
+    for street in in_town_regions:
         in_town_connections.append(AreaConnection(street))
 
 
@@ -618,6 +601,9 @@ def create_and_connect_regions(world: DoLWorld) -> None:
                     i += 1
 
         def run(self):
+            """
+            Runs through a list of Areas passed to the init of this class, and then returns that list shuffled
+            """
             print(f"Randomization pool started randomization containing {self.arealist[0].name()}")
             if world.options.pool_onewayrandomization:
                 for pooltype in self.seperate(self.arealist):
@@ -664,7 +650,7 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         dog_pound_ending.extend([
             AreaConnection(dog_pound, connection_type="entrance", note="via Having 'fun' with the Dog Pound Dogs, often close to closing time")  # :: Pound Assault Caught
         ]) 
-        for street in in_town: # :: Pound Abudction
+        for street in in_town_regions: # :: Pound Abudction
             dog_pound_ending.append(AreaConnection(street, [DoLRules.wolf_tf], connection_type="entrance", note="via Abduction with Wolf Appearance"))
 
         # mines: 6
@@ -701,22 +687,29 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         #
         # TODO: figure out how I wanna handle these extra passages, 
         # many ways to enter from multiple places that just go through the same passage
-        # bus station -> Street Van Journey
+        # CHEAT REQUIREMENT, do not include: bus station -> Street Van Journey
         # Pub White Pill Van -> Street Van Journey
         # intown -> Street Van Help -> Street Van Journey
+        #
         # Street Van Journey -> Street Van Fight Finish, Street Van Submit -> Livestock Intro
         remy_farm.extend([
             AreaConnection(orphanage, connection_type="entrance", note="via Failing to pay Bailey"),  # :: Street Van Bailey
             AreaConnection(moor, connection_type="entrance", note="via Abduction in the Moor"),       # :: Moor Abduction Remy Wake
             AreaConnection(remy_farm, # TODO: remy estate
                            connection_type="entrance", note="via Passing out or losing blackjack in Remy's Estate"),  # :: Passout Estate Remy Hot Cold, widget"blackjackCaughtCheatingSurrender"
-            AreaConnection(cliff_street, ["TODO: rule access cafe"], "entrance", "via Making Sam mad and being on Cliff Street")  # :: Chef Blackmail Livestock 2
+            AreaConnection(cliff_street, ["TODO: rule access cafe"], "entrance", "via Making Sam mad and being on Cliff Street"),  # :: Chef Blackmail Livestock 2
+            AreaConnection(pub, ["TODO: rng entrance"], "entrance", "via Getting drunk at the pub, someone taking you home, then taking their White Pill")
         ])
+        for street in in_town_regions:
+            remy_farm.append(AreaConnection(street, ["TODO: rng entrance"], "entrance", "via Abduction while helping someone unload their Van"))
+
 
         # wolf_cave: 12
-        wolf_cave.extend([
-            AreaConnection(forest, connection_type="entrance", note="via Wolves in the Forest") # :: Forest Wolf Cave Intro
-        ])
+        # unable to enter if monster people or bestiality are disabled
+        if world.options.bestiality:
+            wolf_cave.extend([
+                AreaConnection(forest, connection_type="entrance", note="via Wolves in the Forest") # :: Forest Wolf Cave Intro
+            ])
 
 
         # exits:
@@ -796,10 +789,12 @@ def create_and_connect_regions(world: DoLWorld) -> None:
         ])
 
         # wolf_cave: 12
-        wolf_cave.extend([
-            AreaConnection(forest, connection_type="exit", note="via Running from the Wolves Cave"), # :: Forest Wolf Cave Rape End, Forest Wolf Cave Escape
-            AreaConnection(ocean, connection_type="exit", note="via Digging out from the Wolves Cave") # :: Wolf Cave Descent
-        ])
+        # unable to enter if monster people or bestiality are disabled
+        if world.options.bestiality:
+            wolf_cave.extend([
+                AreaConnection(forest, connection_type="exit", note="via Running from the Wolves Cave"), # :: Forest Wolf Cave Rape End, Forest Wolf Cave Escape
+                AreaConnection(ocean, connection_type="exit", note="via Digging out from the Wolves Cave") # :: Wolf Cave Descent
+            ])
 
         
         # check if we want to randomize these badend connections after connecting them
@@ -874,7 +869,7 @@ def create_and_connect_regions(world: DoLWorld) -> None:
 
     # add connections to hospital via fainting in the street
     # don't not include nightingale, because the hospital might of been randomzied away!
-    for reg in in_town: 
+    for reg in in_town_regions: 
         # print(f"adding {reg.name()}'s connection to Hospital")
         reg.append(AreaConnection(hospital, connection_type="entrance", note="via Fainting"))
 
@@ -893,13 +888,12 @@ def create_and_connect_regions(world: DoLWorld) -> None:
     ])) # debug region used for some checks to determine that this character is in town
 
     for reg in world_regions:
-        subareas = []
-        if len(reg.sub_regions) > 0:
-            print(reg.sub_regions[0].return_areaName())
-        for sub in reg.sub_regions:
-            subareas.append(sub.return_areaName())
+        # subareas = []
+        # if len(reg.sub_regions) > 0:
+        #     print(reg.sub_regions[0].return_areaName())
+        # for sub in reg.sub_regions:
+        #     subareas.append(sub.return_areaName())
         # print(f"attempting to connect {reg.name()} with connections {subareas}")
         reg.connect()
-    # Do not combine these, connections need to happen first (actually maybe not just don't wanna risk it lmao)
-    for reg in world_regions:
         reg.add_to_multiworld()
+    

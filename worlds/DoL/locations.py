@@ -7,7 +7,7 @@ from BaseClasses import Location
 from Options import Option
 
 from . import items
-from .data import DoLRegionNames, DoLLocationTypes, DoLLocationNames, LOCATION_DATA, LOCATION_RULES
+from .data import DoLRegionNames, DoLLocationTypes, DoLLocationNames, LOCATION_DATA, LOCATION_RULES, LOCATION_REQUIREMENTS
 
 if TYPE_CHECKING:
     from .world import DoLWorld
@@ -26,24 +26,29 @@ def create_regular_locations(world: DoLWorld) -> None:
         DoLLocationTypes.skill: world.options.randomize_skills
     }
 
+    # TODO: recode 
     # i = {locationname : (locationid, locationtype, [locationregions])}
     for locname in LOCATION_DATA:
         loctuple = LOCATION_DATA[locname]
         locid = loctuple[0]
         loctype = loctuple[1]
         locregions = loctuple[2]
-        if locname in LOCATION_RULES: locrule = LOCATION_RULES[locname]
-        else: locrule = ""
+        locrule = ""
+        locrequirement = ""
 
-        # cross reference the locationtype via locationtypedata to the world option
-        # so if the world option dictates we can disable a location type
+        # locrule: generation rule to determine availablity at a point
+        # locoption: the rule set in the yaml if we should randomize a location
+        # locrequirement: the rule set in the yaml if its possible to randomize a location in game settings        
+        if locname in LOCATION_RULES: locrule = LOCATION_RULES[locname] 
+        if locname in LOCATION_REQUIREMENTS: locrequirement = LOCATION_REQUIREMENTS[locname]
         option = LOCATION_TYPE_DATA[loctype]
-        if option:
+
+        if option and locrequirement:
             # for regionname in locregions:
             region = world.get_region(locregions[0]) # TODO: make this work for different locations (discord said something about events, else a new region)
             region.add_locations({locname.value: locid}, DolWorldLocation)
             newloc = world.get_location(locname)
-            print(f"Generated location '{newloc}' with rule '{"" if locrule == "" else locrule.value}'")
+            # print(f"Generated location '{newloc}' with rule '{"" if locrule == "" else locrule.value}'")
             if locrule != "":
                 world.set_rule(newloc, locrule.value)
 

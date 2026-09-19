@@ -297,6 +297,7 @@ class DoLItemNames(StrEnum):
 class DoLLocationTypes(StrEnum):
     antique = "Antique",
     skill = "Skill Rank",
+    feat = "Feat",
 
 class DoLLocationNames(StrEnum):
     """
@@ -594,6 +595,255 @@ class DoLLocationNames(StrEnum):
     skill_deviancy_5 = "Deviancy Rank 5" # crave
     skill_deviancy_6 = "Deviancy Rank 6" # lust
 
+    # Feats
+    feat_pocketchange = "Pocket Change Feat"
+    feat_moneymaker = "Money Maker Feat"
+    feat_tycoon = "Tycoon Feat"
+    feat_millionaire = "Millionaire Feat"
+    feat_itbelongsinamuseum = "It Belongs in a Museum Feat"
+    feat_fullycovered = "Fully Covered Feat"
+    feat_beingaboy = "Being a Boy Feat"
+    feat_beingagirl = "Being a Girl Feat"
+    feat_beingahermaphrodite = "Being a Hermaphrodite Feat"
+    feat_beinganorphan = "Being an Orphan Feat"
+    feat_stressfulchallenge = "Stressful Challenge Feat"
+    feat_longstressfulchallenge = "Long Stressful Challenge Feat"
+    feat_billboard = "Billboard Feat"
+    feat_alivingcanvas = "A Living Canvas Feat"
+    feat_farmhand = "Farmhand Feat"
+    feat_farmer = "Farmer Feat"
+    feat_cultivator = "Cultivator Feat"
+    feat_therivalfarm = "The Rival Farm Feat"
+    feat_therivalestate = "The Rival Estate Feat"
+    feat_heroicvictory = "Heroic Victory Feat"
+    feat_fiveinarow = "Five in a Row Feat"
+    feat_distinction = "Distinction Feat"
+    feat_distinctive = "Distinctive Feat"
+    feat_distinguished = "Distinguished Feat"
+    feat_chefdetournant = "Chef de Tournant Feat"
+    feat_chefdepartie = "Chef de Partie Feat"
+    feat_souschef = "Sous Chef Feat"
+    feat_sciencefairwinner = "Science Fair Winner Feat"
+    feat_thesisoffence = "Thesis Offence Feat"
+    feat_mathscompetitionwinner = "Maths Competition Winner Feat"
+    feat_richhearts = "Rich Hearts Feat"
+    feat_mostaware = "Most Aware Feat"
+    feat_mostinnocent = "Most Innocent Feat"
+    feat_nomorecontrol = "No More Control Feat"
+    feat_thief = "Thief Feat"
+    feat_mayihavethisdance = "May I Have This Dance? Feat"
+    feat_aquanaut = "Aquanaut Feat"
+    feat_seductress = "Seductress Feat"
+    feat_greenfingered = "Green Fingered Feat"
+    feat_majordomo = "Majordomo Feat"
+    feat_swift = "Swift Feat"
+    feat_alluring = "Alluring Feat"
+    feat_sexspecialist = "Sex Specialist Feat"
+    feat_perfectrecord = "Perfect Record Feat"
+    feat_perfectsub = "Perfect Sub Feat"
+    feat_defyingtheodds = "Defying the Odds Feat"
+    feat_hawker = "Hawker Feat"
+    feat_vendor = "Vendor Feat"
+    feat_merchant = "Merchant Feat"
+    feat_twisteddesire = "Twisted Desire Feat"
+    feat_servedhot = "Served Hot Feat"
+    feat_sadomasochist = "Sadomasochist Feat"
+    feat_shiningreputation = "Shining Reputation Feat"
+    feat_socialbutterfly = "Social Butterfly Feat"
+    feat_unsocialmoth = "Unsocial Moth Feat"
+    feat_teacherspet = "Teacher's Pet Feat"
+    feat_teachersnightmare = "Teacher's Nightmare Feat"
+    feat_robinthelover = "Robin the Lover Feat"
+    feat_hungryorphan = "Hungry Orphan Feat"
+    feat_robinssong = "Robin's Song Feat"
+    feat_whitneythebully = "Whitney the Bully Feat"
+    feat_thebullystithe = "The Bully's Tithe Feat"
+    feat_delinquentantics = "Delinquent Antics Feat"
+    feat_giddyup = "Giddy Up Feat"
+    feat_whitneyssecret = "Whitney's Secret Feat"
+    feat_kylartheobsessed = "Kylar the Obsessed Feat"
+    feat_notforrats = "Not for Rats Feat"
+    feat_edenthelonely = "Eden the Lonely Feat"
+    feat_sweetandtender = "Sweet and Tender Feat"
+    feat_averythemoneybags = "Avery the Moneybags Feat"
+    feat_kept = "Kept Feat"
+    feat_whatgoesaround = "What Goes Around Feat"
+    feat_mostexclusive = "Most Exclusive Feat"
+    feat_pridecometh = "Pride Cometh Feat"
+    feat_hautecuisine = "Haute Cuisine Feat"
+    feat_leightontheshady = "Leighton the Shady Feat"
+    feat_alextherobust = "Alex the Robust Feat"
+    feat_homecooking = "Home Cooking Feat"
+    feat_greathawktheterror = "Great Hawk the Terror Feat"
+    feat_returnthefavour = "Return the Favour Feat"
+    feat_feathertrick = "Feather Trick Feat"
+    feat_wrenthesly = "Wren the Sly Feat"
+    feat_blackwolfthealpha = "Black Wolf the Alpha Feat"
+    feat_encroachingcivilisation = "Encroaching Civilisation Feat"
+    feat_sydneythepurehearted = "Sydney the Pure-Hearted Feat"
+    feat_communion = "Communion Feat"
+    feat_harperthehypnotist = "Harper the Hypnotist Feat"
+    feat_morganthelost = "Morgan the Lost Feat"
+    feat_gwylanthebewitching = "Gwylan the Bewitching Feat"
+    feat_covencomforts = "Coven Comforts Feat"
+    feat_lovetriangles = "Love Triangles Feat"
+    feat_lovetrapezoids = "Love Trapezoids Feat"
+    feat_bemyvalentine = "Be My Valentine Feat"
+    feat_ballroomshowoff = "Ballroom Show-off Feat"
+    feat_underthetable = "Under the Table Feat"
+    feat_pubcrawlvictors = "Pub Crawl Victors Feat"
+    feat_masonssecret = "Mason's Secret Feat"
+    feat_masonsshame = "Mason's Shame Feat"
+    feat_animaltender = "Animal Tender Feat"
+    feat_ispy = "I Spy Feat"
+    feat_firstkiss = "First Kiss Feat"
+    feat_acrimemostfoul = "A Crime Most Foul Feat"
+    feat_longing = "Longing Feat"
+    feat_paganrite = "Pagan Rite Feat"
+    feat_warmestwinter = "Warmest Winter Feat"
+    feat_trialsoffaith = "Trials of Faith Feat"
+    feat_firstverse = "First Verse Feat"
+    feat_wildsong = "Wildsong Feat"
+    feat_foxbane = "Foxbane Feat"
+    feat_purrfect = "Purrfect Feat"
+    feat_howlatthemoon = "Howl at the Moon Feat"
+    feat_messwiththebull = "Mess With the Bull... Feat"
+    feat_flylikeaneagle = "Fly Like an Eagle Feat"
+    feat_youslyfox = "You Sly Fox Feat"
+    feat_walklikeanangel = "Walk Like an Angel Feat"
+    feat_fallingfallingfalling = "Falling, Falling, Falling... Feat"
+    feat_devilishlooks = "Devilish Looks Feat"
+    feat_headchef = "Head Chef Feat"
+    feat_laughingstock = "Laughingstock Feat"
+    feat_yourethelaughingstock = "You're the Laughingstock Feat"
+    feat_illicitscience = "Illicit Science Feat"
+    feat_mouthsealedshut = "Mouth Sealed Shut Feat"
+    feat_neckdeep = "Neck Deep Feat"
+    feat_seedy = "Seedy Feat"
+    feat_breedy = "Breedy Feat"
+    feat_athunderousresponse = "A Thunderous Response Feat"
+    feat_alewdadventure = "A Lewd Adventure Feat"
+    feat_sourdealing = "Sour Dealing Feat"
+    feat_painrider = "Pain Rider Feat"
+    feat_submerged = "Submerged Feat"
+    feat_wrongsize = "Wrong Size Feat"
+    feat_idlehands = "Idle Hands Feat"
+    feat_stolentechnology = "Stolen Technology Feat"
+    feat_spelunking = "Spelunking Feat"
+    feat_xmarksthespot = "X Marks the Spot Feat"
+    feat_buriedtreasure = "Buried Treasure Feat"
+    feat_flurry = "Flurry Feat"
+    feat_afestivehome = "A Festive Home Feat"
+    feat_employeebenefits = "Employee Benefits Feat"
+    feat_dealing = "Dealing Feat"
+    feat_bentcopper = "Bent Copper Feat"
+    feat_socialcontract = "Social Contract Feat"
+    feat_slipthroughthebackdoor = "Slip Through the Backdoor Feat"
+    feat_lifeoftheparty = "Life of the Party Feat"
+    feat_belleoftheball = "Belle of the Ball Feat"
+    feat_breakingthestone = "Breaking the Stone Feat"
+    feat_poundalpha = "Pound Alpha Feat"
+    feat_poundrunt = "Pound Runt Feat"
+    feat_poundedpound = "Pounded Pound Feat"
+    feat_poundliberator = "Pound Liberator Feat"
+    feat_thevalueofpain = "The Value of Pain Feat"
+    feat_bewitchingechoes = "Bewitching Echoes Feat"
+    feat_bridgingthepast = "Bridging the Past Feat"
+    feat_safetrail = "Safe Trail Feat"
+    feat_fieldwork = "Field Work Feat"
+    feat_concretewoodland = "Concrete Woodland Feat"
+    feat_schoolgreen = "School Green Feat"
+    feat_hookahmaster = "Hookah Master Feat"
+    feat_sinsofthepast = "Sins of the Past Feat"
+    feat_panicroom = "Panic Room Feat"
+    feat_defythenight = "Defy the Night Feat"
+    feat_witheringtruth = "Withering Truth Feat"
+    feat_backroomdeals = "Backroom Deals Feat"
+    feat_stompingdownthestreet = "Stomping Down The Street Feat"
+    feat_hearmeroar = "Hear Me Roar Feat"
+    feat_maxthoseshots = "Max Those Shots Feat"
+    feat_openedpandorasbox = "Opened Pandora's Box Feat"
+    feat_openedpandorascocks = "Opened Pandora's Cocks Feat"
+    feat_brothelprovider = "Brothel Provider Feat"
+    feat_playerofthematch = "Player of the Match Feat"
+    feat_lockedingold = "Locked in Gold Feat"
+    feat_theendlessdeep = "The Endless Deep Feat"
+    feat_wetandruined = "Wet and Ruined Feat"
+    feat_terrorsequal = "Terror's Equal Feat"
+    feat_birdsofafeather = "Birds of a Feather... Feat"
+    feat_runawaycattle = "Runaway Cattle Feat"
+    feat_equinerescue = "Equine Rescue Feat"
+    feat_rearpassenger = "Rear Passenger Feat"
+    feat_corneredrogue = "Cornered Rogue Feat"
+    feat_farmprotector = "Farm Protector Feat"
+    feat_aknottoremember = "A Knot to Remember Feat"
+    feat_abnormalmollusc = "Abnormal Mollusc Feat"
+    feat_leverage = "Leverage Feat"
+    feat_undertheice = "Under the Ice Feat"
+    feat_inredlight = "In Red Light Feat"
+    feat_ohbother = "Oh Bother Feat"
+    feat_notlikethemovies = "Not Like the Movies Feat"
+    feat_slippery = "Slippery Feat"
+    feat_highreflection = "High Reflection Feat"
+    feat_schism = "Schism Feat"
+    feat_catchthewind = "Catch The Wind Feat"
+    feat_tradingdignity = "Trading Dignity Feat"
+    feat_playingwithfire = "Playing with Fire Feat"
+    feat_firestarter = "Firestarter Feat"
+    feat_towatchthefields = "To Watch the Fields Feat"
+    feat_reliableemployer = "Reliable Employer Feat"
+    feat_intothesunset = "Into the Sunset Feat"
+    feat_institutionalised = "Institutionalised Feat"
+    feat_breaker = "Breaker Feat"
+    feat_timeandpressure = "Time and Pressure Feat"
+    feat_morethananumber = "More than a Number Feat"
+    feat_friendsinthesky = "Friends in the Sky Feat"
+    feat_notmeanttobecaged = "Not Meant to be Caged Feat"
+    feat_freebooze = "Free Booze Feat"
+    feat_darkdelvings = "Dark Delvings Feat"
+    feat_lurkerbeyond = "Lurker Beyond Feat"
+    feat_downbelow = "Down Below Feat"
+    feat_lostworld = "Lost World Feat"
+    feat_prehistoriclandscape = "Prehistoric Landscape Feat"
+    feat_faceofaguardian = "Face of a Guardian Feat"
+    feat_wildmonarch = "Wild Monarch Feat"
+    feat_naturalised = "Naturalised Feat"
+    feat_gildedspear = "Gilded Spear Feat"
+    feat_lostheirloom = "Lost Heirloom Feat"
+    feat_50shadesoftan = "50 Shades of Tan Feat"
+    feat_aspecialtrait = "A Special Trait Feat"
+    feat_aspecialtraitcollector = "A Special Trait Collector Feat"
+    feat_produceroflewdfluids = "Producer of Lewd Fluids Feat"
+    feat_literallybuckets = "Literally Buckets Feat"
+    feat_feelingfull = "Feeling Full Feat"
+    feat_baileystroublemaker = "Bailey's Trouble Maker Feat"
+    feat_leightonsnightmare = "Leighton's Nightmare Feat"
+    feat_alexspartner = "Alex's Partner Feat"
+    feat_harpersbane = "Harper's Bane Feat"
+    feat_headofthepack = "Head of the Pack Feat"
+    feat_topofthefoodchain = "Top of the Food Chain Feat"
+    feat_prideofthefarm = "Pride of the Farm Feat"
+    feat_dawntodusk = "Dawn to Dusk Feat"
+    feat_earslimelover = "Ear Slime Lover Feat"
+    feat_earslimeamalgam = "Ear Slime Amalgam Feat"
+    feat_thepathtoredemption = "The Path to Redemption Feat"
+    feat_anewlife = "A New Life Feat"
+    feat_negotiator = "Negotiator Feat"
+    feat_curiousattire = "Curious Attire Feat"
+    feat_wickedwardrobe = "Wicked Wardrobe Feat"
+    feat_mycollectionoffeats = "My Collection of Feats Feat"
+    feat_mytimelesscollectionoffeats = "My Timeless Collection of Feats Feat"
+    feat_broodmotherhost = "Broodmother Host Feat"
+    feat_topbroodmotherhost = "Top Broodmother Host Feat"
+    feat_broodmotherzoologist = "Broodmother Zoologist Feat"
+    feat_miracleoflife = "Miracle of Life Feat"
+    feat_firstfatherhood = "First Fatherhood Feat"
+    feat_hailmary = "Hail Mary Feat"
+    feat_bicyclemother = "Bicycle Mother Feat"
+    feat_lifecomesinthrees = "Life Comes in Threes Feat"
+    feat_lifebeginswhenyouleastexpect = "Life begins when you least expect Feat"
+    feat_diversityoflife = "Diversity of Life Feat"
+
 class DoLRules(Enum):
     # optionfilter...
     # if option X equals (or whatever is set as condition) 
@@ -791,12 +1041,28 @@ class DoLRules(Enum):
     # Item Checks
     fakeid = Has("Fake ID")
 
-    # Area Checks
+    # Area Access General
     access_orphanage = CanReachRegion(DoLRegionNames.orphanage)
     access_school = CanReachRegion(DoLRegionNames.school)
+    access_remyfarm = CanReachRegion(DoLRegionNames.remy_farm)
+    access_averymansion = CanReachRegion(DoLRegionNames.avery_mansion)
+    access_park = CanReachRegion(DoLRegionNames.park)
+    access_temple = CanReachRegion(DoLRegionNames.temple)
+    access_industrialdrain = CanReachRegion(DoLRegionNames.industrial_drain)
+    access_forest = CanReachRegion(DoLRegionNames.forest)
+    access_beach = CanReachRegion(DoLRegionNames.beach)
+    access_cliffstreet = CanReachRegion(DoLRegionNames.cliff_street)
+    access_oxfordstreet = CanReachRegion(DoLRegionNames.oxford_street)
+    access_moor = CanReachRegion(DoLRegionNames.moor)
+    # TODO: check ^this for access maze
+    access_pub = CanReachRegion(DoLRegionNames.pub)
+    access_landfill = CanReachRegion(DoLRegionNames.landfill)
+    access_photography = CanReachRegion(DoLRegionNames.photography_studio)
+    access_adultshop = CanReachRegion(DoLRegionNames.adult_shop)
+    access_brothel = CanReachRegion(DoLRegionNames.brothel)
+    access_birdtower = CanReachRegion(DoLRegionNames.bird_tower)
 
     # Game Options:
-
     multipleruns_toggle = OptionFilter(MultipleRuns, MultipleRuns.option_true)
     rng_toggle = OptionFilter(DontRestrictRNG, DontRestrictRNG.option_true)
 
@@ -805,7 +1071,7 @@ class DoLRules(Enum):
     tentacles_toggle = OptionFilter(Tentacles, Tentacles.option_true)
     lactation_toggle = OptionFilter(Lactation, Lactation.option_true)
     softvore_toggle = OptionFilter(SoftVore, SoftVore.option_true)
-    beastiality_toggle = OptionFilter(Beastiality, Beastiality.option_true)
+    bestiality_toggle = OptionFilter(Bestiality, Bestiality.option_true)
     parasites_toggle = OptionFilter(Parasites, Parasites.option_true)
     # swarms_toggle = OptionFilter(Swarms)
     bodywriting_toggle = OptionFilter(Bodywriting, Bodywriting.option_true)
@@ -816,832 +1082,57 @@ class DoLRules(Enum):
     animal_transformation_toggle = OptionFilter(AnimalTransformations, AnimalTransformations.option_true)
     divine_transformation_toggle = OptionFilter(DivineTransformations, DivineTransformations.option_true)
 
+    tentacles_or_beastiality = Rule(tentacles_toggle) | bestiality_toggle
 
     # Transformations:
     randomize_tf_parts = OptionFilter(RandomizeTransformations, RandomizeTransformations.option_tfparts)
     randomize_tf_full = OptionFilter(RandomizeTransformations, RandomizeTransformations.option_transformations)
-    
-    wolf_tf = Has("Wolf Transformation") & randomize_tf_parts | randomize_tf_full  # TODO: update with actual part 
-    harpy_tf = Has("Harpy Transformation")
 
-    flight = Has("Flight")
+    # TODO: redo these rules
+    # wolf_tf = Has("Wolf Transformation") & randomize_tf_parts | randomize_tf_full  # TODO: update with actual part 
+    # harpy_tf = Has("Harpy Transformation")
+    # flight = Has("Flight")
+    # animal_transformation = animal_transformation_toggle # all feats that require an animal tf
+    # angel = divine_transformation_toggle & multipleruns_toggle
+    # fallenangel = divine_transformation_toggle & multipleruns_toggle
+    # demon = divine_transformation_toggle
 
-    # Sexual Traits
-    bitch_trait = beastiality_toggle
-    prey_trait = tentacles_toggle
-    tasty_trait = softvore_toggle
-    milkaddict_trait = lactation_toggle
 
-    # Area Rulings:
-    tentacle_plains = tentacles_toggle & deviancy_5
-    tentacle_forest = tentacles_toggle
+    # Area Access Complex:
+    access_tentacleplains = tentacles_toggle & deviancy_5
+    access_tentacleforest = tentacles_toggle
 
     # avery_mansion_score = Rule(housekeeping_4) # replace with adoption papers check
 
-    # # Feat Rulings:
-    # # no_control = Rule(beastiality_toggle) # "beastiality or monster people"? so doesn't require any toggle?
-    # # equinerescue_feat = Rule(beastiality_toggle) # TODO: double check that this requires beastiality, I dobut it
-    # # headpack_feat = Rule(beastiality_toggle) # TODO: double check that this requires beastiality, I dobut it
-    # # foodchain_feat = Rule(beastiality_toggle) # TODO: double check that this requires beastiality, I dobut it
-    # knot_feat = beastiality_toggle
+    # Science Fair
+    science_lichen = access_park & access_temple & access_industrialdrain & access_forest
+    science_mushroom = access_forest
+    science_phalli = access_beach & promiscuity_3
+    # cliff street is the location set of the fair so does not be in rule
+    sciencefairwinner = (science_lichen | science_mushroom | science_phalli) & access_school
+    sciencefairoffence = science_phalli & access_school
 
-    # sexspecialist_feat = anal_toggle
-    # pridefarm_feat = lactation_toggle
-    # crimmostfowl_feat = bodywriting_toggle # sydney will write on you unless you have bodywriting **off**
+    # Math Fair
+    # just need oxford street for stims, and orphanage for studying
+    mathcomp = access_school & access_orphanage & access_oxfordstreet
 
-    # animal_transformation_feat = animal_transformation_toggle # all feats that require an animal tf
-    # angel_feat = divine_transformation_toggle & multipleruns_toggle
-    # fallenangel_feat = divine_transformation_toggle & multipleruns_toggle
-    # demon_feat = divine_transformation_toggle
+    # Recipes (able to learn any)
+    access_recipe = access_school | access_averymansion
+
+    # TODO: cur at pound liberator
+    # Specific Feats
+    ballroomshowoff = dancing_8 | promiscuity_2
     
-    # specialtraitcollector_feat = bitch_trait & prey_trait & tasty_trait & milkaddict_trait
-    
-    # broodmother_feat = parasiticpregnancy_toggle & tentacles_toggle & beastiality_toggle
-    # # zoologist also here ^
-    # earslime_feat = parasites_toggle & parasiticpregnancy_toggle # change if I ever swap parasitic preg toggle
-    # # ear slime amalgam also here ^
-    # giantslug_feat = parasiticpregnancy_toggle # change if I ever swap parasitic preg toggle
-    # redemption_feat = divine_transformation_toggle
-    
-    # getpregnant_feat = pregnancy_toggle
-    # fatherhood_feat = pregnancy_toggle
-    # mpreg_feat = pregnancy_toggle & parasites_toggle
-    # hailmary_feat = pregnancy_toggle & multipleruns_toggle
 
-LOCATION_DATA:dict[DoLLocationNames, tuple[int, DoLLocationTypes, list[DoLRegionNames]]] = {
 
-    # -------- Antiques --------
-    
-    DoLLocationNames.antique_ivorystatuette: (100, DoLLocationTypes.antique, [
-                    DoLRegionNames.temple
-                ]), # antiqueivorystatuette
 
-    DoLLocationNames.antique_silvercoin: (101, DoLLocationTypes.antique, [
-                    DoLRegionNames.temple,
-                    DoLRegionNames.moor
-                ]), # antiquesilvercoin
+# Definition: [Location Name, [Location ID, [Locations this is from], [Rules to generate the location], [Rules to get to the location]]]
+# note: [Locations this is from] is ANY location not ALL locations needed
+# create a rule for all locations needed
 
-    DoLLocationNames.antique_crystal: (102, DoLLocationTypes.antique, [
-                    DoLRegionNames.temple
-                ]), # antiquewhitecrystal
+# Notes:
 
-    DoLLocationNames.antique_silverblade: (103, DoLLocationTypes.antique, [
-                    DoLRegionNames.temple
-                ]), # antiquesilverblade
-
-    DoLLocationNames.antique_coppercoin: (104, DoLLocationTypes.antique, [
-                    DoLRegionNames.temple
-                ]), # antiquecoppercoin
-
-    DoLLocationNames.antique_silvergoblet: (105, DoLLocationTypes.antique, [
-                    DoLRegionNames.temple
-                ]), # antiquesilvergoblet
-
-    DoLLocationNames.antique_fetish: (106, DoLLocationTypes.antique, [
-                    DoLRegionNames.temple
-                ]), # antiquestrangefetish
-
-    DoLLocationNames.antique_goldcoin: (107, DoLLocationTypes.antique, [
-                    DoLRegionNames.temple
-                ]), # antiquegoldcoin
-
-    DoLLocationNames.antique_forestdagger: (108, DoLLocationTypes.antique, [
-                    DoLRegionNames.forest
-                ]), # antiqueforestdagger
-
-    DoLLocationNames.antique_forestgem: (109, DoLLocationTypes.antique, [
-                    DoLRegionNames.forest
-                ]), # antiqueforestgem
-
-    DoLLocationNames.antique_arrow: (110, DoLLocationTypes.antique, [
-                    DoLRegionNames.forest
-                ]), # antiqueforestarrow
-
-    DoLLocationNames.antique_ivorynecklace: (111, DoLLocationTypes.antique, [
-                    DoLRegionNames.forest_lake
-                ]), # antiqueivorynecklace
-
-    DoLLocationNames.antique_ivorybox: (112, DoLLocationTypes.antique, [
-                    DoLRegionNames.forest_lake
-                ]), # antiquebox
-
-    DoLLocationNames.antique_silverring: (113, DoLLocationTypes.antique, [
-                    DoLRegionNames.forest_lake
-                ]), # antiquesilverring
-
-    DoLLocationNames.antique_goldnecklace: (114, DoLLocationTypes.antique, [
-                    DoLRegionNames.forest_lake
-                ]), # antiquegoldnecklace
-
-    DoLLocationNames.antique_chastitybelt: (115, DoLLocationTypes.antique, [
-                    DoLRegionNames.forest_lake
-                ]), # antiquegoldchastitybelt
-
-    DoLLocationNames.antique_stonetalisman: (116, DoLLocationTypes.antique, [
-                    DoLRegionNames.meadow
-                ]), # antiquestonetalisman
-
-    DoLLocationNames.antique_horn: (117, DoLLocationTypes.antique, [
-                    DoLRegionNames.moor, # maze
-                    DoLRegionNames.residential_drain, # lower sewers 
-                    DoLRegionNames.commercial_drain, # TODO: replace with deep sewers location?
-                    DoLRegionNames.industrial_drain
-                ]), # antiquehorn
-
-    DoLLocationNames.antique_snuffer: (118, DoLLocationTypes.antique, [
-                    DoLRegionNames.moor, # maze
-                ]), # antiquesnuffer
-
-    DoLLocationNames.antique_bucket: (119, DoLLocationTypes.antique, [
-                    DoLRegionNames.moor, # maze
-                ]), # antiquebucket
-
-    DoLLocationNames.antique_silvermanacle: (120, DoLLocationTypes.antique, [
-                    DoLRegionNames.moor, # maze
-                ]), # antiquesilvermanacle
-
-    DoLLocationNames.antique_whip: (121, DoLLocationTypes.antique, [
-                    DoLRegionNames.moor, # maze
-                ]), # antiquewhip
-
-    DoLLocationNames.antique_goldring: (122, DoLLocationTypes.antique, [
-                    DoLRegionNames.moor
-                ]), # antiquegoldring
-
-    DoLLocationNames.antique_bell: (123, DoLLocationTypes.antique, [
-                    DoLRegionNames.moor
-                ]), # antiquebell
-
-    DoLLocationNames.antique_bullet: (124, DoLLocationTypes.antique, [
-                    DoLRegionNames.moor,
-                    DoLRegionNames.bird_tower
-                ]), # antiquebullet
-
-    DoLLocationNames.antique_artilleryshell: (125, DoLLocationTypes.antique, [
-                    DoLRegionNames.moor
-                ]), # antiqueshell
-
-    DoLLocationNames.antique_grenade: (126, DoLLocationTypes.antique, [
-                    DoLRegionNames.riding_school
-                ]), # antiquegrenade
-
-    DoLLocationNames.antique_goldbrooch: (127, DoLLocationTypes.antique, [
-                    DoLRegionNames.dance_studio
-                ]), # antiquegoldbrooch
-
-    DoLLocationNames.antique_silverbrooch: (128, DoLLocationTypes.antique, [
-                    DoLRegionNames.orphanage
-                ]), # antiquesilverbrooch
-
-    DoLLocationNames.antique_islanderarrow: (129, DoLLocationTypes.antique, [
-                    DoLRegionNames.island
-                ]), # antiqueislandarrow
-
-    DoLLocationNames.antique_islandermask: (130, DoLLocationTypes.antique, [
-                    DoLRegionNames.island
-                ]), # antiquewoodenmask
-
-    DoLLocationNames.antique_obsidiandisc: (131, DoLLocationTypes.antique, [
-                    DoLRegionNames.island
-                ]), # antiqueobsidiandisc
-
-    DoLLocationNames.antique_trilobitefossil: (132, DoLLocationTypes.antique, [
-                    DoLRegionNames.island
-                ]), # antiquetrilobitefossil
-
-    DoLLocationNames.antique_baileyminesign: (133, DoLLocationTypes.antique, [
-                    DoLRegionNames.landfill
-                ]), # antiqueminesign
-
-    DoLLocationNames.antique_incenseburner: (134, DoLLocationTypes.antique, [
-                    DoLRegionNames.landfill
-                ]), # antiquetrashburner
-
-    DoLLocationNames.antique_cup: (135, DoLLocationTypes.antique, [
-                    DoLRegionNames.landfill
-                ]), # antiquetrashcup 
-
-    DoLLocationNames.antique_silvermask: (136, DoLLocationTypes.antique, [
-                    DoLRegionNames.manors
-                ]), # antiquesilvermask
-
-    DoLLocationNames.antique_silveramulet: (137, DoLLocationTypes.antique, [
-                    DoLRegionNames.compound
-                ]), # antiquesilveramulet
-
-    DoLLocationNames.antique_hourglass: (138, DoLLocationTypes.antique, [
-                    DoLRegionNames.pirate_ship
-                ]), # antiquehourglass
-
-    DoLLocationNames.antique_swordcane: (139, DoLLocationTypes.antique, [
-                    DoLRegionNames.pirate_ship
-                ]), # antiqueswordcane
-
-    DoLLocationNames.antique_chocolate: (140, DoLLocationTypes.antique, [
-                    DoLRegionNames.pirate_ship
-                ]), # antiquechocolate
-
-    DoLLocationNames.antique_teacaddy: (141, DoLLocationTypes.antique, [
-                    DoLRegionNames.pirate_ship
-                ]), # antiqueteacaddy
-
-    DoLLocationNames.antique_woodenfigurine: (142, DoLLocationTypes.antique, [
-                    DoLRegionNames.pirate_ship
-                ]), # antiquewoodenfigurine
-
-    DoLLocationNames.antique_copperring: (143, DoLLocationTypes.antique, [
-                    DoLRegionNames.pirate_ship
-                ]), # antiquecopperring
-
-    DoLLocationNames.antique_goldcompass: (144, DoLLocationTypes.antique, [
-                    DoLRegionNames.pirate_ship
-                ]), # antiquegoldcompass
-
-    DoLLocationNames.antique_coppercompass: (145, DoLLocationTypes.antique, [
-                    DoLRegionNames.ocean
-                ]), # antiquecoppercompass
-
-    DoLLocationNames.antique_coralring: (146, DoLLocationTypes.antique, [
-                    DoLRegionNames.ocean
-                ]), # antiquecoralring
-
-    DoLLocationNames.antique_diamond: (147, DoLLocationTypes.antique, [
-                    DoLRegionNames.ocean
-                ]), # antiquediamond
-
-    DoLLocationNames.antique_brassstatuette: (148, DoLLocationTypes.antique, [
-                    DoLRegionNames.temple
-                ]), # antiquebrassstatuette
-
-    DoLLocationNames.antique_golddagger: (149, DoLLocationTypes.antique, [
-                    DoLRegionNames.avery_mansion
-                ]), # antiquegolddagger
-
-    DoLLocationNames.antique_goldamulet: (150, DoLLocationTypes.antique, [
-                    DoLRegionNames.avery_mansion
-                ]), # antiquegoldamulet
-
-    DoLLocationNames.antique_goldmask: (151, DoLLocationTypes.antique, [
-                    DoLRegionNames.avery_mansion
-                ]), # antiquegoldmask
-
-    DoLLocationNames.antique_silvercompass: (152, DoLLocationTypes.antique, [
-                    DoLRegionNames.beach
-                ]), # antiquesilvercompass
-
-    DoLLocationNames.antique_leathermap: (153, DoLLocationTypes.antique, [
-                    DoLRegionNames.beach
-                ]), # antiqueleathermap
-
-    DoLLocationNames.antique_cutlass: (154, DoLLocationTypes.antique, [
-                    DoLRegionNames.beach
-                ]), # antiquecutlass
-
-    DoLLocationNames.antique_silverdagger: (155, DoLLocationTypes.antique, [
-                    DoLRegionNames.beach
-                ]), # antiquesilverdagger
-
-    DoLLocationNames.antique_rustedcutlass: (156, DoLLocationTypes.antique, [
-                    DoLRegionNames.beach
-                ]), # antiquerustedcutlass
-
-    DoLLocationNames.antique_pinkcrystal: (157, DoLLocationTypes.antique, [
-                    DoLRegionNames.commercial_drain,
-                    DoLRegionNames.industrial_drain, # TODO: replace with deep sewers location?
-                    DoLRegionNames.residential_drain,
-                ]), # antiquecrystal
-
-    DoLLocationNames.antique_candlestick: (158, DoLLocationTypes.antique, [
-                    DoLRegionNames.commercial_drain,
-                    DoLRegionNames.industrial_drain, # TODO: replace with deep sewers location?
-                    DoLRegionNames.residential_drain,
-                ]), # antiquecandlestick
-
-    DoLLocationNames.antique_dildo: (159, DoLLocationTypes.antique, [
-                    DoLRegionNames.commercial_drain,
-                    DoLRegionNames.industrial_drain, # TODO: replace with deep sewers location?
-                    DoLRegionNames.residential_drain,
-                ]), # antiquedildo
-
-    DoLLocationNames.antique_watch: (160, DoLLocationTypes.antique, [
-                    DoLRegionNames.commercial_drain,
-                    DoLRegionNames.industrial_drain, # TODO: replace with deep sewers location?
-                    DoLRegionNames.residential_drain,
-                ]), # antiquewatch
-    
-    DoLLocationNames.antique_silvercrown: (161, DoLLocationTypes.antique, [
-                    DoLRegionNames.temple
-                ]), # antiquesilvercrown
-
-    # -------- skills --------
-
-    DoLLocationNames.skill_skulduggery_1 : (162, DoLLocationTypes.skill, [
-                        DoLRegionNames.school, 
-                    ]),
-    DoLLocationNames.skill_skulduggery_2 : (163, DoLLocationTypes.skill, [
-                        DoLRegionNames.domus_houses, 
-                    ]),
-    DoLLocationNames.skill_skulduggery_3 : (164, DoLLocationTypes.skill, [
-                        DoLRegionNames.barb_street, 
-                        DoLRegionNames.connudatus_street,
-                    ]),
-    DoLLocationNames.skill_skulduggery_4 : (165, DoLLocationTypes.skill, [
-                        DoLRegionNames.danube_houses, 
-                    ]),
-    DoLLocationNames.skill_skulduggery_5 : (166, DoLLocationTypes.skill, [
-                        DoLRegionNames.docks, 
-                    ]),
-    DoLLocationNames.skill_skulduggery_6 : (167, DoLLocationTypes.skill, [
-                        DoLRegionNames.temple,
-                    ]),
-    DoLLocationNames.skill_skulduggery_7 : (168, DoLLocationTypes.skill, [
-                        DoLRegionNames.manors,
-                    ]),
-    DoLLocationNames.skill_skulduggery_8 : (169, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-    DoLLocationNames.skill_skulduggery_9 : (170, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-    DoLLocationNames.skill_skulduggery_10 : (171, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-
-    # dancing just wants dance studio, but can be leveled in strip club and brothel
-    DoLLocationNames.skill_dancing_1 : (172, DoLLocationTypes.skill, [
-                        DoLRegionNames.dance_studio,
-                    ]),
-    DoLLocationNames.skill_dancing_2 : (173, DoLLocationTypes.skill, [
-                        DoLRegionNames.dance_studio,
-                    ]),
-    DoLLocationNames.skill_dancing_3 : (174, DoLLocationTypes.skill, [
-                        DoLRegionNames.dance_studio,
-                    ]),
-    DoLLocationNames.skill_dancing_4 : (175, DoLLocationTypes.skill, [
-                        DoLRegionNames.dance_studio,
-                    ]),
-    DoLLocationNames.skill_dancing_5 : (176, DoLLocationTypes.skill, [
-                        DoLRegionNames.dance_studio,
-                    ]),
-    DoLLocationNames.skill_dancing_6 : (177, DoLLocationTypes.skill, [
-                        DoLRegionNames.dance_studio,
-                    ]),
-    DoLLocationNames.skill_dancing_7 : (178, DoLLocationTypes.skill, [
-                        DoLRegionNames.dance_studio,
-                    ]),
-    DoLLocationNames.skill_dancing_8 : (179, DoLLocationTypes.skill, [
-                        DoLRegionNames.dance_studio,
-                    ]),
-    DoLLocationNames.skill_dancing_9 : (180, DoLLocationTypes.skill, [
-                        DoLRegionNames.dance_studio,
-                    ]),
-    DoLLocationNames.skill_dancing_10 : (181, DoLLocationTypes.skill, [
-                        DoLRegionNames.dance_studio,
-                    ]),
-
-    # school for at least level 1
-    DoLLocationNames.skill_swimming_1 : (182, DoLLocationTypes.skill, [
-                        DoLRegionNames.school, 
-                    ]),
-    DoLLocationNames.skill_swimming_2 : (183, DoLLocationTypes.skill, [
-                        DoLRegionNames.school, 
-                    ]),
-    DoLLocationNames.skill_swimming_3 : (184, DoLLocationTypes.skill, [
-                        DoLRegionNames.school, 
-                    ]),
-    DoLLocationNames.skill_swimming_4 : (185, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_swimming_5 : (186, DoLLocationTypes.skill, [
-                        DoLRegionNames.school, 
-                    ]),
-    DoLLocationNames.skill_swimming_6 : (187, DoLLocationTypes.skill, [
-                        DoLRegionNames.school, 
-                    ]),
-    DoLLocationNames.skill_swimming_7 : (188, DoLLocationTypes.skill, [
-                        DoLRegionNames.school, 
-                    ]),
-    DoLLocationNames.skill_swimming_8 : (189, DoLLocationTypes.skill, [
-                        DoLRegionNames.school, 
-                    ]),
-    DoLLocationNames.skill_swimming_9 : (190, DoLLocationTypes.skill, [
-                        DoLRegionNames.school, 
-                    ]),
-    DoLLocationNames.skill_swimming_10 : (191, DoLLocationTypes.skill, [
-                        DoLRegionNames.school, 
-                    ]),
-
-    # starting levels anywhere, rest park good place to train
-    DoLLocationNames.skill_athletics_1 : (192, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-    DoLLocationNames.skill_athletics_2 : (193, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-    DoLLocationNames.skill_athletics_3 : (194, DoLLocationTypes.skill, [
-                        DoLRegionNames.park, 
-                    ]),
-    DoLLocationNames.skill_athletics_4 : (195, DoLLocationTypes.skill, [
-                        DoLRegionNames.park, 
-                    ]),
-    DoLLocationNames.skill_athletics_5 : (196, DoLLocationTypes.skill, [
-                        DoLRegionNames.park, 
-                    ]),
-    DoLLocationNames.skill_athletics_6 : (197, DoLLocationTypes.skill, [
-                        DoLRegionNames.park, 
-                    ]),
-    DoLLocationNames.skill_athletics_7 : (198, DoLLocationTypes.skill, [
-                        DoLRegionNames.park,
-                    ]),
-    DoLLocationNames.skill_athletics_8 : (199, DoLLocationTypes.skill, [
-                        DoLRegionNames.park, 
-                    ]),
-    DoLLocationNames.skill_athletics_9 : (200, DoLLocationTypes.skill, [
-                        DoLRegionNames.park, 
-                    ]),
-    DoLLocationNames.skill_athletics_10 : (201, DoLLocationTypes.skill, [
-                        DoLRegionNames.park, 
-                    ]),
-
-    DoLLocationNames.skill_tending_1 : (202, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_tending_2 : (203, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,  
-                    ]),
-    DoLLocationNames.skill_tending_3 : (204, DoLLocationTypes.skill, [
-                        DoLRegionNames.alex_farm, # farm good place to train
-                    ]),
-    DoLLocationNames.skill_tending_4 : (205, DoLLocationTypes.skill, [
-                        DoLRegionNames.alex_farm,
-                    ]),
-    DoLLocationNames.skill_tending_5 : (206, DoLLocationTypes.skill, [
-                        DoLRegionNames.alex_farm,
-                    ]),
-    DoLLocationNames.skill_tending_6 : (207, DoLLocationTypes.skill, [
-                        DoLRegionNames.alex_farm,
-                    ]),
-    DoLLocationNames.skill_tending_7 : (208, DoLLocationTypes.skill, [
-                        DoLRegionNames.alex_farm,
-                    ]),
-    DoLLocationNames.skill_tending_8 : (209, DoLLocationTypes.skill, [
-                        DoLRegionNames.alex_farm,
-                    ]),
-    DoLLocationNames.skill_tending_9 : (210, DoLLocationTypes.skill, [
-                        DoLRegionNames.alex_farm,
-                    ]),
-    DoLLocationNames.skill_tending_10 : (211, DoLLocationTypes.skill, [
-                        DoLRegionNames.alex_farm,
-                    ]),
-
-    # using wiki recommended leveling order
-    DoLLocationNames.skill_housekeeping_1 : (212, DoLLocationTypes.skill, [
-                        DoLRegionNames.domus_houses,
-                    ]),
-    DoLLocationNames.skill_housekeeping_2 : (213, DoLLocationTypes.skill, [
-                        DoLRegionNames.flats,
-                    ]),
-    DoLLocationNames.skill_housekeeping_3 : (214, DoLLocationTypes.skill, [
-                        DoLRegionNames.starfish_street,
-                    ]),
-    DoLLocationNames.skill_housekeeping_4 : (215, DoLLocationTypes.skill, [
-                        DoLRegionNames.danube_street,
-                    ]),
-    DoLLocationNames.skill_housekeeping_5 : (216, DoLLocationTypes.skill, [
-                        DoLRegionNames.temple,
-                    ]),
-    DoLLocationNames.skill_housekeeping_6 : (217, DoLLocationTypes.skill, [
-                        DoLRegionNames.temple,
-                    ]),
-    DoLLocationNames.skill_housekeeping_7 : (218, DoLLocationTypes.skill, [
-                        DoLRegionNames.temple,
-                    ]),
-    DoLLocationNames.skill_housekeeping_8 : (219, DoLLocationTypes.skill, [
-                        DoLRegionNames.temple,
-                    ]),
-    DoLLocationNames.skill_housekeeping_9 : (220, DoLLocationTypes.skill, [
-                        DoLRegionNames.temple,
-                    ]),
-    DoLLocationNames.skill_housekeeping_10 : (221, DoLLocationTypes.skill, [
-                        DoLRegionNames.temple,
-                    ]),
-
-    # sex skills just require encounters
-    DoLLocationNames.skill_seduction_1 : (222, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_seduction_2 : (223, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_seduction_3 : (224, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_seduction_4 : (225, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_seduction_5 : (226, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-
-    DoLLocationNames.skill_oral_1 : (227, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_oral_2 : (228, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_oral_3 : (229, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_oral_4 : (230, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_oral_5 : (231, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-
-    DoLLocationNames.skill_chest_1 : (232, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_chest_2 : (233, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_chest_3 : (234, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_chest_4 : (235, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_chest_5 : (236, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-
-    DoLLocationNames.skill_hands_1 : (237, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_hands_2 : (238, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_hands_3 : (239, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_hands_4 : (240, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_hands_5 : (241, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-
-    DoLLocationNames.skill_buttocks_1 : (242, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_buttocks_2 : (243, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_buttocks_3 : (244, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_buttocks_4 : (245, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_buttocks_5 : (246, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-
-    DoLLocationNames.skill_privates_1 : (247, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_privates_2 : (248, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_privates_3 : (249, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_privates_4 : (250, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_privates_5 : (251, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-
-    DoLLocationNames.skill_anal_1 : (252, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_anal_2 : (253, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_anal_3 : (254, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_anal_4 : (255, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_anal_5 : (256, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-
-    # can use riding school for higher levels
-    DoLLocationNames.skill_thighs_1 : (257, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_thighs_2 : (258, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_thighs_3 : (259, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_thighs_4 : (260, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_thighs_5 : (261, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-
-    # can use dance studio for higher levels
-    DoLLocationNames.skill_feet_1 : (262, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_feet_2 : (263, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_feet_3 : (264, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_feet_4 : (265, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_feet_5 : (266, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-
-    # pretty much need school for all school skills
-    DoLLocationNames.skill_science_1 : (267, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_science_2 : (268, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_science_3 : (269, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_science_4 : (270, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_science_5 : (271, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-
-    DoLLocationNames.skill_math_1 : (272, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_math_2 : (273, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_math_3 : (274, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_math_4 : (275, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_math_5 : (276, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-
-    DoLLocationNames.skill_english_1 : (277, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_english_2 : (278, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_english_3 : (279, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_english_4 : (280, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_english_5 : (281, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-
-    DoLLocationNames.skill_history_1 : (282, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_history_2 : (283, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_history_3 : (284, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_history_4 : (285, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-    DoLLocationNames.skill_history_5 : (286, DoLLocationTypes.skill, [
-                        DoLRegionNames.school,
-                    ]),
-
-    DoLLocationNames.skill_willpower_1 : (287, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-    DoLLocationNames.skill_willpower_2 : (288, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-    DoLLocationNames.skill_willpower_3 : (289, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-    DoLLocationNames.skill_willpower_4 : (290, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-    DoLLocationNames.skill_willpower_5 : (291, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-    DoLLocationNames.skill_willpower_6 : (292, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-
-    # park good place to train
-    DoLLocationNames.skill_physique_1 : (293, DoLLocationTypes.skill, [
-                        DoLRegionNames.park, 
-                    ]),
-    DoLLocationNames.skill_physique_2 : (294, DoLLocationTypes.skill, [
-                        DoLRegionNames.park, 
-                    ]),
-    DoLLocationNames.skill_physique_3 : (295, DoLLocationTypes.skill, [
-                        DoLRegionNames.park,
-                    ]),
-    DoLLocationNames.skill_physique_4 : (296, DoLLocationTypes.skill, [
-                        DoLRegionNames.park,
-                    ]),
-    DoLLocationNames.skill_physique_5 : (297, DoLLocationTypes.skill, [
-                        DoLRegionNames.park,
-                    ]),
-    DoLLocationNames.skill_physique_6 : (298, DoLLocationTypes.skill, [
-                        DoLRegionNames.park,
-                    ]),
-
-    DoLLocationNames.skill_promiscuity_1 : (299, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_promiscuity_2 : (300, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_promiscuity_3 : (301, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_promiscuity_4 : (302, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_promiscuity_5 : (303, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_promiscuity_6 : (304, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-
-    # orph for minimum level + need wardrobe
-    DoLLocationNames.skill_exhibitionism_1 : (305, DoLLocationTypes.skill, [
-                        DoLRegionNames.orphanage, 
-                    ]),
-    DoLLocationNames.skill_exhibitionism_2 : (306, DoLLocationTypes.skill, [
-                        DoLRegionNames.orphanage,
-                    ]),
-    DoLLocationNames.skill_exhibitionism_3 : (307, DoLLocationTypes.skill, [
-                        DoLRegionNames.orphanage,
-                    ]),
-    DoLLocationNames.skill_exhibitionism_4 : (308, DoLLocationTypes.skill, [
-                        DoLRegionNames.orphanage,
-                    ]),
-    DoLLocationNames.skill_exhibitionism_5 : (309, DoLLocationTypes.skill, [
-                        DoLRegionNames.orphanage,
-                    ]),
-    DoLLocationNames.skill_exhibitionism_6 : (310, DoLLocationTypes.skill, [
-                        DoLRegionNames.orphanage,
-                    ]),
-
-    # wiki recommends farm, but can level from anywhere
-    DoLLocationNames.skill_deviancy_1 : (311, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town, 
-                    ]),
-    DoLLocationNames.skill_deviancy_2 : (312, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_deviancy_3 : (313, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_deviancy_4 : (314, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_deviancy_5 : (315, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-    DoLLocationNames.skill_deviancy_6 : (316, DoLLocationTypes.skill, [
-                        DoLRegionNames.in_town,
-                    ]),
-}
-
-LOCATION_RULES:dict[DoLLocationNames, DoLRules] = {
-    # Antiques
-    DoLLocationNames.antique_silvermask: DoLRules.silvermask,
-
-    # Skills
+# Skills
     # the rules here determine when leveling is out of logic
     # due to you being able to still have a chance to level
     # from high difficulty encounters, I've set them to all
@@ -1651,75 +1142,14 @@ LOCATION_RULES:dict[DoLLocationNames, DoLRules] = {
     # challenging requiring a check of skilllevel + 300
     # so just skilllevel - 300 or 3 levels lower for rules
 
-    # DoLLocationNames.skill_skulduggery_2: DoLRules.skulduggery_,
-    # DoLLocationNames.skill_skulduggery_3: DoLRules.skulduggery_,
-    DoLLocationNames.skill_skulduggery_4: DoLRules.skulduggery_1,
-    DoLLocationNames.skill_skulduggery_5: DoLRules.skulduggery_2,
-    DoLLocationNames.skill_skulduggery_6: DoLRules.skulduggery_3,
-    DoLLocationNames.skill_skulduggery_7: DoLRules.skulduggery_4,
-    DoLLocationNames.skill_skulduggery_8: DoLRules.skulduggery_5,
-    DoLLocationNames.skill_skulduggery_9: DoLRules.skulduggery_6,
-    DoLLocationNames.skill_skulduggery_10: DoLRules.skulduggery_7,
+    # dancing, swimming, athletics, and tending all use their same training places
 
-    # DoLLocationNames.skill_dancing_2: DoLRules.dancing_,
-    # DoLLocationNames.skill_dancing_3: DoLRules.dancing_,
-    DoLLocationNames.skill_dancing_4: DoLRules.dancing_1,
-    DoLLocationNames.skill_dancing_5: DoLRules.dancing_2,
-    DoLLocationNames.skill_dancing_6: DoLRules.dancing_3,
-    DoLLocationNames.skill_dancing_7: DoLRules.dancing_4,
-    DoLLocationNames.skill_dancing_8: DoLRules.dancing_5,
-    DoLLocationNames.skill_dancing_9: DoLRules.dancing_6,
-    DoLLocationNames.skill_dancing_10: DoLRules.dancing_7,
-
-    # DoLLocationNames.skill_swimming_2: DoLRules.swimming_,
-    # DoLLocationNames.skill_swimming_3: DoLRules.swimming_,
-    DoLLocationNames.skill_swimming_4: DoLRules.swimming_1,
-    DoLLocationNames.skill_swimming_5: DoLRules.swimming_2,
-    DoLLocationNames.skill_swimming_6: DoLRules.swimming_3,
-    DoLLocationNames.skill_swimming_7: DoLRules.swimming_4,
-    DoLLocationNames.skill_swimming_8: DoLRules.swimming_5,
-    DoLLocationNames.skill_swimming_9: DoLRules.swimming_6,
-    DoLLocationNames.skill_swimming_10: DoLRules.swimming_7,
-
-    # DoLLocationNames.skill_athletics_2: DoLRules.athletics_,
-    # DoLLocationNames.skill_athletics_3: DoLRules.athletics_,
-    DoLLocationNames.skill_athletics_4: DoLRules.athletics_1,
-    DoLLocationNames.skill_athletics_5: DoLRules.athletics_2,
-    DoLLocationNames.skill_athletics_6: DoLRules.athletics_3,
-    DoLLocationNames.skill_athletics_7: DoLRules.athletics_4,
-    DoLLocationNames.skill_athletics_8: DoLRules.athletics_5,
-    DoLLocationNames.skill_athletics_9: DoLRules.athletics_6,
-    DoLLocationNames.skill_athletics_10: DoLRules.athletics_7,
-
-    # DoLLocationNames.skill_tending_2: DoLRules.tending_,
-    # DoLLocationNames.skill_tending_3: DoLRules.tending_,
-    DoLLocationNames.skill_tending_4: DoLRules.tending_1,
-    DoLLocationNames.skill_tending_5: DoLRules.tending_2,
-    DoLLocationNames.skill_tending_6: DoLRules.tending_3,
-    DoLLocationNames.skill_tending_7: DoLRules.tending_4,
-    DoLLocationNames.skill_tending_8: DoLRules.tending_5,
-    DoLLocationNames.skill_tending_9: DoLRules.tending_6,
-    DoLLocationNames.skill_tending_10: DoLRules.tending_7,
-
-    # DoLLocationNames.skill_housekeeping_2: DoLRules.housekeeping_,
-    # DoLLocationNames.skill_housekeeping_3: DoLRules.housekeeping_,
-    DoLLocationNames.skill_housekeeping_4: DoLRules.housekeeping_1,
-    DoLLocationNames.skill_housekeeping_5: DoLRules.housekeeping_2,
-    DoLLocationNames.skill_housekeeping_6: DoLRules.housekeeping_3,
-    DoLLocationNames.skill_housekeeping_7: DoLRules.housekeeping_4,
-    DoLLocationNames.skill_housekeeping_8: DoLRules.housekeeping_5,
-    DoLLocationNames.skill_housekeeping_9: DoLRules.housekeeping_6,
-    DoLLocationNames.skill_housekeeping_10: DoLRules.housekeeping_7,
-
-
-    # sex skills are a bit more complicatied
-    # because the difficulty of them changes based
-    # on the arousal and trust in encounters
+# Sex Skills
+    # The difficulty of them changes based on the arousal and trust in encounters
     # (trust * 10) - skillvalue + anger) <= ((maxarousal / (arousal + 1)) * 100)
     # this still however balances out to about req of skilllevel + 300 
     # is around challenging in an early encounter with low anger and low trust
     # so I will make most sex skills require 2 levels lower
-
 
     # seduction is very complicated because it bases off
     # attractiveness value, which gets modified by many systems:
@@ -1731,53 +1161,8 @@ LOCATION_RULES:dict[DoLLocationNames, DoLRules] = {
     # I might be able to create a rule that bases off a math formula,
     # however since its only 5 levels, just leaving it at 1 level behind for 2 and 3
     # and 2 levels behind for 4 and 5
-    DoLLocationNames.skill_seduction_2: DoLRules.seduction_1,
-    DoLLocationNames.skill_seduction_3: DoLRules.seduction_2,
-    DoLLocationNames.skill_seduction_4: DoLRules.seduction_2,
-    DoLLocationNames.skill_seduction_5: DoLRules.seduction_3,
 
-    # DoLLocationNames.skill_oral_2: DoLRules.oral_,
-    DoLLocationNames.skill_oral_3: DoLRules.oral_1,
-    DoLLocationNames.skill_oral_4: DoLRules.oral_2,
-    DoLLocationNames.skill_oral_5: DoLRules.oral_3,
-
-    # DoLLocationNames.skill_chest_2: DoLRules.chest_,
-    DoLLocationNames.skill_chest_3: DoLRules.chest_1,
-    DoLLocationNames.skill_chest_4: DoLRules.chest_2,
-    DoLLocationNames.skill_chest_5: DoLRules.chest_3,
-
-    # DoLLocationNames.skill_hands_2: DoLRules.hands_,
-    DoLLocationNames.skill_hands_3: DoLRules.hands_1,
-    DoLLocationNames.skill_hands_4: DoLRules.hands_2,
-    DoLLocationNames.skill_hands_5: DoLRules.hands_3,
-
-    # DoLLocationNames.skill_buttocks_2: DoLRules.buttocks_,
-    DoLLocationNames.skill_buttocks_3: DoLRules.buttocks_1,
-    DoLLocationNames.skill_buttocks_4: DoLRules.buttocks_2,
-    DoLLocationNames.skill_buttocks_5: DoLRules.buttocks_3,
-
-    # DoLLocationNames.skill_privates_2: DoLRules.privates_,
-    DoLLocationNames.skill_privates_3: DoLRules.privates_1,
-    DoLLocationNames.skill_privates_4: DoLRules.privates_2,
-    DoLLocationNames.skill_privates_5: DoLRules.privates_3,
-
-    # DoLLocationNames.skill_anal_2: DoLRules.anal_,
-    DoLLocationNames.skill_anal_3: DoLRules.anal_1,
-    DoLLocationNames.skill_anal_4: DoLRules.anal_2,
-    DoLLocationNames.skill_anal_5: DoLRules.anal_3,
-
-    # DoLLocationNames.skill_thighs_2: DoLRules.thighs_,
-    DoLLocationNames.skill_thighs_3: DoLRules.thighs_1,
-    DoLLocationNames.skill_thighs_4: DoLRules.thighs_2,
-    DoLLocationNames.skill_thighs_5: DoLRules.thighs_3,
-
-    # DoLLocationNames.skill_feet_2: DoLRules.feet_,
-    DoLLocationNames.skill_feet_3: DoLRules.feet_1,
-    DoLLocationNames.skill_feet_4: DoLRules.feet_2,
-    DoLLocationNames.skill_feet_5: DoLRules.feet_3,
-
-
-    # school skills
+# School skills
     # school skill is ran by the schoolskillgeneral widget
     # it just adds to the base exam chance each time you increase
     # your skill via studying, set to a multiplier based on trait [2.4, 1.2, 0.6, 0.3]
@@ -1786,69 +1171,3147 @@ LOCATION_RULES:dict[DoLLocationNames, DoLRules] = {
 
     # the notable thing is, school skills do not base off you having earlier skills
     # therefore logic dictates that you can get level 5 in all of them whenever
-    # however, still need rules for having access to school for studying
-
-    DoLLocationNames.skill_science_1: DoLRules.access_school,
-    DoLLocationNames.skill_science_2: DoLRules.access_school,
-    DoLLocationNames.skill_science_3: DoLRules.access_school,
-    DoLLocationNames.skill_science_4: DoLRules.access_school,
-    DoLLocationNames.skill_science_5: DoLRules.access_school,
-
-    DoLLocationNames.skill_math_1: DoLRules.access_school,
-    DoLLocationNames.skill_math_2: DoLRules.access_school,
-    DoLLocationNames.skill_math_3: DoLRules.access_school,
-    DoLLocationNames.skill_math_4: DoLRules.access_school,
-    DoLLocationNames.skill_math_5: DoLRules.access_school,
-
-    DoLLocationNames.skill_english_1: DoLRules.access_school,
-    DoLLocationNames.skill_english_2: DoLRules.access_school,
-    DoLLocationNames.skill_english_3: DoLRules.access_school,
-    DoLLocationNames.skill_english_4: DoLRules.access_school,
-    DoLLocationNames.skill_english_5: DoLRules.access_school,
-
-    DoLLocationNames.skill_history_1: DoLRules.access_school,
-    DoLLocationNames.skill_history_2: DoLRules.access_school,
-    DoLLocationNames.skill_history_3: DoLRules.access_school,
-    DoLLocationNames.skill_history_4: DoLRules.access_school,
-    DoLLocationNames.skill_history_5: DoLRules.access_school,
 
 
-    # core stats
-    # no strict requirements for any of these stats, outside of doing
-    # encounters that grow them
+# Reminder that a rule does not need to be set
+# for the region that it needs to go to, that's already implied
+
+# TODO:
+# currently working on adding rules to getting to feats
+# and their generation rules generation rules
+
+# might make a condition to remove seasonal stuff
+# I have a todo below for where to start
+
+
+LOCATION_DATA:dict[DoLLocationNames, tuple[int, list[DoLRegionNames], list[StrEnum], list[DoLRules]]] = {
+
+    # ---------------- Antiques ----------------
+    
+    DoLLocationNames.antique_ivorystatuette: (100, [
+                    DoLRegionNames.temple
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueivorystatuette
+                
+    DoLLocationNames.antique_silvercoin: (101, [
+                    DoLRegionNames.temple,
+                    DoLRegionNames.moor
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquesilvercoin
+                
+    DoLLocationNames.antique_crystal: (102, [
+                    DoLRegionNames.temple
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquewhitecrystal
+                
+    DoLLocationNames.antique_silverblade: (103, [
+                    DoLRegionNames.temple
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquesilverblade
+                
+    DoLLocationNames.antique_coppercoin: (104, [
+                    DoLRegionNames.temple
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquecoppercoin
+                
+    DoLLocationNames.antique_silvergoblet: (105, [
+                    DoLRegionNames.temple
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquesilvergoblet
+                
+    DoLLocationNames.antique_fetish: (106, [
+                    DoLRegionNames.temple
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquestrangefetish
+                
+    DoLLocationNames.antique_goldcoin: (107, [
+                    DoLRegionNames.temple
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquegoldcoin
+                
+    DoLLocationNames.antique_forestdagger: (108, [
+                    DoLRegionNames.forest
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueforestdagger
+                
+    DoLLocationNames.antique_forestgem: (109, [
+                    DoLRegionNames.forest
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueforestgem
+                
+    DoLLocationNames.antique_arrow: (110, [
+                    DoLRegionNames.forest
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueforestarrow
+                
+    DoLLocationNames.antique_ivorynecklace: (111, [
+                    DoLRegionNames.forest_lake
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueivorynecklace
+                
+    DoLLocationNames.antique_ivorybox: (112, [
+                    DoLRegionNames.forest_lake
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquebox
+                
+    DoLLocationNames.antique_silverring: (113, [
+                    DoLRegionNames.forest_lake
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquesilverring
+                
+    DoLLocationNames.antique_goldnecklace: (114, [
+                    DoLRegionNames.forest_lake
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquegoldnecklace
+                
+    DoLLocationNames.antique_chastitybelt: (115, [
+                    DoLRegionNames.forest_lake
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquegoldchastitybelt
+                
+    DoLLocationNames.antique_stonetalisman: (116, [
+                    DoLRegionNames.meadow
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquestonetalisman
+                
+    DoLLocationNames.antique_horn: (117, [
+                    DoLRegionNames.moor, # maze
+                    DoLRegionNames.residential_drain, # lower sewers 
+                    DoLRegionNames.commercial_drain, # TODO: replace with deep sewers location?
+                    DoLRegionNames.industrial_drain
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquehorn
+                
+    DoLLocationNames.antique_snuffer: (118, [
+                    DoLRegionNames.moor, # maze
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquesnuffer
+                
+    DoLLocationNames.antique_bucket: (119, [
+                    DoLRegionNames.moor, # maze
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquebucket
+                
+    DoLLocationNames.antique_silvermanacle: (120, [
+                    DoLRegionNames.moor, # maze
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquesilvermanacle
+                
+    DoLLocationNames.antique_whip: (121, [
+                    DoLRegionNames.moor, # maze
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquewhip
+                
+    DoLLocationNames.antique_goldring: (122, [
+                    DoLRegionNames.moor
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquegoldring
+                
+    DoLLocationNames.antique_bell: (123, [
+                    DoLRegionNames.moor
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquebell
+                
+    DoLLocationNames.antique_bullet: (124, [
+                    DoLRegionNames.moor,
+                    DoLRegionNames.bird_tower
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquebullet
+                
+    DoLLocationNames.antique_artilleryshell: (125, [
+                    DoLRegionNames.moor
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueshell
+                
+    DoLLocationNames.antique_grenade: (126, [
+                    DoLRegionNames.riding_school
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquegrenade
+                
+    DoLLocationNames.antique_goldbrooch: (127, [
+                    DoLRegionNames.dance_studio
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquegoldbrooch
+                
+    DoLLocationNames.antique_silverbrooch: (128, [
+                    DoLRegionNames.orphanage
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquesilverbrooch
+                
+    DoLLocationNames.antique_islanderarrow: (129, [
+                    DoLRegionNames.island
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueislandarrow
+                
+    DoLLocationNames.antique_islandermask: (130, [
+                    DoLRegionNames.island
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquewoodenmask
+                
+    DoLLocationNames.antique_obsidiandisc: (131, [
+                    DoLRegionNames.island
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueobsidiandisc
+                
+    DoLLocationNames.antique_trilobitefossil: (132, [
+                    DoLRegionNames.island
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquetrilobitefossil
+                
+    DoLLocationNames.antique_baileyminesign: (133, [
+                    DoLRegionNames.landfill
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueminesign
+                
+    DoLLocationNames.antique_incenseburner: (134, [
+                    DoLRegionNames.landfill
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquetrashburner
+                
+    DoLLocationNames.antique_cup: (135, [
+                    DoLRegionNames.landfill
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquetrashcup 
+                
+    DoLLocationNames.antique_silvermask: (136, [
+                    DoLRegionNames.manors
+                ], [
+                    DoLLocationTypes.antique
+                ], [
+                    DoLRules.silvermask
+                ]), # antiquesilvermask
+                
+    DoLLocationNames.antique_silveramulet: (137, [
+                    DoLRegionNames.compound
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquesilveramulet
+                
+    DoLLocationNames.antique_hourglass: (138, [
+                    DoLRegionNames.pirate_ship
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquehourglass
+                
+    DoLLocationNames.antique_swordcane: (139, [
+                    DoLRegionNames.pirate_ship
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueswordcane
+                
+    DoLLocationNames.antique_chocolate: (140, [
+                    DoLRegionNames.pirate_ship
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquechocolate
+                
+    DoLLocationNames.antique_teacaddy: (141, [
+                    DoLRegionNames.pirate_ship
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueteacaddy
+                
+    DoLLocationNames.antique_woodenfigurine: (142, [
+                    DoLRegionNames.pirate_ship
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquewoodenfigurine
+                
+    DoLLocationNames.antique_copperring: (143, [
+                    DoLRegionNames.pirate_ship
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquecopperring
+                
+    DoLLocationNames.antique_goldcompass: (144, [
+                    DoLRegionNames.pirate_ship
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquegoldcompass
+                
+    DoLLocationNames.antique_coppercompass: (145, [
+                    DoLRegionNames.ocean
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquecoppercompass
+                
+    DoLLocationNames.antique_coralring: (146, [
+                    DoLRegionNames.ocean
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquecoralring
+                
+    DoLLocationNames.antique_diamond: (147, [
+                    DoLRegionNames.ocean
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquediamond
+                
+    DoLLocationNames.antique_brassstatuette: (148, [
+                    DoLRegionNames.temple
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquebrassstatuette
+                
+    DoLLocationNames.antique_golddagger: (149, [
+                    DoLRegionNames.avery_mansion
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquegolddagger
+                
+    DoLLocationNames.antique_goldamulet: (150, [
+                    DoLRegionNames.avery_mansion
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquegoldamulet
+                
+    DoLLocationNames.antique_goldmask: (151, [
+                    DoLRegionNames.avery_mansion
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquegoldmask
+                
+    DoLLocationNames.antique_silvercompass: (152, [
+                    DoLRegionNames.beach
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquesilvercompass
+                
+    DoLLocationNames.antique_leathermap: (153, [
+                    DoLRegionNames.beach
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiqueleathermap
+                
+    DoLLocationNames.antique_cutlass: (154, [
+                    DoLRegionNames.beach
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquecutlass
+                
+    DoLLocationNames.antique_silverdagger: (155, [
+                    DoLRegionNames.beach
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquesilverdagger
+                
+    DoLLocationNames.antique_rustedcutlass: (156, [
+                    DoLRegionNames.beach
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquerustedcutlass
+                
+    DoLLocationNames.antique_pinkcrystal: (157, [
+                    DoLRegionNames.commercial_drain,
+                    DoLRegionNames.industrial_drain, # TODO: replace with deep sewers location?
+                    DoLRegionNames.residential_drain,
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquecrystal
+                
+    DoLLocationNames.antique_candlestick: (158, [
+                    DoLRegionNames.commercial_drain,
+                    DoLRegionNames.industrial_drain, # TODO: replace with deep sewers location?
+                    DoLRegionNames.residential_drain,
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquecandlestick
+                
+    DoLLocationNames.antique_dildo: (159, [
+                    DoLRegionNames.commercial_drain,
+                    DoLRegionNames.industrial_drain, # TODO: replace with deep sewers location?
+                    DoLRegionNames.residential_drain,
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquedildo
+                
+    DoLLocationNames.antique_watch: (160, [
+                    DoLRegionNames.commercial_drain,
+                    DoLRegionNames.industrial_drain, # TODO: replace with deep sewers location?
+                    DoLRegionNames.residential_drain,
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquewatch
+                    
+    DoLLocationNames.antique_silvercrown: (161, [
+                    DoLRegionNames.temple
+                ], [
+                    DoLLocationTypes.antique
+                ], []), # antiquesilvercrown
+                
+
+
+
+    # ---------------- Skills ----------------
+    
+    DoLLocationNames.skill_skulduggery_1: (162, [
+                        DoLRegionNames.school, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_skulduggery_2: (163, [
+                        DoLRegionNames.domus_houses, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_skulduggery_3: (164, [
+                        DoLRegionNames.barb_street, 
+                        DoLRegionNames.connudatus_street,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_skulduggery_4: (165, [
+                        DoLRegionNames.danube_houses, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.skulduggery_1,
+                    ]),
+    
+    DoLLocationNames.skill_skulduggery_5: (166, [
+                        DoLRegionNames.docks, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.skulduggery_2,
+                    ]),
+    
+    DoLLocationNames.skill_skulduggery_6: (167, [
+                        DoLRegionNames.temple,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.skulduggery_3,
+                    ]),
+    
+    DoLLocationNames.skill_skulduggery_7: (168, [
+                        DoLRegionNames.manors,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.skulduggery_4,
+                    ]),
+    
+    DoLLocationNames.skill_skulduggery_8: (169, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.skulduggery_5,
+                    ]),
+    
+    DoLLocationNames.skill_skulduggery_9: (170, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.skulduggery_6,
+                    ]),
+    
+    DoLLocationNames.skill_skulduggery_10: (171, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.skulduggery_7,
+                    ]),
+
+
+
+    # Dancing just wants dance studio, but can be leveled in strip club and brothel
+    DoLLocationNames.skill_dancing_1: (172, [
+                        DoLRegionNames.dance_studio,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_dancing_2: (173, [
+                        DoLRegionNames.dance_studio,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_dancing_3: (174, [
+                        DoLRegionNames.dance_studio,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_dancing_4: (175, [
+                        DoLRegionNames.dance_studio,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_dancing_5: (176, [
+                        DoLRegionNames.dance_studio,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_dancing_6: (177, [
+                        DoLRegionNames.dance_studio,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_dancing_7: (178, [
+                        DoLRegionNames.dance_studio,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_dancing_8: (179, [
+                        DoLRegionNames.dance_studio,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_dancing_9: (180, [
+                        DoLRegionNames.dance_studio,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_dancing_10: (181, [
+                        DoLRegionNames.dance_studio,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+
+    # School for at least level 1
+    DoLLocationNames.skill_swimming_1: (182, [
+                        DoLRegionNames.school, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_swimming_2: (183, [
+                        DoLRegionNames.school, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_swimming_3: (184, [
+                        DoLRegionNames.school, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_swimming_4: (185, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_swimming_5: (186, [
+                        DoLRegionNames.school, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_swimming_6: (187, [
+                        DoLRegionNames.school, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_swimming_7: (188, [
+                        DoLRegionNames.school, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_swimming_8: (189, [
+                        DoLRegionNames.school, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_swimming_9: (190, [
+                        DoLRegionNames.school, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_swimming_10: (191, [
+                        DoLRegionNames.school, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+
+    # Starting levels anywhere, rest park good place to train
+    DoLLocationNames.skill_athletics_1: (192, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_athletics_2: (193, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_athletics_3: (194, [
+                        DoLRegionNames.park, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_athletics_4: (195, [
+                        DoLRegionNames.park, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_athletics_5: (196, [
+                        DoLRegionNames.park, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_athletics_6: (197, [
+                        DoLRegionNames.park, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_athletics_7: (198, [
+                        DoLRegionNames.park,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_athletics_8: (199, [
+                        DoLRegionNames.park, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_athletics_9: (200, [
+                        DoLRegionNames.park, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_athletics_10: (201, [
+                        DoLRegionNames.park, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+
+    DoLLocationNames.skill_tending_1: (202, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_tending_2: (203, [
+                        DoLRegionNames.in_town,  
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+    # Farm good place to train further levels
+    DoLLocationNames.skill_tending_3: (204, [
+                        DoLRegionNames.alex_farm, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_tending_4: (205, [
+                        DoLRegionNames.alex_farm,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_tending_5: (206, [
+                        DoLRegionNames.alex_farm,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_tending_6: (207, [
+                        DoLRegionNames.alex_farm,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_tending_7: (208, [
+                        DoLRegionNames.alex_farm,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_tending_8: (209, [
+                        DoLRegionNames.alex_farm,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_tending_9: (210, [
+                        DoLRegionNames.alex_farm,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_tending_10: (211, [
+                        DoLRegionNames.alex_farm,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+    
+
+    DoLLocationNames.skill_housekeeping_1: (212, [
+                        DoLRegionNames.domus_houses,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_housekeeping_2: (213, [
+                        DoLRegionNames.flats,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_housekeeping_3: (214, [
+                        DoLRegionNames.starfish_street,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_housekeeping_4: (215, [
+                        DoLRegionNames.danube_street,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_housekeeping_5: (216, [
+                        DoLRegionNames.temple,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_housekeeping_6: (217, [
+                        DoLRegionNames.temple,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_housekeeping_7: (218, [
+                        DoLRegionNames.temple,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_housekeeping_8: (219, [
+                        DoLRegionNames.temple,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_housekeeping_9: (220, [
+                        DoLRegionNames.temple,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_housekeeping_10: (221, [
+                        DoLRegionNames.temple,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+    # ---------------- Sex Skills ----------------
+    # sex skills just require encounters
+
+    DoLLocationNames.skill_seduction_1: (222, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_seduction_2: (223, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_seduction_3: (224, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_seduction_4: (225, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_seduction_5: (226, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+
+
+    DoLLocationNames.skill_oral_1: (227, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_oral_2: (228, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_oral_3: (229, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.oral_1
+                    ]),
+    
+    DoLLocationNames.skill_oral_4: (230, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.oral_2
+                    ]),
+    
+    DoLLocationNames.skill_oral_5: (231, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.oral_3
+                    ]),
+
+
+
+    DoLLocationNames.skill_chest_1: (232, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_chest_2: (233, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_chest_3: (234, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.chest_1,
+                    ]),
+    
+    DoLLocationNames.skill_chest_4: (235, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.chest_2,
+                    ]),
+    
+    DoLLocationNames.skill_chest_5: (236, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.chest_3,
+                    ]),
+
+
+
+    DoLLocationNames.skill_hands_1: (237, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_hands_2: (238, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_hands_3: (239, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.hands_1,
+                    ]),
+    
+    DoLLocationNames.skill_hands_4: (240, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.hands_2
+                    ]),
+    
+    DoLLocationNames.skill_hands_5: (241, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.hands_3
+                    ]),
+
+
+
+    DoLLocationNames.skill_buttocks_1: (242, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_buttocks_2: (243, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_buttocks_3: (244, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.buttocks_1,
+                    ]),
+    
+    DoLLocationNames.skill_buttocks_4: (245, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.buttocks_2,
+                    ]),
+    
+    DoLLocationNames.skill_buttocks_5: (246, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.buttocks_3,
+                    ]),
+
+
+                        
+    DoLLocationNames.skill_privates_1: (247, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_privates_2: (248, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_privates_3: (249, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.privates_1,
+                    ]),
+    
+    DoLLocationNames.skill_privates_4: (250, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                         DoLRules.privates_2,
+                    ]),
+    
+    DoLLocationNames.skill_privates_5: (251, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.privates_3,
+                    ]),
+
+
+
+    DoLLocationNames.skill_anal_1: (252, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_anal_2: (253, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_anal_3: (254, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.anal_1,
+                    ]),
+    
+    DoLLocationNames.skill_anal_4: (255, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.anal_2,
+                    ]),
+    
+    DoLLocationNames.skill_anal_5: (256, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.anal_3,
+                    ]),
+
+
+
+    # note: can use riding school for higher levels
+    DoLLocationNames.skill_thighs_1: (257, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_thighs_2: (258, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_thighs_3: (259, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.thighs_1,
+                    ]),
+    
+    DoLLocationNames.skill_thighs_4: (260, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.thighs_2,
+                    ]),
+    
+    DoLLocationNames.skill_thighs_5: (261, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.thighs_3,
+                    ]),
+
+
+             
+    # note: can use dance studio for higher levels
+    DoLLocationNames.skill_feet_1: (262, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_feet_2: (263, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_feet_3: (264, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.feet_1,
+                    ]),
+    
+    DoLLocationNames.skill_feet_4: (265, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.feet_2,
+                    ]),
+    
+    DoLLocationNames.skill_feet_5: (266, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], [
+                        DoLRules.feet_3,
+                    ]),
+
+
+
+    # ---------------- School Skills ----------------
+    # pretty much need school for all school skills
+
+    DoLLocationNames.skill_science_1: (267, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_science_2: (268, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_science_3: (269, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_science_4: (270, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_science_5: (271, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+                        
+    DoLLocationNames.skill_math_1: (272, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_math_2: (273, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_math_3: (274, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_math_4: (275, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_math_5: (276, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+    
+    DoLLocationNames.skill_english_1: (277, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_english_2: (278, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_english_3: (279, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_english_4: (280, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_english_5: (281, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+    
+    DoLLocationNames.skill_history_1: (282, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_history_2: (283, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_history_3: (284, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_history_4: (285, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_history_5: (286, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+
+    # ---------------- Core Skills ----------------
+    # no strict requirements for any of these stats, outside of doing encounters that grow them
     # willpower: grows via any encounters
     # physique: grows via exercise
     # promiscuity: grows by doing things with this stat
     # exhibitionism: grows by doing things with this stat
     # deviancy: grows via animal encounters
 
-    # DoLLocationNames.skill_willpower_2: DoLRules.willpower_1,
-    # DoLLocationNames.skill_willpower_3: DoLRules.willpower_2,
-    # DoLLocationNames.skill_willpower_4: DoLRules.willpower_3,
-    # DoLLocationNames.skill_willpower_5: DoLRules.willpower_4,
-    # DoLLocationNames.skill_willpower_6: DoLRules.willpower_5,
+    DoLLocationNames.skill_willpower_1: (287, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_willpower_2: (288, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_willpower_3: (289, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_willpower_4: (290, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_willpower_5: (291, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_willpower_6: (292, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
 
-    # DoLLocationNames.skill_physique_2: DoLRules.physique_1,
-    # DoLLocationNames.skill_physique_3: DoLRules.physique_2,
-    # DoLLocationNames.skill_physique_4: DoLRules.physique_3,
-    # DoLLocationNames.skill_physique_5: DoLRules.physique_4,
-    # DoLLocationNames.skill_physique_6: DoLRules.physique_5,
 
-    # DoLLocationNames.skill_promiscuity_2: DoLRules.promiscuity_1,
-    # DoLLocationNames.skill_promiscuity_3: DoLRules.promiscuity_2,
-    # DoLLocationNames.skill_promiscuity_4: DoLRules.promiscuity_3,
-    # DoLLocationNames.skill_promiscuity_5: DoLRules.promiscuity_4,
-    # DoLLocationNames.skill_promiscuity_6: DoLRules.promiscuity_5,
 
-    # DoLLocationNames.skill_exhibitionism_2: DoLRules.exhibitionism_1,
-    # DoLLocationNames.skill_exhibitionism_3: DoLRules.exhibitionism_2,
-    # DoLLocationNames.skill_exhibitionism_4: DoLRules.exhibitionism_3,
-    # DoLLocationNames.skill_exhibitionism_5: DoLRules.exhibitionism_4,
-    # DoLLocationNames.skill_exhibitionism_6: DoLRules.exhibitionism_5,
+    # park good place to train
+    DoLLocationNames.skill_physique_1: (293, [
+                        DoLRegionNames.park, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_physique_2: (294, [
+                        DoLRegionNames.park, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_physique_3: (295, [
+                        DoLRegionNames.park,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_physique_4: (296, [
+                        DoLRegionNames.park,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_physique_5: (297, [
+                        DoLRegionNames.park,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_physique_6: (298, [
+                        DoLRegionNames.park,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
 
-    # DoLLocationNames.skill_deviancy_2: DoLRules.deviancy_1,
-    # DoLLocationNames.skill_deviancy_3: DoLRules.deviancy_2,
-    # DoLLocationNames.skill_deviancy_4: DoLRules.deviancy_3,
-    # DoLLocationNames.skill_deviancy_5: DoLRules.deviancy_4,
-    # DoLLocationNames.skill_deviancy_6: DoLRules.deviancy_5,
+
+
+    DoLLocationNames.skill_promiscuity_1: (299, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_promiscuity_2: (300, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_promiscuity_3: (301, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_promiscuity_4: (302, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_promiscuity_5: (303, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_promiscuity_6: (304, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+
+    # orph for minimum level + need wardrobe
+    DoLLocationNames.skill_exhibitionism_1: (305, [
+                        DoLRegionNames.orphanage, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_exhibitionism_2: (306, [
+                        DoLRegionNames.orphanage,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_exhibitionism_3: (307, [
+                        DoLRegionNames.orphanage,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_exhibitionism_4: (308, [
+                        DoLRegionNames.orphanage,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_exhibitionism_5: (309, [
+                        DoLRegionNames.orphanage,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_exhibitionism_6: (310, [
+                        DoLRegionNames.orphanage,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+
+    # wiki recommends farm, but can level from anywhere
+    DoLLocationNames.skill_deviancy_1: (311, [
+                        DoLRegionNames.in_town, 
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_deviancy_2: (312, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_deviancy_3: (313, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_deviancy_4: (314, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_deviancy_5: (315, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+    
+    DoLLocationNames.skill_deviancy_6: (316, [
+                        DoLRegionNames.in_town,
+                    ], [
+                        DoLLocationTypes.skill,
+                    ], []),
+
+
+
+    # ---------------- Feats  ----------------
+
+    DoLLocationNames.feat_pocketchange: (317, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_moneymaker: (318, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_tycoon: (319, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_millionaire: (320, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_itbelongsinamuseum: (321, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_fullycovered: (322, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_beingaboy: (323, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_beingagirl: (324, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_beingahermaphrodite: (325, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_beinganorphan: (326, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat
+                        # TODO: long time toggle?
+                    ], []),
+
+    DoLLocationNames.feat_stressfulchallenge: (327, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_longstressfulchallenge: (328, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_billboard: (329, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.bodywriting_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_alivingcanvas: (330, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.bodywriting_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_farmhand: (331, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_farmer: (332, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_cultivator: (333, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_therivalfarm: (334, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_therivalestate: (335, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_heroicvictory: (336, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_fiveinarow: (337, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_distinction: (338, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_distinctive: (339, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        # TODO: difficult rule
+                    ], []),
+
+    DoLLocationNames.feat_distinguished: (340, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        # TODO: difficult rule
+                    ], []),
+
+    DoLLocationNames.feat_chefdetournant: (341, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_chefdepartie: (342, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_souschef: (343, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_sciencefairwinner: (344, [
+                        DoLRegionNames.cliff_street,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.sciencefairwinner,
+                    ]),
+
+    DoLLocationNames.feat_thesisoffence: (345, [
+                        DoLRegionNames.cliff_street,
+                    ], [
+                        DoLLocationTypes.feat,
+                        # TODO: difficult rule
+                    ], [
+                        DoLRules.sciencefairoffence,
+                    ]),
+
+    DoLLocationNames.feat_mathscompetitionwinner: (346, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.mathcomp
+                    ]),
+
+    DoLLocationNames.feat_richhearts: (347, [
+                        DoLRegionNames.school,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_mostaware: (348, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        # TODO: difficult rule
+                    ], []),
+
+    DoLLocationNames.feat_mostinnocent: (349, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_nomorecontrol: (350, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.bestiality_toggle, # beastiality or monster chance
+                    ], []),
+
+    # most stats feats just require their minimum training
+    DoLLocationNames.feat_thief: (351, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.skulduggery_7,
+                    ]),
+
+    DoLLocationNames.feat_mayihavethisdance: (352, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_aquanaut: (353, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_seductress: (354, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.seduction_3,
+                    ]),
+
+    DoLLocationNames.feat_greenfingered: (355, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_majordomo: (356, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.housekeeping_7,
+                    ]),
+
+    DoLLocationNames.feat_swift: (357, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_alluring: (358, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_sexspecialist: (359, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.sexspecialist
+                    ]),
+
+    DoLLocationNames.feat_perfectrecord: (360, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat
+                        # TODO: difficult rule
+                    ], []),
+
+    DoLLocationNames.feat_perfectsub: (361, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        # TODO: difficult rule
+                    ], []),
+
+    DoLLocationNames.feat_defyingtheodds: (362, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        # TODO: difficult rule
+                    ], []),
+
+    DoLLocationNames.feat_hawker: (363, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        # TODO: difficult rule
+                    ], []),
+
+    DoLLocationNames.feat_vendor: (364, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_merchant: (365, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_twisteddesire: (366, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_servedhot: (367, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_sadomasochist: (368, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat
+                        # TODO: difficult rule
+                    ], []),
+
+    DoLLocationNames.feat_shiningreputation: (369, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        # TODO: difficult rule
+                    ], []),
+
+    DoLLocationNames.feat_socialbutterfly: (370, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_unsocialmoth: (371, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_teacherspet: (372, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_teachersnightmare: (373, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_robinthelover: (374, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_hungryorphan: (375, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_robinssong: (376, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_whitneythebully: (377, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_thebullystithe: (378, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_delinquentantics: (379, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_giddyup: (380, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_whitneyssecret: (381, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_kylartheobsessed: (382, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_notforrats: (383, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_edenthelonely: (384, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_sweetandtender: (385, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_averythemoneybags: (386, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_kept: (387, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_whatgoesaround: (388, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_mostexclusive: (389, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_pridecometh: (390, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_hautecuisine: (391, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_leightontheshady: (392, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_alextherobust: (393, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_homecooking: (394, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_greathawktheterror: (395, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_returnthefavour: (396, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_feathertrick: (397, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_wrenthesly: (398, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_blackwolfthealpha: (399, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_encroachingcivilisation: (400, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_sydneythepurehearted: (401, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_communion: (402, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_harperthehypnotist: (403, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_morganthelost: (404, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_gwylanthebewitching: (405, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_covencomforts: (406, [
+                        DoLRegionNames.school,
+                        DoLRegionNames.avery_mansion,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_lovetriangles: (407, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_lovetrapezoids: (408, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_bemyvalentine: (409, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_ballroomshowoff: (410, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.ballroomshowoff
+                    ]),
+
+    DoLLocationNames.feat_underthetable: (411, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_pubcrawlvictors: (412, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_masonssecret: (413, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_masonsshame: (414, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_animaltender: (415, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_ispy: (416, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_firstkiss: (417, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_acrimemostfoul: (418, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.bodywriting_toggle # sydney will write on you unless you have bodywriting **off**
+                    ]),
+
+    DoLLocationNames.feat_longing: (419, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_paganrite: (420, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_warmestwinter: (421, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_moor
+                    ]),
+
+    DoLLocationNames.feat_trialsoffaith: (422, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # TODO: rules for this (gwylan)
+
+    DoLLocationNames.feat_firstverse: (423, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # TODO: rules for this (gwylan)
+
+    DoLLocationNames.feat_wildsong: (424, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # TODO: rules for this (gwylan)
+
+    DoLLocationNames.feat_foxbane: (425, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # TODO: rules for this (gwylan/eden)
+
+    DoLLocationNames.feat_purrfect: (426, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.animal_transformation_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_howlatthemoon: (427, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.animal_transformation_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_messwiththebull: (428, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.animal_transformation_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_flylikeaneagle: (429, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.animal_transformation_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_youslyfox: (430, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.animal_transformation_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_walklikeanangel: (431, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.divine_transformation_toggle,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_fallingfallingfalling: (432, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.divine_transformation_toggle,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_devilishlooks: (433, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.divine_transformation_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_headchef: (434, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_laughingstock: (435, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_pub,
+                    ]),
+
+    DoLLocationNames.feat_yourethelaughingstock: (436, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_illicitscience: (437, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # TODO: rules for this
+
+    DoLLocationNames.feat_mouthsealedshut: (438, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_neckdeep: (439, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_seedy: (440, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # TODO: rules for this
+
+    DoLLocationNames.feat_breedy: (441, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # TODO: rules for this
+
+    DoLLocationNames.feat_athunderousresponse: (442, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.exhibitionism_5,
+                    ]),
+
+    DoLLocationNames.feat_alewdadventure: (443, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.exhibitionism_5,
+                    ]),
+
+    DoLLocationNames.feat_sourdealing: (444, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_painrider: (445, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.antiques_10,
+                        # TODO: willpower requirement
+                    ]),
+
+    DoLLocationNames.feat_submerged: (446, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.antiques_20,
+                        # TODO: willpower requirement
+                    ]),
+
+    DoLLocationNames.feat_wrongsize: (447, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], [
+                        DoLRules.skulduggery_4,
+                    ]),
+
+    DoLLocationNames.feat_idlehands: (448, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        # skuldug requirement of f+
+                    ]),
+
+    DoLLocationNames.feat_stolentechnology: (449, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_landfill,
+                    ]),
+
+    DoLLocationNames.feat_spelunking: (450, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_xmarksthespot: (451, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.skulduggery_7,
+                    ]),
+
+    DoLLocationNames.feat_buriedtreasure: (452, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), 
+
+    DoLLocationNames.feat_flurry: (453, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_afestivehome: (454, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_employeebenefits: (455, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_dealing: (456, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # TODO: farm construction rules
+
+    DoLLocationNames.feat_bentcopper: (457, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.skulduggery_4,
+                    ]),
+
+    DoLLocationNames.feat_socialcontract: (458, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_slipthroughthebackdoor: (459, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_orphanage,
+                    ]),
+
+    DoLLocationNames.feat_lifeoftheparty: (460, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    # TODO: dancing requirements for dance job
+    DoLLocationNames.feat_belleoftheball: (461, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.exhibitionism_5
+                    ]),
+
+    DoLLocationNames.feat_breakingthestone: (462, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.skulduggery_10
+                    ]),
+
+    DoLLocationNames.feat_poundalpha: (463, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_poundrunt: (464, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_poundedpound: (465, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_poundliberator: (466, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        # TODO: tending requirement
+                        DoLRules.skulduggery_2
+                    ]),
+
+    DoLLocationNames.feat_thevalueofpain: (467, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    # TODO: whatever this thing is
+    DoLLocationNames.feat_bewitchingechoes: (468, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_bridgingthepast: (469, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # Tentacle Forest Money Check
+
+    DoLLocationNames.feat_safetrail: (470, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # Tentacle Forest Money Check
+
+    DoLLocationNames.feat_fieldwork: (471, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # Tentacle Forest Money Check
+
+    DoLLocationNames.feat_concretewoodland: (472, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # Tentacle Forest Money Check
+
+    DoLLocationNames.feat_schoolgreen: (473, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # Tentacle Forest Money Check
+
+    DoLLocationNames.feat_hookahmaster: (474, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), # Tentacle Forest Money Check
+
+    DoLLocationNames.feat_sinsofthepast: (475, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_panicroom: (476, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        # TODO: flats min skul
+                    ]),
+
+    DoLLocationNames.feat_defythenight: (477, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.willpower_5,
+                        DoLRules.science_4,
+                    ]),
+
+    DoLLocationNames.feat_witheringtruth: (478, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        # TODO: check min willpower
+                    ]),
+
+    # TODO: check if the dates have a min req to get here
+    DoLLocationNames.feat_backroomdeals: (479, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+    
+    DoLLocationNames.feat_stompingdownthestreet: (480, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_photography,
+                        # TODO: check if there's a min stat requirement
+                    ]),
+
+    DoLLocationNames.feat_hearmeroar: (481, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_photography,
+                        # TODO: check if there's a min stat requirement
+                    ]),
+
+    DoLLocationNames.feat_maxthoseshots: (482, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.tentacles_toggle,
+                    ], [
+                        # TODO: location rules for pepper spray
+                    ]),
+
+    DoLLocationNames.feat_openedpandorasbox: (483, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_adultshop,
+                    ]),
+
+    DoLLocationNames.feat_openedpandorascocks: (484, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_brothelprovider: (485, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_brothel,
+                        DoLRules.access_adultshop, # TODO: replace with finish adultshop
+                    ]),
+
+    DoLLocationNames.feat_playerofthematch: (486, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        # TODO: check min skul
+                    ]),
+
+    DoLLocationNames.feat_lockedingold: (487, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_forest,
+                    ]),
+
+    DoLLocationNames.feat_theendlessdeep: (488, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        # TODO: check min swimming
+                    ]),
+
+    DoLLocationNames.feat_wetandruined: (489, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_moor,
+                    ]),
+
+    DoLLocationNames.feat_terrorsequal: (490, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_birdsofafeather: (491, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_birdtower,
+                        # TODO: harpy tf, flight
+                    ]),
+
+    DoLLocationNames.feat_runawaycattle: (492, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.access_remyfarm,
+                    ]),
+
+    DoLLocationNames.feat_equinerescue: (493, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        # does not require bestiality
+                    ], [
+                        DoLRules.access_remyfarm,
+                    ]),
+
+    # TODO: START FROM THIS LINE
+
+    DoLLocationNames.feat_rearpassenger: (494, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []), 
+
+    DoLLocationNames.feat_corneredrogue: (495, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_farmprotector: (496, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_aknottoremember: (497, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], [
+                        DoLRules.bestiality_toggle
+                    ]),
+
+    DoLLocationNames.feat_abnormalmollusc: (498, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_leverage: (499, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_undertheice: (500, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_inredlight: (501, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_ohbother: (502, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_notlikethemovies: (503, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_slippery: (504, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_highreflection: (505, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_schism: (506, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_catchthewind: (507, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_tradingdignity: (508, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_playingwithfire: (509, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_firestarter: (510, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_towatchthefields: (511, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_reliableemployer: (512, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_intothesunset: (513, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_institutionalised: (514, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_breaker: (515, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_timeandpressure: (516, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_morethananumber: (517, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_friendsinthesky: (518, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_notmeanttobecaged: (519, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_freebooze: (520, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_darkdelvings: (521, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_lurkerbeyond: (522, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_downbelow: (523, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_lostworld: (524, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_prehistoriclandscape: (525, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_faceofaguardian: (526, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_wildmonarch: (527, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_naturalised: (528, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_gildedspear: (529, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_lostheirloom: (530, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_50shadesoftan: (531, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_aspecialtrait: (532, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_aspecialtraitcollector: (533, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        # TODO: conditions for this
+                    ], []),
+
+    DoLLocationNames.feat_produceroflewdfluids: (534, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_literallybuckets: (535, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_feelingfull: (536, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_baileystroublemaker: (537, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_leightonsnightmare: (538, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_alexspartner: (539, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_harpersbane: (540, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_headofthepack: (541, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.bestiality_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_topofthefoodchain: (542, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.bestiality_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_prideofthefarm: (543, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.lactation_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_dawntodusk: (544, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_earslimelover: (545, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.parasites_toggle,
+                        DoLRules.parasiticpregnancy_toggle, # change if I ever change ppreg
+                    ], []),
+
+    DoLLocationNames.feat_earslimeamalgam: (546, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.parasites_toggle,
+                        DoLRules.parasiticpregnancy_toggle, # change if I ever change ppreg
+                    ], []),
+
+    DoLLocationNames.feat_thepathtoredemption: (547, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.divine_transformation_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_anewlife: (548, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    # TODO: spa rules (or check how possible anywhere is)
+    DoLLocationNames.feat_negotiator: (549, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    # TODO: gwlyan rules
+    DoLLocationNames.feat_curiousattire: (550, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    # TODO: gwlyan rules
+    DoLLocationNames.feat_wickedwardrobe: (551, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                    ], []),
+
+    DoLLocationNames.feat_mycollectionoffeats: (552, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                        # TODO: difficult feat
+                    ], []),
+
+    DoLLocationNames.feat_mytimelesscollectionoffeats: (553, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                        # TODO: difficult feat
+                    ], []),
+
+    DoLLocationNames.feat_broodmotherhost: (554, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.parasiticpregnancy_toggle,
+                        DoLRules.tentacles_or_beastiality,
+                    ], []),
+
+    DoLLocationNames.feat_topbroodmotherhost: (555, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.parasiticpregnancy_toggle,
+                        DoLRules.tentacles_or_beastiality,
+                    ], []),
+
+    DoLLocationNames.feat_broodmotherzoologist: (556, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.parasiticpregnancy_toggle,
+                        DoLRules.tentacles_toggle,
+                        DoLRules.bestiality_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_miracleoflife: (557, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.pregnancy_toggle,
+                        # TODO: mpreg rules
+                    ], []),
+
+    DoLLocationNames.feat_firstfatherhood: (558, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.pregnancy_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_hailmary: (559, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.multipleruns_toggle,
+                        # TODO: difficult rule
+                    ], []),
+
+    DoLLocationNames.feat_bicyclemother: (560, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.pregnancy_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_lifecomesinthrees: (561, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.pregnancy_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_lifebeginswhenyouleastexpect: (562, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.pregnancy_toggle,
+                        DoLRules.multipleruns_toggle,
+                    ], []),
+
+    DoLLocationNames.feat_diversityoflife: (563, [
+                        DoLRegionNames.X,
+                    ], [
+                        DoLLocationTypes.feat,
+                        DoLRules.pregnancy_toggle,
+                    ], []),
 }

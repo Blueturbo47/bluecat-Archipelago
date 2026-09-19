@@ -258,14 +258,11 @@ def create_all_items(world: DoLWorld) -> None:
         match(loctype):
             case(DoLLocationTypes.antique):
                 if world.options.randomize_antiques:
-                    print(f"Generating Artifact as Item with name '{locname[0:locname.find(":") - 1]}' type {locname.__class__}")
+                    # print(f"Generating Artifact as Item with name '{locname[0:locname.find(":") - 1]}' type {locname.__class__}")
+                    
                     # remove the ' : location' so it equals the name of the item
                     item = world.create_item(locname[0:locname.find(":") - 1])
-
-                    # testing stuff #TODO: uncomment
-                    testingvar += 1
-                    if testingvar <= 23: itempool.append(item)
-                    # itempool.append(item)
+                    itempool.append(item)
             case(DoLLocationTypes.skill):
                 if world.options.randomize_skills:
                     # remove the 'A+' from the rank and add progressive to the front

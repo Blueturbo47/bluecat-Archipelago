@@ -76,8 +76,8 @@ class DoLWorld(World):
         rules.set_all_rules(self)
 
     def create_items(self) -> None:
-        print(self.item_name_groups.keys())
-        print(f"Key '{DoLLocationTypes.antique.value}' == {self.item_name_groups[DoLLocationTypes.antique.value]}")
+        # print(self.item_name_groups.keys())
+        # print(f"Key '{DoLLocationTypes.antique.value}' == {self.item_name_groups[DoLLocationTypes.antique.value]}")
         items.create_all_items(self)
 
     def create_item(self, name: str) -> items.DoLItem:
@@ -89,7 +89,7 @@ class DoLWorld(World):
     def fill_slot_data(self) -> Mapping[str, Any]:
         return self.options.as_dict( # just add toggles here for now I guess?
             "tentacles", "pregnancy", "parasitic_pregnancy", 
-            "animal_transformations", "divine_transformations", "beastiality", 
+            "animal_transformations", "divine_transformations", "bestiality", 
             "lactation", "softvore", "parasites", 
             "anal", "bodywriting",
         )

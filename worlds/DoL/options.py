@@ -224,14 +224,15 @@ class DivineTransformations(Toggle):
     display_name = "Divine Transformations Toggle"
     default = True
 
-class Beastiality(Toggle):
+class Bestiality(Toggle):
     """
-    Is beastiality enabled in your world?
+    Is Bestiality or Monsters* enabled in your world?
+    *Any chance of monsters counts or monster hallucinations 
 
     Restricts some checks if disabled 
     """ # TODO: check if this also disables farm
 
-    display_name = "Beastiality Toggle"
+    display_name = "Bestiality Toggle"
     default = True
 
 class Lactation(Toggle):
@@ -278,7 +279,7 @@ class Anal(Toggle):
 
 class Bodywriting(Toggle):
     """
-    Is bodywriting (anything above npcs will not write) enabled in your world?
+    Is bodywriting above 'NPCs may not write on you' (minimum)
 
     Restricts some checks if disabled
     """
@@ -310,7 +311,7 @@ class DoLOptions(PerGameCommonOptions):
     parasitic_pregnancy: ParasiticPregnancy
     animal_transformations: AnimalTransformations
     divine_transformations: DivineTransformations
-    beastiality: Beastiality
+    bestiality: Bestiality
     lactation: Lactation
     softvore: SoftVore
     parasites: Parasites
@@ -328,7 +329,7 @@ option_groups = [
     ),
     OptionGroup("Game World Options", 
         [Tentacles, Pregnancy, ParasiticPregnancy, AnimalTransformations, 
-        DivineTransformations, Beastiality, Lactation, SoftVore, 
+        DivineTransformations, Bestiality, Lactation, SoftVore, 
         Parasites, Anal, Bodywriting],
     ),
 ]
