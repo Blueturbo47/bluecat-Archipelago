@@ -6,9 +6,9 @@ import math
 from BaseClasses import ItemClassification
 from rule_builder.rules import And, AtLeast, Filtered, Has, HasGroupUnique, Or, CanReachRegion, Rule, True_, False_
 from rule_builder.options import OptionFilter
-from .options import DOL_OPTION_NAME, DoLOptions, GameAnimalOptions, GameWorldOptions, RandomizationTargets, RandomizeBadends, RandomizeEntrances, RandomizationTargetRequirements, RandomizeStart, RandomizeTentacleAreas, RandomizeTransformationsType, RandomizeUpgradesType, ShopLocations, TrapChance, WalkableTown
+from .options import DOL_OPTION_NAME, DoLOptions, GameAnimalOptions, GameWorldOptions, RandomizationTargets, RandomizationTargetRequirements, TrapChance
 
-from .localization.en import DoLItemNames, DoLLocationNames, DoLLocationTypes, DoLRegionNames, OptionsLocalization
+from .en import DoLItemNames, DoLLocationNames, DoLLocationTypes, DoLRegionNames, OptionsLocalization
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING: from .world import DoLWorld
@@ -178,14 +178,21 @@ class DoLOptionFilters(Enum):
     req_difficult      = ROptionFilter(RandomizationTargetRequirements, OptionsLocalization.req_difficult.value,        operator="contains")
     req_seasonal       = ROptionFilter(RandomizationTargetRequirements, OptionsLocalization.req_seasonal.value,         operator="contains")
 
-    _tf_parts = ROptionFilter(RandomizeTransformationsType, RandomizeTransformationsType.option_tfparts)
-    _tf_full  = ROptionFilter(RandomizeTransformationsType, RandomizeTransformationsType.option_transformations)
+    _tf_parts = f
+    _tf_full = f
+    # _tf_parts = ROptionFilter(RandomizeTransformationsType, RandomizeTransformationsType.option_tfparts)
+    # _tf_full  = ROptionFilter(RandomizeTransformationsType, RandomizeTransformationsType.option_transformations)
 
     # NOTE: do not need to add these to gen rules for feats, since its still possible to get them
-    type_upgrade_alexfarm       = ROptionFilter(RandomizeUpgradesType, OptionsLocalization.upgrade_alexfarm.value,         operator="contains")
-    type_upgrade_tentacleforest = ROptionFilter(RandomizeUpgradesType, OptionsLocalization.upgrade_tentacleforest.value,   operator="contains")
-    type_upgrade_general        = ROptionFilter(RandomizeUpgradesType, OptionsLocalization.upgrade_general.value,          operator="contains")
-    type_upgrade_loft           = ROptionFilter(RandomizeUpgradesType, OptionsLocalization.upgrade_orphanageloft.value,    operator="contains")
+    # type_upgrade_alexfarm       = ROptionFilter(RandomizeUpgradesType, OptionsLocalization.upgrade_alexfarm.value,         operator="contains")
+    # type_upgrade_tentacleforest = ROptionFilter(RandomizeUpgradesType, OptionsLocalization.upgrade_tentacleforest.value,   operator="contains")
+    # type_upgrade_general        = ROptionFilter(RandomizeUpgradesType, OptionsLocalization.upgrade_general.value,          operator="contains")
+    # type_upgrade_loft           = ROptionFilter(RandomizeUpgradesType, OptionsLocalization.upgrade_orphanageloft.value,    operator="contains")
+    type_upgrade_alexfarm = f
+    type_upgrade_tentacleforest = f
+    type_upgrade_general = f
+    type_upgrade_loft = f
+
 
     # -- Or States
     tentacles_or_bestiality          = toggle_bestiality | toggle_tentacles
@@ -238,6 +245,7 @@ class DoLRules(Enum):
     type_upgrade_tentacleforest = DoLOptionFilters.type_upgrade_tentacleforest.value.convert()
     type_upgrade_general        = DoLOptionFilters.type_upgrade_general.value.convert()
     type_accessitem             = DoLOptionFilters.type_accessitem.value.convert()
+    type_transformation         = DoLOptionFilters.type_transformation.value.convert()
     
     type_badend                 = DoLOptionFilters.req_badend.value.convert()
     type_seasonal               = DoLOptionFilters.req_seasonal.value.convert()
@@ -254,9 +262,11 @@ class DoLRules(Enum):
     type_upgrade_false                 = Filtered(f, options=[type_upgrade], filtered_resolution=True)
     type_skills_false                  = Filtered(f, options=[type_skills], filtered_resolution=True)
     type_upgrade_tentacleforest_false  = Filtered(f, options=[type_upgrade_tentacleforest, type_upgrade], filtered_resolution=True)
+    type_upgrade_alexfarm_false        = Filtered(f, options=[type_upgrade_alexfarm], filtered_resolution=True)
     type_upgrade_general_false         = Filtered(f, options=[type_upgrade_general, type_upgrade], filtered_resolution=True)
     type_accessitem_false              = Filtered(f, options=[type_accessitem], filtered_resolution=True)
     type_antique_false                 = Filtered(f, options=[type_antique], filtered_resolution=True)
+    type_transformation_false          = Filtered(f, options=[type_transformation], filtered_resolution=True)
 
 
     # -- Skill Rank Items:
@@ -448,29 +458,30 @@ class DoLRules(Enum):
 
 
     # -- Transformations Items:
-    tfrule_angelfull         = Has(DoLItemNames.transformation_angelfull.value)
+    # Only need tffalse on tffull since rules collapse that way
+    tfrule_angelfull         = Has(DoLItemNames.transformation_angelfull.value) | type_transformation_false
     
-    tfrule_demonfull         = Has(DoLItemNames.transformation_demonfull.value)
+    tfrule_demonfull         = Has(DoLItemNames.transformation_demonfull.value) | type_transformation_false
     tfrule_demonappear       = Has(DoLItemNames.transformation_demonappear.value)
     tfrule_demon_full_appear = tfrule_demonfull | tfrule_demonappear
     
-    tfrule_fallenangelfull   = Has(DoLItemNames.transformation_fallenangelfull.value)
+    tfrule_fallenangelfull   = Has(DoLItemNames.transformation_fallenangelfull.value) | type_transformation_false
 
-    tfrule_wolffull          = Has(DoLItemNames.transformation_wolffull.value)
+    tfrule_wolffull          = Has(DoLItemNames.transformation_wolffull.value) | type_transformation_false
     tfrule_wolfappear        = Has(DoLItemNames.transformation_wolfappear.value)
     tfrule_wolf_full_appear  = tfrule_wolffull | tfrule_wolfappear
     
-    tfrule_harpyfull         = Has(DoLItemNames.transformation_harpyfull.value)
+    tfrule_harpyfull         = Has(DoLItemNames.transformation_harpyfull.value) | type_transformation_false
     tfrule_harpyappear       = Has(DoLItemNames.transformation_harpyappear.value)
     tfrule_harpy_full_appear = tfrule_harpyfull | tfrule_harpyappear
 
-    tfrule_foxfull           = Has(DoLItemNames.transformation_foxfull.value)  
+    tfrule_foxfull           = Has(DoLItemNames.transformation_foxfull.value) | type_transformation_false
     tfrule_foxapper          = Has(DoLItemNames.transformation_foxappear.value)
     tfrule_fox_full_appear   = tfrule_foxfull | tfrule_foxapper
     
     tfrule_wings             = tfrule_demonfull | tfrule_angelfull | tfrule_harpyfull | Has(DoLItemNames.transformation_wings.value)
     # reminder: recoding flight to include any wings instead of harpy wings
-    tfrule_flight            = tfrule_wings & Has(DoLItemNames.transformation_flight.value)
+    tfrule_flight            = tfrule_wings & Has(DoLItemNames.transformation_flight.value) | type_transformation_false
 
 
     # -- Area Access General:
@@ -570,8 +581,8 @@ class DoLRules(Enum):
     
     has_adultshopbuilt = Has(DoLItemNames.upgrade_adultshop.value) | (type_upgrade_general_false & access_adultshop)
 
-    has_farmparasitebarn = Has(DoLItemNames.upgrade_farm_parasite.value) | (access_alexfarm & type_upgrade_alexfarm & type_upgrade)
-    has_farmwatchtower = Has(DoLItemNames.upgrade_farm_security.value, 1) | (access_alexfarm & type_upgrade_alexfarm & type_upgrade)
+    has_farmparasitebarn = Has(DoLItemNames.upgrade_farm_parasite.value) | (access_alexfarm & type_upgrade_alexfarm_false & type_upgrade_false)
+    has_farmwatchtower = Has(DoLItemNames.upgrade_farm_security.value, 1) | (access_alexfarm & type_upgrade_alexfarm_false & type_upgrade_false)
     
 
     # -- Access Items:

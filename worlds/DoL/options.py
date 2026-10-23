@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from Options import Choice, OptionGroup, OptionSet, PerGameCommonOptions, Range, Toggle
-from .localization.en import OptionsLocalization
+from .en import OptionsLocalization
 
 # -------------- Basic Options
 
@@ -25,7 +25,7 @@ class RandomizationTargets(OptionSet):
     of checks.
 
     Full List: 
-    ['feats', 'antiques', 'skills', 'transformations', 'area_upgrades', 'area_unlocks']
+    ['feats', 'antiques', 'skills', 'area_unlocks']
 
 
     1: 'feats'
@@ -37,13 +37,7 @@ class RandomizationTargets(OptionSet):
     3: 'skills'
         Examples: Exhibitionism, Math, or Thigh Skill
         (Purity, Beauty, and Awareness excluded)
-    4: 'transformations'
-        Details explained in Randomize Transformation Type option
-        If you want to disable animal/divine specifically, use World Options
-    5: 'area_upgrades'
-        Locations like Tentacle Forest mayor upgrades, or Alex's Farm upgrades
-        May be further modified 'Randomize Upgrade Types'
-    6: 'area_unlocks'
+    4: 'area_unlocks'
         Locations like the Strip Club which needs the Fake ID to access will
         have their item in the item pool, otherwise you can find it normally
     """
@@ -53,31 +47,29 @@ class RandomizationTargets(OptionSet):
         OptionsLocalization.target_feats.value,
         OptionsLocalization.target_antiques.value,
         OptionsLocalization.target_skills.value,
-        OptionsLocalization.target_transformations.value,
-        OptionsLocalization.target_areaupgrades.value,
         OptionsLocalization.target_areaunlocks.value,
     ]
     default = list(valid_keys)
 
 
-class RandomizeTransformationsType(Choice):
-    """
-    Determines how transformatins are randomized. 
-    Must be added to Randomization Targets for them to get randomized.
+# class RandomizeTransformationsType(Choice):
+#     """
+#     Determines how transformatins are randomized. 
+#     Must be added to Randomization Targets for them to get randomized.
     
-    Note: If its detected there's not enough checks in the pool, tfparts will default
-    to be transformations instead
+#     Note: If its detected there's not enough checks in the pool, tfparts will default
+#     to be transformations instead
 
-    - transformations (0): 
-        Randomize whole transformations, so you get every part of a transformation at once
-    - tfparts (1): 
-        Randomize individual parts of transformations like Wings or Horns
-        Includes an 'Appearance' part, which will give you the race specific trait
-    """
-    disply_name = OptionsLocalization.display_transformationtype.value
-    option_transformations = 0
-    option_tfparts = 1
-    default = option_transformations
+#     - transformations (0): 
+#         Randomize whole transformations, so you get every part of a transformation at once
+#     - tfparts (1): 
+#         Randomize individual parts of transformations like Wings or Horns
+#         Includes an 'Appearance' part, which will give you the race specific trait
+#     """
+#     disply_name = OptionsLocalization.display_transformationtype.value
+#     option_transformations = 0
+#     option_tfparts = 1
+#     default = option_transformations
 
 
 class RandomizationTargetRequirements(OptionSet):
@@ -136,30 +128,30 @@ class RandomizationTargetRequirements(OptionSet):
     default = list(valid_keys)
 
 
-class RandomizeUpgradesType(OptionSet):
-    """
-    Determines what type of upgrades will be randomized
+# class RandomizeUpgradesType(OptionSet):
+#     """
+#     Determines what type of upgrades will be randomized
 
-    Full List:
-    ['alex_farm', 'tentacle_forest', 'orphanage_loft', 'general']
+#     Full List:
+#     ['alex_farm', 'tentacle_forest', 'orphanage_loft', 'general']
 
-    1: 'alex_farm'
-        Cleared fields are not upgrades, and are not randomized
-    2: 'tentacle_forest'
-        Upgrades bought via the Mayor's Office
-    3: 'orphanage_loft'
-        Any upgrade to the loft, respects Target Requirements
-    4: 'general'
-        Any world upgrades that are not the above
-    """
-    display_name = OptionsLocalization.display_upgradetype.value
-    valid_keys = [
-        OptionsLocalization.upgrade_alexfarm.value,
-        OptionsLocalization.upgrade_tentacleforest.value,
-        OptionsLocalization.upgrade_orphanageloft.value,
-        OptionsLocalization.upgrade_general.value,
-    ]
-    default = list(valid_keys)
+#     1: 'alex_farm'
+#         Cleared fields are not upgrades, and are not randomized
+#     2: 'tentacle_forest'
+#         Upgrades bought via the Mayor's Office
+#     3: 'orphanage_loft'
+#         Any upgrade to the loft, respects Target Requirements
+#     4: 'general'
+#         Any world upgrades that are not the above
+#     """
+#     display_name = OptionsLocalization.display_upgradetype.value
+#     valid_keys = [
+#         OptionsLocalization.upgrade_alexfarm.value,
+#         OptionsLocalization.upgrade_tentacleforest.value,
+#         OptionsLocalization.upgrade_orphanageloft.value,
+#         OptionsLocalization.upgrade_general.value,
+#     ]
+#     default = list(valid_keys)
 
 
 # -------------- Goal Options
@@ -174,6 +166,7 @@ class CompletionGoal(Choice):
     """
     display_name = OptionsLocalization.display_goal.value
     option_antiques = 0
+    option_money = 1
     default = option_antiques
 
 class CompletionGoal_Antiques(Range):
@@ -200,130 +193,130 @@ class CompletionGoal_Money(Range):
 
 # -------------- Region Randomizer Options
 
-class RandomizeStart(Choice):
-    """
-    Lets you change your starting location. Don't randomize means starting at the orphanage
-    """
-    display_name = OptionsLocalization.display_randomizestart.value
+# class RandomizeStart(Choice):
+#     """
+#     Lets you change your starting location. Don't randomize means starting at the orphanage
+#     """
+#     display_name = OptionsLocalization.display_randomizestart.value
 
-    option_disabled = 0
-    option_randomLocation = 1
-    option_danube_street = 2
-    option_barb_street = 3
-    option_domus_street = 4
-    option_starfish_street = 5
-    option_cliff_street = 6
-    option_high_street = 7
-    option_nightingale_street = 8
-    option_wolf_street = 9
-    option_connudatus_street = 10
-    option_oxford_street = 11
-    option_harvest_street = 12
-    option_mer_street = 13
-    option_elk_street = 14
+#     option_disabled = 0
+#     option_randomLocation = 1
+#     option_danube_street = 2
+#     option_barb_street = 3
+#     option_domus_street = 4
+#     option_starfish_street = 5
+#     option_cliff_street = 6
+#     option_high_street = 7
+#     option_nightingale_street = 8
+#     option_wolf_street = 9
+#     option_connudatus_street = 10
+#     option_oxford_street = 11
+#     option_harvest_street = 12
+#     option_mer_street = 13
+#     option_elk_street = 14
 
-    default = option_disabled
+#     default = option_disabled
 
 
-class RandomizeEntrances(Toggle):
-    """
-    Randomizes where each exit leads to
+# class RandomizeEntrances(Toggle):
+#     """
+#     Randomizes where each exit leads to
     
-    Areas Not Randomized:
-        Very Minor Areas    (ex: Churchyard Catacombs)
-        Bad-Ends*           (ex: Underground Brothel)
-        Tentacle Areas*     (Tentacle Forest, Tentacle Plains)
+#     Areas Not Randomized:
+#         Very Minor Areas    (ex: Churchyard Catacombs)
+#         Bad-Ends*           (ex: Underground Brothel)
+#         Tentacle Areas*     (Tentacle Forest, Tentacle Plains)
     
-    * = However can be enabled below
+#     * = However can be enabled below
 
-    Fainting to the hospital is not randomized and
-    getting arrested can still takes you to Jail
+#     Fainting to the hospital is not randomized and
+#     getting arrested can still takes you to Jail
 
-    This disables the bus by default, to re-enable enable WalkableTown
-    """
-    display_name = OptionsLocalization.display_erand.value
+#     This disables the bus by default, to re-enable enable WalkableTown
+#     """
+#     display_name = OptionsLocalization.display_erand.value
 
 
-class RandomizeBadends(Choice):
-    """
-    Randomizes where bad ends leave and the location you enter them.
+# class RandomizeBadends(Choice):
+#     """
+#     Randomizes where bad ends leave and the location you enter them.
 
-    - disabled (0):
-        No Change
-    - between_themselves (1):
-        Pool the badends, so they only randomize between themselves
-        Ex: going to the Underground Brothel instead takes you to the Prison
-        and leaving the Prison takes you to the Flats
-    - anywhere (2):
-        Adds to the global pool, so anywhere can lead to a badend
-        Don't accidently walk into one!
-    """
-    display_name = OptionsLocalization.display_erand_badend.value
+#     - disabled (0):
+#         No Change
+#     - between_themselves (1):
+#         Pool the badends, so they only randomize between themselves
+#         Ex: going to the Underground Brothel instead takes you to the Prison
+#         and leaving the Prison takes you to the Flats
+#     - anywhere (2):
+#         Adds to the global pool, so anywhere can lead to a badend
+#         Don't accidently walk into one!
+#     """
+#     display_name = OptionsLocalization.display_erand_badend.value
     
-    option_disabled = 0
-    option_between_themelves = 1
-    option_anywhere = 2
-    default = option_anywhere
+#     option_disabled = 0
+#     option_between_themelves = 1
+#     option_anywhere = 2
+#     default = option_anywhere
 
 
-class RandomizeTentacleAreas(Toggle):
-    """
-    If Entrance Randomizer is enabled, Randomizes where the 
-    Tentacle Plains and Tentacle Forest entrances are, provided
-    you have Tentacles enabled to enter them
+# class RandomizeTentacleAreas(Toggle):
+#     """
+#     If Entrance Randomizer is enabled, Randomizes where the 
+#     Tentacle Plains and Tentacle Forest entrances are, provided
+#     you have Tentacles enabled to enter them
 
-    Note: this makes Asylum much easier to leave, but makes it a requirement to check there
-    if you have bad_end in Randomization Target Requirements
-    """
-    display_name = OptionsLocalization.display_erand_tentacleareas.value
-
-
-class ShopLocations(Choice):
-    """
-    Randomize the location of Shops
-    (Shopping Centre Shops, Pharmacy, and Forest Shop)
-
-    - disabled (0):
-        No Change
-    - between_themselves (1):
-        All shops will be redistributed between themselves,
-        instead of being added to the global pool
-    - anywhere (2):
-        Adds to the global pool, so anywhere can lead to a shop
-    """
-    display_name = OptionsLocalization.display_erand_shops.value
-
-    option_disabled = 0
-    option_between_themselves = 1
-    option_anywhere = 2
-    default = option_disabled
+#     Note: this makes Asylum much easier to leave, but makes it a requirement to check there
+#     if you have bad_end in Randomization Target Requirements
+#     """
+#     display_name = OptionsLocalization.display_erand_tentacleareas.value
 
 
-class PoolOneWayRandomization(Toggle):
-    """
-    If enabled, this causes paths that are one-way (Prison -> Beach) to only be randomized within themselves,
-    instead of being in a global pool where they can come up randomly anywhere.
+# class ShopLocations(Choice):
+#     """
+#     Randomize the location of Shops
+#     (Shopping Centre Shops, Pharmacy, and Forest Shop)
 
-    Example if enabled:
-    'Oxford Street' -> 'Forest Lake' (via students)
-    Forest Lake can swap with Beach from 'Prison' -> 'Beach' to become 'Prison' -> 'Forest Lake'
-    Forest Lake cannot swap with Cafe from 'Cliff Street' <-> 'Cafe' to become 'Cliff Street' -> 'Forest Lake'
+#     - disabled (0):
+#         No Change
+#     - between_themselves (1):
+#         All shops will be redistributed between themselves,
+#         instead of being added to the global pool
+#     - anywhere (2):
+#         Adds to the global pool, so anywhere can lead to a shop
+#     """
+#     display_name = OptionsLocalization.display_erand_shops.value
 
-    This mostly only effects bad-ends
-    """
-    display_name = OptionsLocalization.display_erand_pooloneway.value
+#     option_disabled = 0
+#     option_between_themselves = 1
+#     option_anywhere = 2
+#     default = option_disabled
 
-    default = False
+
+# class PoolOneWayRandomization(Toggle):
+#     """
+#     If enabled, this causes paths that are one-way (Prison -> Beach) to only be randomized within themselves,
+#     instead of being in a global pool where they can come up randomly anywhere.
+
+#     Example if enabled:
+#     'Oxford Street' -> 'Forest Lake' (via students)
+#     Forest Lake can swap with Beach from 'Prison' -> 'Beach' to become 'Prison' -> 'Forest Lake'
+#     Forest Lake cannot swap with Cafe from 'Cliff Street' <-> 'Cafe' to become 'Cliff Street' -> 'Forest Lake'
+
+#     This mostly only effects bad-ends
+#     """
+#     display_name = OptionsLocalization.display_erand_pooloneway.value
+
+#     default = False
 
 
-class WalkableTown(Toggle):
-    """
-    If Entrance Randomizer is enabled, enables the bus, and prevents street to street randomization.
-    Ex: 'Domus Street' <-> 'Danube Street' will not be randomized
-    """
-    display_name = OptionsLocalization.display_erand_walkabletown.value
+# class WalkableTown(Toggle):
+#     """
+#     If Entrance Randomizer is enabled, enables the bus, and prevents street to street randomization.
+#     Ex: 'Domus Street' <-> 'Danube Street' will not be randomized
+#     """
+#     display_name = OptionsLocalization.display_erand_walkabletown.value
 
-    default = False
+#     default = False
 
 
 # -------------- Game World Options
@@ -421,21 +414,21 @@ class GameAnimalOptions(OptionSet):
 class DoLOptions(PerGameCommonOptions):
     # trap_chance: TrapChance
     randomization_targets: RandomizationTargets
-    randomize_transformations_type: RandomizeTransformationsType
+    # randomize_transformations_type: RandomizeTransformationsType
     randomization_target_requirements: RandomizationTargetRequirements
-    randomize_upgrades_type: RandomizeUpgradesType
+    # randomize_upgrades_type: RandomizeUpgradesType
 
     completiongoal: CompletionGoal
     completiongoal_antiques: CompletionGoal_Antiques
     completiongoal_money: CompletionGoal_Money
     
-    randomize_entrances: RandomizeEntrances
-    pool_onewayrandomization: PoolOneWayRandomization
-    randomize_badends: RandomizeBadends
-    randomize_start: RandomizeStart
-    walkable_town: WalkableTown
-    randomize_tentacleareas: RandomizeTentacleAreas
-    shop_locations: ShopLocations
+    # randomize_entrances: RandomizeEntrances
+    # pool_onewayrandomization: PoolOneWayRandomization
+    # randomize_badends: RandomizeBadends
+    # randomize_start: RandomizeStart
+    # walkable_town: WalkableTown
+    # randomize_tentacleareas: RandomizeTentacleAreas
+    # shop_locations: ShopLocations
     
     gameworld_options: GameWorldOptions
     gameanimal_options: GameAnimalOptions
@@ -447,19 +440,19 @@ DOL_OPTION_NAME = {option: optionname for optionname, option in DoLOptions.type_
 
 option_groups = [
     OptionGroup(OptionsLocalization.group_randomization.value, [
-        TrapChance, RandomizationTargets, RandomizeTransformationsType, 
-        RandomizationTargetRequirements, RandomizeUpgradesType
+        TrapChance, RandomizationTargets, # RandomizeTransformationsType, 
+        RandomizationTargetRequirements, # RandomizeUpgradesType
     ]),
     OptionGroup(OptionsLocalization.group_goal.value, [
         CompletionGoal, CompletionGoal_Antiques, CompletionGoal_Money
     ]),
-    OptionGroup(OptionsLocalization.group_entrancerandomizer.value, [
-        # Locations
-        RandomizeEntrances, RandomizeBadends, RandomizeTentacleAreas, 
-        ShopLocations, 
-        # Settings
-        PoolOneWayRandomization, RandomizeStart, WalkableTown
-    ]),
+    # OptionGroup(OptionsLocalization.group_entrancerandomizer.value, [
+    #     # Locations
+    #     RandomizeEntrances, RandomizeBadends, RandomizeTentacleAreas, 
+    #     ShopLocations, 
+    #     # Settings
+    #     PoolOneWayRandomization, RandomizeStart, WalkableTown
+    # ]),
     OptionGroup(OptionsLocalization.group_gameworld.value, [
         GameWorldOptions, GameAnimalOptions
     ]),

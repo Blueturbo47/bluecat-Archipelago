@@ -35,7 +35,7 @@ def create_regular_locations(world: DoLWorld) -> None:
     # i = {locationname : (location ID, [Location Regions], [Location Gen Rules], [Location Reach Rules])}
     for loc in DoLLocationData.__members__.values():
         locname = DoLLocationNames[loc.name].value
-        print(f"\nAttempting generation for loc '{locname}'")
+        # print(f"\nAttempting generation for loc '{locname}'")
         locid = loc.value.location_id
         locregions = loc.value.locations
         locgenrules = loc.value.rules_generation

@@ -1,14 +1,14 @@
 from __future__ import annotations
 from BaseClasses import Region
 from rule_builder.rules import And
-from .localization.en import ConnectionNotes, DoLRegionNames, OptionsLocalization
+from .en import ConnectionNotes, DoLRegionNames, OptionsLocalization
 
 from .data import DoLOptionFilters, DoLRules
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING: 
     from .world import DoLWorld
-    from .localization.en import _NoteDetail
+    from .en import _NoteDetail
 
 
 
@@ -1165,56 +1165,62 @@ def create_and_connect_regions(world:DoLWorld) -> None:
         # ])
 
 
-    # -------- Start: Randomization --------
+    # # -------- Start: Randomization --------
 
-    # Connections between streets
-    if not options.walkable_town: 
-        walkabletown_connections()
-    # .extend Shops
-    if options.shop_locations == options.shop_locations.option_anywhere: 
-        world_regions.extend(shops)
-    # .extend Badends
-    if options.randomize_badends == options.randomize_badends.option_anywhere:
-        world_regions.extend(badends)
-    # .append Tentacle Areas (they can exist in region list even if tent disabled)
-    if options.randomize_tentacleareas: 
-        world_regions.append(tentacle_forest)
-        world_regions.append(tentacle_plains)
+    # # Connections between streets
+    # if not options.walkable_town: 
+    #     walkabletown_connections()
+    # # .extend Shops
+    # if options.shop_locations == options.shop_locations.option_anywhere: 
+    #     world_regions.extend(shops)
+    # # .extend Badends
+    # if options.randomize_badends == options.randomize_badends.option_anywhere:
+    #     world_regions.extend(badends)
+    # # .append Tentacle Areas (they can exist in region list even if tent disabled)
+    # if options.randomize_tentacleareas: 
+    #     world_regions.append(tentacle_forest)
+    #     world_regions.append(tentacle_plains)
 
-    # Run Randomize
-    if options.randomize_entrances: 
-        world_regions = RandomizationPool(world_regions).run()
+    # # Run Randomize
+    # if options.randomize_entrances: 
+    #     world_regions = RandomizationPool(world_regions).run()
 
-    # -------- Post: World Randomization --------
+    # # -------- Post: World Randomization --------
 
-    # Run Randomize & .extend(): Shop (if not done above)
-    if options.shop_locations == options.shop_locations.option_between_themselves: 
-        shops = RandomizationPool(shops).run()
-        world_regions.extend(shops)
-    # Run Randomize & .extend(): Bad Ends (if not done above)
-    if options.randomize_badends == options.randomize_badends.option_between_themelves:
-        badends = RandomizationPool(badends).run()
-        world_regions.extend(badends)
+    # # Run Randomize & .extend(): Shop (if not done above)
+    # if options.shop_locations == options.shop_locations.option_between_themselves: 
+    #     shops = RandomizationPool(shops).run()
+    #     world_regions.extend(shops)
+    # # Run Randomize & .extend(): Bad Ends (if not done above)
+    # if options.randomize_badends == options.randomize_badends.option_between_themelves:
+    #     badends = RandomizationPool(badends).run()
+    #     world_regions.extend(badends)
 
 
     # -------- Post: Randomization --------
     
     # non-randomized loose regions
     world_regions.extend(debug)
+    walkabletown_connections()
+    world_regions.extend(shops)
+    world_regions.extend(badends)
+    world_regions.append(tentacle_forest)
+    world_regions.append(tentacle_plains)
 
-    # Connections between streets (if not done above)
-    if options.walkable_town: 
-        walkabletown_connections()
-    # .extend Shops (if not done above)
-    if options.shop_locations == options.shop_locations.option_disabled: 
-        world_regions.extend(shops)
-    # .extend Badends (if not done above)
-    if options.randomize_badends == options.randomize_badends.option_disabled: 
-        world_regions.extend(badends)
-    # .append Tentacle Areas (they can exist in region list even if tent disabled) (if not done above)
-    if not options.randomize_tentacleareas: 
-        world_regions.append(tentacle_forest)
-        world_regions.append(tentacle_plains)
+
+    # # Connections between streets (if not done above)
+    # if options.walkable_town: 
+    #     walkabletown_connections()
+    # # .extend Shops (if not done above)
+    # if options.shop_locations == options.shop_locations.option_disabled: 
+    #     world_regions.extend(shops)
+    # # .extend Badends (if not done above)
+    # if options.randomize_badends == options.randomize_badends.option_disabled: 
+    #     world_regions.extend(badends)
+    # # .append Tentacle Areas (they can exist in region list even if tent disabled) (if not done above)
+    # if not options.randomize_tentacleareas: 
+    #     world_regions.append(tentacle_forest)
+    #     world_regions.append(tentacle_plains)
 
 
     in_global = Area(DoLRegionNames.in_global)
