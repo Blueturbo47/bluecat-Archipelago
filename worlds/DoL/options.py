@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+from enum import StrEnum
 
-from Options import Choice, OptionGroup, PerGameCommonOptions, Range, Toggle
+from Options import Choice, OptionGroup, OptionSet, PerGameCommonOptions, Range, Toggle
+from .localization.en import OptionsLocalization
 
 # -------------- Basic Options
 
@@ -9,118 +11,202 @@ class TrapChance(Range):
     Percentage of filler items that are Traps
     """
 
-    display_name = "Trap Chance"
+    display_name = OptionsLocalization.display_trap.value
 
     range_start = 0
     range_end = 100
     default = 0
 
-class RandomizeTransformations(Choice):
+
+class RandomizationTargets(OptionSet):
     """
-    Add transformations into the pool? You will be able to stack transformations. 
-    Note: flight is a seperate check from wings, you must find both your wings and flight
+    Choose what you want to randomize defined in a list.
+    I highly recommend keeping 'feats' on, as that is the bulk
+    of checks.
+
+    Full List: 
+    ['feats', 'antiques', 'skills', 'transformations', 'area_upgrades', 'area_unlocks']
+
+
+    1: 'feats'
+        Your toggles and other options remove feats you cannot get, 
+        so don't worry if you might make an impossible check with your settings!
+    2: 'antiques'
+        Note: Obtaining the item is what gives the check,
+        you don't have to turn them in to the museum
+    3: 'skills'
+        Examples: Exhibitionism, Math, or Thigh Skill
+        (Purity, Beauty, and Awareness excluded)
+    4: 'transformations'
+        Details explained in Randomize Transformation Type option
+        If you want to disable animal/divine specifically, use World Options
+    5: 'area_upgrades'
+        Locations like Tentacle Forest mayor upgrades, or Alex's Farm upgrades
+        May be further modified 'Randomize Upgrade Types'
+    6: 'area_unlocks'
+        Locations like the Strip Club which needs the Fake ID to access will
+        have their item in the item pool, otherwise you can find it normally
+    """
+
+    display_name = OptionsLocalization.display_target.value
+    valid_keys = [
+        OptionsLocalization.target_feats.value,
+        OptionsLocalization.target_antiques.value,
+        OptionsLocalization.target_skills.value,
+        OptionsLocalization.target_transformations.value,
+        OptionsLocalization.target_areaupgrades.value,
+        OptionsLocalization.target_areaunlocks.value,
+    ]
+    default = list(valid_keys)
+
+
+class RandomizeTransformationsType(Choice):
+    """
+    Determines how transformatins are randomized. 
+    Must be added to Randomization Targets for them to get randomized.
     
-    - tfparts: Randomize individual parts of transformations like wings or horns.
-    - transformations: Randomize whole transformations, instead of each part of a transformations
-    - disabled: do not randomize transformations, and do not include any checks or paths that require a transformation
+    Note: If its detected there's not enough checks in the pool, tfparts will default
+    to be transformations instead
+
+    - transformations (0): 
+        Randomize whole transformations, so you get every part of a transformation at once
+    - tfparts (1): 
+        Randomize individual parts of transformations like Wings or Horns
+        Includes an 'Appearance' part, which will give you the race specific trait
     """
+    disply_name = OptionsLocalization.display_transformationtype.value
+    option_transformations = 0
     option_tfparts = 1
-    option_transformations = 2
-    option_disabled = 0
-    disply_name = "Randomize Transformations"
-    default = option_disabled
+    default = option_transformations
 
-class MultipleRuns(Toggle):
+
+class RandomizationTargetRequirements(OptionSet):
     """
-    Enable checks that may require multiple runs. Ex: Reaching Angel TF.
-    Angel TF will still be randomized in the pool if Randomize Transformations is also enabled
+    Determines what type of locations you need to check
+
+    Full List: 
+    ['feat_copper', 'feat_silver', 'feat_gold', 'feat_platinum', 'feat_jeweled', 
+    'transformation', 'love_interest', 'bad_end', 'seasonal', 'difficult',
+    'multiple_runs']
+
+    1: 'feat_copper'
+    2: 'feat_silver'
+    3: 'feat_gold'
+    4: 'feat_platinum'
+    5: 'feat_jeweled'
+        Note: There is only 1 Jeweled Feat
+    6: 'transformation'
+        Anything that require a transformation to obtain
+        Note: This does not disable transformations as Check
+        Locations, so you still need to get transformations
+    7: 'love_interest'
+        Anything that require progressing with a love interest
+        in order to obtain
+    8: 'bad_end'
+        Anything that require access to or going to a badend.
+        Note: badends (as wiki states) are: Asylum, Remy's Farm, Prison,
+        Underground Brothel, Dog Pound, Mines, Island, Pirate Ship,
+        Kylar Abduction, Eden's Cabin, Hawk Tower, and Wolf Cave
+    9: 'seasonal'
+        Locations or Access to Areas requiring a season or time of year
+    10: 'difficult'
+        Anything that requires a large amount of time, just generally difficult, or rare RNG checks
+        Examples: Millionaire, Sadomasochist, Stressful Challenge, 
+            Collection of Feats, Thesis Offence, Harper the Hypnotist
+    11: 'multiple_runs'
+        Anything that requires making a new savefile to get
+        Examples: Being a Boy, Being a Herm, Angel TF
+        Note: this can make Angel TF not required to be checked if transformations are check,
+        however if feats are disabled will become a check (to prevent more items than locations)
     """
-    display_name = "Multiple Runs Toggle"
+    display_name = OptionsLocalization.display_req.value
+    valid_keys = [
+        OptionsLocalization.req_featcopper.value,
+        OptionsLocalization.req_featsilver.value,
+        OptionsLocalization.req_featgold.value,
+        OptionsLocalization.req_featplatinum.value,
+        OptionsLocalization.req_featjeweled.value,
+        OptionsLocalization.req_transformation.value,
+        OptionsLocalization.req_loveinterest.value,
+        OptionsLocalization.req_badend.value,
+        OptionsLocalization.req_seasonal.value,
+        OptionsLocalization.req_difficult.value,
+        OptionsLocalization.req_multipleruns.value,
+    ]
+    default = list(valid_keys)
 
-class DontRestrictRNG(Toggle):
+
+class RandomizeUpgradesType(OptionSet):
     """
-    Enables checks/paths that may require a higher RNG roll. Ex: getting caught in a van to go to Remy's Farm
+    Determines what type of upgrades will be randomized
+
+    Full List:
+    ['alex_farm', 'tentacle_forest', 'orphanage_loft', 'general']
+
+    1: 'alex_farm'
+        Cleared fields are not upgrades, and are not randomized
+    2: 'tentacle_forest'
+        Upgrades bought via the Mayor's Office
+    3: 'orphanage_loft'
+        Any upgrade to the loft, respects Target Requirements
+    4: 'general'
+        Any world upgrades that are not the above
     """
+    display_name = OptionsLocalization.display_upgradetype.value
+    valid_keys = [
+        OptionsLocalization.upgrade_alexfarm.value,
+        OptionsLocalization.upgrade_tentacleforest.value,
+        OptionsLocalization.upgrade_orphanageloft.value,
+        OptionsLocalization.upgrade_general.value,
+    ]
+    default = list(valid_keys)
 
-    display_name = "Don't Restrict RNG"
 
-class RandomizeAntiques(Toggle):
+# -------------- Goal Options
+
+class CompletionGoal(Choice):
     """
-    Do you want to randomize Museum Antiques?
+    Which Goal you wish to set for finishing
+    Default: Antiques
+
+    - Antiques: Number of antiques collected, set in 'Completion Goal: Antiques'
+    - Money: Total Money, set in 'Complete Goal: Money'
     """
+    display_name = OptionsLocalization.display_goal.value
+    option_antiques = 0
+    default = option_antiques
 
-    display_name = "Randomize Antiques"
-    default = True
-
-class RandomizeSkills(Toggle):
+class CompletionGoal_Antiques(Range):
     """
-    Do you want to randomize skill ranks ex: Exhibitionism, Math, or Thigh Skill
-    (Purity, Beauty, and Awareness excluded)
+    Number of antiques required for Completion Goal of Antiques
+    Range of 1 to 63
+    Default: 40
     """
-    display_name = "Randomize Skill Ranks"
-    default = True
-    
-# -------------- Entrance Randomizer Options
+    display_name = OptionsLocalization.display_goal_antiques.value
+    range_start = 1
+    range_end = 63
+    default = 40
 
-class RandomizeEntrances(Toggle):
+class CompletionGoal_Money(Range):
     """
-    Randomizes where each exit leads to
-    Badends and very minor areas are not randomized
-    Ex: The Lake in forest and the Underground Brothel
-    Note: Fainting still takes you to the Hospital
-
-    This disables the bus by default, to re-enable enable WalkableTown
+    Amount of money required for Completion Goal of Money
+    Range of 10,000 to 10,000,000
+    Default: 100,000
     """
+    display_name = OptionsLocalization.display_goal_money.value
+    range_start = 10000  # 1e4
+    range_end = 10000000 # 1e6
+    default = 100000     # 1e5
 
-    display_name = "Entrance Randomizer"
-
-class PoolOneWayRandomization(Toggle):
-    """
-    If enabled, this causes paths that are one-way (Prison -> Beach) to only be randomized within themselves,
-    instead of being in a global pool where they can come up randomly anywhere.
-
-    Example: 'Oxford Street' -> 'Forest Lake'
-    Forest Lake can swap Beach from 'Prison' -> 'Beach'
-    Forest Lake cannot swap Cafe 'Cliff Street' <-> 'Cafe'
-
-    This mostly only effects bad-ends
-    """
-    display_name = "Pool One Way Randomization"
-
-
-class RandomizeBadends(Toggle):
-    """
-    Randomizes where bad ends leave and the location you enter them within themselves. 
-    Ex: going to the Underground Brothel now takes you to the Prison, and leaving the Prison takes you to the Flats
-
-    If Bad End Entrance Randomizer is enabled this does nothing, otherwise works as expected
-    """
-
-    display_name = "Bad End Randomizer"
-
-class RandomizeEntrancesBadends(Toggle):
-    """
-    If entrance randomizer is enabled, this causes it to add badends to the pool aswell
-    Don't accidently walk into one!
-    """
-
-    display_name = "Bad End Entrance Randomizer"
-
-class WalkableTown(Toggle):
-    """
-    If Entrance Randomizer is enabled, enables the bus, and prevents street to street randomization.
-    Ex: Domus street -> Danube Street always leads to Danube Street
-    """
-
-    display_name = "Walkable Town"
+# -------------- Region Randomizer Options
 
 class RandomizeStart(Choice):
     """
     Lets you change your starting location. Don't randomize means starting at the orphanage
     """
-    display_name = "Change Starting Location"
+    display_name = OptionsLocalization.display_randomizestart.value
 
-    option_dontRandomize = 0
+    option_disabled = 0
     option_randomLocation = 1
     option_danube_street = 2
     option_barb_street = 3
@@ -136,209 +222,252 @@ class RandomizeStart(Choice):
     option_mer_street = 13
     option_elk_street = 14
 
-    default = option_dontRandomize
+    default = option_disabled
+
+
+class RandomizeEntrances(Toggle):
+    """
+    Randomizes where each exit leads to
+    
+    Areas Not Randomized:
+        Very Minor Areas    (ex: Churchyard Catacombs)
+        Bad-Ends*           (ex: Underground Brothel)
+        Tentacle Areas*     (Tentacle Forest, Tentacle Plains)
+    
+    * = However can be enabled below
+
+    Fainting to the hospital is not randomized and
+    getting arrested can still takes you to Jail
+
+    This disables the bus by default, to re-enable enable WalkableTown
+    """
+    display_name = OptionsLocalization.display_erand.value
+
+
+class RandomizeBadends(Choice):
+    """
+    Randomizes where bad ends leave and the location you enter them.
+
+    - disabled (0):
+        No Change
+    - between_themselves (1):
+        Pool the badends, so they only randomize between themselves
+        Ex: going to the Underground Brothel instead takes you to the Prison
+        and leaving the Prison takes you to the Flats
+    - anywhere (2):
+        Adds to the global pool, so anywhere can lead to a badend
+        Don't accidently walk into one!
+    """
+    display_name = OptionsLocalization.display_erand_badend.value
+    
+    option_disabled = 0
+    option_between_themelves = 1
+    option_anywhere = 2
+    default = option_anywhere
+
 
 class RandomizeTentacleAreas(Toggle):
     """
-    Randomize where Tentacle Plains and Tentacle Forest entrances are? 
-    Note: this makes Asylum much easier to leave, but makes it a requirement to check there
+    If Entrance Randomizer is enabled, Randomizes where the 
+    Tentacle Plains and Tentacle Forest entrances are, provided
+    you have Tentacles enabled to enter them
 
-    This will do nothing if tentacles are not enabled
+    Note: this makes Asylum much easier to leave, but makes it a requirement to check there
+    if you have bad_end in Randomization Target Requirements
     """
-    display_name = "Randomized Tentacle Area Entrances"
+    display_name = OptionsLocalization.display_erand_tentacleareas.value
+
 
 class ShopLocations(Choice):
     """
-    Randomize the location of shops
+    Randomize the location of Shops
+    (Shopping Centre Shops, Pharmacy, and Forest Shop)
 
-    Between themselves means that all shopping centre shops, the pharmacy, and forest shop will be added to a pool and then redistributed between them
+    - disabled (0):
+        No Change
+    - between_themselves (1):
+        All shops will be redistributed between themselves,
+        instead of being added to the global pool
+    - anywhere (2):
+        Adds to the global pool, so anywhere can lead to a shop
     """
+    display_name = OptionsLocalization.display_erand_shops.value
 
-    option_dont_randomize = 0
+    option_disabled = 0
     option_between_themselves = 1
     option_anywhere = 2
+    default = option_disabled
 
-    default = option_dont_randomize
+
+class PoolOneWayRandomization(Toggle):
+    """
+    If enabled, this causes paths that are one-way (Prison -> Beach) to only be randomized within themselves,
+    instead of being in a global pool where they can come up randomly anywhere.
+
+    Example if enabled:
+    'Oxford Street' -> 'Forest Lake' (via students)
+    Forest Lake can swap with Beach from 'Prison' -> 'Beach' to become 'Prison' -> 'Forest Lake'
+    Forest Lake cannot swap with Cafe from 'Cliff Street' <-> 'Cafe' to become 'Cliff Street' -> 'Forest Lake'
+
+    This mostly only effects bad-ends
+    """
+    display_name = OptionsLocalization.display_erand_pooloneway.value
+
+    default = False
+
+
+class WalkableTown(Toggle):
+    """
+    If Entrance Randomizer is enabled, enables the bus, and prevents street to street randomization.
+    Ex: 'Domus Street' <-> 'Danube Street' will not be randomized
+    """
+    display_name = OptionsLocalization.display_erand_walkabletown.value
+
+    default = False
+
 
 # -------------- Game World Options
 
-
-class Tentacles(Toggle):
+class GameWorldOptions(OptionSet):
     """
-    Are tentacles enabled in your world?
+    List that says which options are enabled in your world.
+    If you disable one of these for your playthrough, remove it here
+    first then any paths or checks will not exist in your world that 
+    require one of these. Not strictly required to 1:1 this with
+    your save if you just want to disable some content for checks.
 
-    Restricts some areas and checks if disabled 
+    Full List: 
+    ['pregnancy', 'parasitic_pregnancy', 'animal_transformations', 
+    'divine_transformations', 'bestiality', 'monster_people', 
+    'lactation', 'soft_vore', 'anal', 
+    'bodywriting', 'hypnosis']
+
+    Options:
+    1:  'pregnancy'
+    2:  'parasitic_pregnancy'
+    3:  'animal_transformations'
+    4:  'divine_transformations'
+    5:  'bestiality'
+    6:  'monster_people'
+        Any chance to have monster people via hallucinations
+        or in general counts
+    7:  'lactation'
+    8:  'soft_vore'
+    9:  'anal'
+    10: 'bodywriting'
+        Anything above 'NPCs may not write on you'
+    11: 'hypnosis'
     """
+    display_name = OptionsLocalization.display_worldoptions.value
 
-    display_name = "Tentacle Toggle"
-    default = True
+    valid_keys = [
+        OptionsLocalization.toggle_pregnancy.value,
+        OptionsLocalization.toggle_parapregnancy.value,
+        OptionsLocalization.toggle_animaltransformations.value,
+        OptionsLocalization.toggle_divinetransformations.value,
+        OptionsLocalization.toggle_bestiality.value,
+        OptionsLocalization.toggle_monsterpeople.value,
+        OptionsLocalization.toggle_lactation.value,
+        OptionsLocalization.toggle_softvore.value,
+        OptionsLocalization.toggle_anal.value,
+        OptionsLocalization.toggle_bodywriting.value,
+        OptionsLocalization.toggle_hypnosis.value,
+    ]
+    default = list(valid_keys)
 
-class Pregnancy(Toggle):
+
+class GameAnimalOptions(OptionSet):
     """
-    Is (non-parasitic) pregnancy enabled in your world?
+    What type of animals/beasts are enabled in your world
+    Full List:
+    ['swarms', 'parasites', 'tentacles',
+    'slimes', 'spiders', 'slugs',
+    'wasps', 'bees', 'lurkers',
+    'horses', 'plantpeople']
 
-    Restricts some checks and paths if disabled
+    1:  'swarms'
+    2:  'parasites'
+        Note: Parasites are Earslimes and urchins, slimes, 
+        and maggots that stick to you.
+    3:  'tentacles'
+    4:  'slimes'
+    5:  'spiders'
+    6:  'slugs'
+    7:  'wasps'
+    8:  'bees'
+    9:  'lurkers'
+    10: 'horses'
+    11: 'plantpeople'
     """
+    display_name = OptionsLocalization.display_animaloptions.value
 
-    display_name = "Pregnancy Toggle"
-    default = True
-    
-class ParasiticPregnancy(Toggle):
-    """
-    Is parasitic pregnancy enabled in your world? 
-    
-    This toggle also assumes the following are enabled:
-    - Swarms
-    - Spiders
-    - Bees
-    - Wasps
-    - Lurkers
-    - Slimes
-    - Slugs 
-    - Plant People
-    If you have one off please disable this
-
-    Restricts some checks if disabled
-    """
-
-    display_name = "Parasitic Pregnancy Toggle"
-    default = True
-
-class AnimalTransformations(Toggle):
-    """
-    Are animal transformations enabled in your world? Does nothing if transformations are not randomized
-
-    Restricts some checks if disabled
-    """
-
-    display_name = "Animal Transformations Toggle"
-    default = True
-
-class DivineTransformations(Toggle):
-    """
-    Are divine transformations enabled in your world? Does nothing if transformations are not randomized
-
-    Restricts some checks if disabled
-    """
-
-    display_name = "Divine Transformations Toggle"
-    default = True
-
-class Bestiality(Toggle):
-    """
-    Is Bestiality or Monsters* enabled in your world?
-    *Any chance of monsters counts or monster hallucinations 
-
-    Restricts some checks if disabled 
-    """ # TODO: check if this also disables farm
-
-    display_name = "Bestiality Toggle"
-    default = True
-
-class Lactation(Toggle):
-    """
-    Is lactation enabled in your world?
-
-    Restricts some checks if disabled
-    """
-
-    display_name = "Lactation Toggle"
-    default = True
-
-class SoftVore(Toggle):
-    """
-    Is Soft Vore enabled in your world?
-
-    Restricts some checks if disabled
-    """
-
-    display_name = "Soft Vore Toggle"
-    default = True
-
-class Parasites(Toggle):
-    """
-    Are parasites enabled in your world? Note: Parasites are Earslimes and urchins, slimes, and maggots that stick to you.
-
-    The type of monsters that impregnate are included part of the Parasitic Pregnancy toggle
-
-    Restricts some checks if disabled
-    """
-
-    display_name = "Parasites Toggle"
-    default = True
-
-class Anal(Toggle):
-    """
-    Is Anal enabled in your world?
-
-    Restricts some checks if disabled
-    """
-
-    display_name = "Anal Toggle"
-    default = True
-
-class Bodywriting(Toggle):
-    """
-    Is bodywriting above 'NPCs may not write on you' (minimum)
-
-    Restricts some checks if disabled
-    """
-
-    display_name = "Bodywriting Toggle"
-    default = True
+    valid_keys = [
+        OptionsLocalization.animal_swarms.value,
+        OptionsLocalization.animal_parasites.value,
+        OptionsLocalization.animal_tentacles.value,
+        OptionsLocalization.animal_slimes.value,
+        OptionsLocalization.animal_spiders.value,
+        OptionsLocalization.animal_slugs.value,
+        OptionsLocalization.animal_wasps.value,
+        OptionsLocalization.animal_bees.value,
+        OptionsLocalization.animal_lurkers.value,
+        OptionsLocalization.animal_horses.value,
+        OptionsLocalization.animal_plantpeople.value,
+    ]
+    default = list(valid_keys)
 
 
 @dataclass
 class DoLOptions(PerGameCommonOptions):
-    trap_chance: TrapChance
-    dont_restrict_rng: DontRestrictRNG
-    randomize_transformations: RandomizeTransformations
-    randomize_antiques: RandomizeAntiques
-    randomize_skills: RandomizeSkills
+    # trap_chance: TrapChance
+    randomization_targets: RandomizationTargets
+    randomize_transformations_type: RandomizeTransformationsType
+    randomization_target_requirements: RandomizationTargetRequirements
+    randomize_upgrades_type: RandomizeUpgradesType
+
+    completiongoal: CompletionGoal
+    completiongoal_antiques: CompletionGoal_Antiques
+    completiongoal_money: CompletionGoal_Money
     
     randomize_entrances: RandomizeEntrances
     pool_onewayrandomization: PoolOneWayRandomization
     randomize_badends: RandomizeBadends
-    randomize_entrances_badends: RandomizeEntrancesBadends
     randomize_start: RandomizeStart
     walkable_town: WalkableTown
     randomize_tentacleareas: RandomizeTentacleAreas
     shop_locations: ShopLocations
     
-    
-    tentacles: Tentacles
-    pregnancy: Pregnancy
-    parasitic_pregnancy: ParasiticPregnancy
-    animal_transformations: AnimalTransformations
-    divine_transformations: DivineTransformations
-    bestiality: Bestiality
-    lactation: Lactation
-    softvore: SoftVore
-    parasites: Parasites
-    anal: Anal
-    bodywriting: Bodywriting
+    gameworld_options: GameWorldOptions
+    gameanimal_options: GameAnimalOptions
+
+# takes option names for use later
+# retrieved by using getattr(world.options, DOL_OPTION_NAME[option])
+DOL_OPTION_NAME = {option: optionname for optionname, option in DoLOptions.type_hints.items()}
 
 
 option_groups = [
-    OptionGroup("Basic Options",
-        [TrapChance, RandomizeTransformations],
-    ),
-    OptionGroup("Entrance Randomizer Options",
-        [RandomizeEntrances, RandomizeBadends, RandomizeEntrancesBadends, RandomizeStart, 
-        WalkableTown, RandomizeTentacleAreas],
-    ),
-    OptionGroup("Game World Options", 
-        [Tentacles, Pregnancy, ParasiticPregnancy, AnimalTransformations, 
-        DivineTransformations, Bestiality, Lactation, SoftVore, 
-        Parasites, Anal, Bodywriting],
-    ),
+    OptionGroup(OptionsLocalization.group_randomization.value, [
+        TrapChance, RandomizationTargets, RandomizeTransformationsType, 
+        RandomizationTargetRequirements, RandomizeUpgradesType
+    ]),
+    OptionGroup(OptionsLocalization.group_goal.value, [
+        CompletionGoal, CompletionGoal_Antiques, CompletionGoal_Money
+    ]),
+    OptionGroup(OptionsLocalization.group_entrancerandomizer.value, [
+        # Locations
+        RandomizeEntrances, RandomizeBadends, RandomizeTentacleAreas, 
+        ShopLocations, 
+        # Settings
+        PoolOneWayRandomization, RandomizeStart, WalkableTown
+    ]),
+    OptionGroup(OptionsLocalization.group_gameworld.value, [
+        GameWorldOptions, GameAnimalOptions
+    ]),
 ]
 
-# option_presets = {
-#     "standard": {
-#         # TODO
-#     },
-#     "long": {
-#         # TODO
-#     },
+
+
+# option_presets = { # TODO: presets
+#     "standard": {},
+#     "long": {},
 # }

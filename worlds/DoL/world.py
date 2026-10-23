@@ -1,12 +1,12 @@
 from collections.abc import Mapping
 from typing import Any
 
+from rule_builder.rules import HasGroupUnique
 from worlds.AutoWorld import World
 
-from . import items, locations, regions, rules
-from . import options as dol_options
+from . import items, locations, regions, options as dol_options
 
-from .data import DoLRegionNames, DoLItemNames, DoLLocationTypes
+from .data import DoLOptionFilters, DoLRegionNames, DoLItemNames, DoLLocationTypes, DoLLocationData, DoLLocationNames, DoLRules, DoLItemData
 
 class DoLWorld(World):
     """
@@ -14,42 +14,39 @@ class DoLWorld(World):
     This is a NSFW game and should not be included where participants of the multiworld do not understand the content that this game includes.
     """
 
-
     game = "Degrees of Lewdity"
 
 
     options_dataclass = dol_options.DoLOptions
     options: dol_options.DoLOptions  #  This has to be a colon
 
-    location_name_to_id = {key.value: val_tuple[0] for key, val_tuple in locations.LOCATION_DATA.items()}
-    item_name_to_id = {key.value: val for key, val in items.ITEM_NAME_TO_ID.items()}
+    location_name_to_id = {DoLLocationNames[loc.name].value: loc.value.location_id for loc in DoLLocationData}
+    item_name_to_id = items.ITEM_NAME_TO_ID
     base_id = 100
     origin_region_name = DoLRegionNames.orphanage.value
 
     item_name_groups = {
         DoLLocationTypes.antique.value: {
-            DoLItemNames.antique_ivorystatuette.value,    DoLItemNames.antique_silvercoin.value,        DoLItemNames.antique_silvercrown.value,
-            DoLItemNames.antique_crystal.value,           DoLItemNames.antique_silverblade.value,       DoLItemNames.antique_coppercoin.value,
-            DoLItemNames.antique_silvergoblet.value,      DoLItemNames.antique_fetish.value,            DoLItemNames.antique_goldcoin.value,
-            DoLItemNames.antique_forestdagger.value,      DoLItemNames.antique_forestgem.value,         DoLItemNames.antique_arrow.value,
-            DoLItemNames.antique_ivorynecklace.value,     DoLItemNames.antique_ivorybox.value,          DoLItemNames.antique_silverring.value,
-            DoLItemNames.antique_goldnecklace.value,      DoLItemNames.antique_chastitybelt.value,      DoLItemNames.antique_stonetalisman.value,
-            DoLItemNames.antique_horn.value,              DoLItemNames.antique_snuffer.value,           DoLItemNames.antique_bucket.value,
-            DoLItemNames.antique_silvermanacle.value,     DoLItemNames.antique_whip.value,              DoLItemNames.antique_goldring.value,
-            DoLItemNames.antique_bell.value,              DoLItemNames.antique_bullet.value,            DoLItemNames.antique_artilleryshell.value,
-            DoLItemNames.antique_grenade.value,           DoLItemNames.antique_goldbrooch.value,        DoLItemNames.antique_silverbrooch.value,
-            DoLItemNames.antique_islanderarrow.value,     DoLItemNames.antique_islandermask.value,      DoLItemNames.antique_obsidiandisc.value,
-            DoLItemNames.antique_trilobitefossil.value,   DoLItemNames.antique_baileyminesign.value,    DoLItemNames.antique_incenseburner.value,
-            DoLItemNames.antique_cup.value,               DoLItemNames.antique_silvermask.value,        DoLItemNames.antique_silveramulet.value,      
-            DoLItemNames.antique_hourglass.value,         DoLItemNames.antique_swordcane.value,         DoLItemNames.antique_chocolate.value,         
-            DoLItemNames.antique_teacaddy.value,          DoLItemNames.antique_woodenfigurine.value,    DoLItemNames.antique_copperring.value,        
-            DoLItemNames.antique_goldcompass.value,       DoLItemNames.antique_coppercompass.value,     DoLItemNames.antique_coralring.value,
-            DoLItemNames.antique_diamond.value,           DoLItemNames.antique_brassstatuette.value,    DoLItemNames.antique_golddagger.value,
-            DoLItemNames.antique_goldamulet.value,        DoLItemNames.antique_goldmask.value,          DoLItemNames.antique_silvercompass.value,
-            DoLItemNames.antique_leathermap.value,        DoLItemNames.antique_cutlass.value,           DoLItemNames.antique_silverdagger.value,
-            DoLItemNames.antique_rustedcutlass.value,     DoLItemNames.antique_pinkcrystal.value,       DoLItemNames.antique_candlestick.value,
-            DoLItemNames.antique_dildo.value,             DoLItemNames.antique_watch.value,
+            DoLItemNames[item.name].value for item in DoLItemData 
+            if (DoLOptionFilters.type_antiques.value in item.value.rules_generation)
         },
+
+        DoLLocationTypes.skill.value: {
+            DoLItemNames[item.name].value for item in DoLItemData 
+            if (DoLOptionFilters.type_skills.value in item.value.rules_generation)
+        },
+
+        DoLLocationTypes.upgrade.value: {
+            DoLItemNames[item.name].value for item in DoLItemData 
+            if (DoLOptionFilters.type_upgrade.value in item.value.rules_generation)
+        },
+
+        DoLLocationTypes.transformation.value: {
+            DoLItemNames[item.name].value for item in DoLItemData 
+            if (DoLOptionFilters.type_transformation.value in item.value.rules_generation)
+        }
+
+        # feats are not included because they are pure locations
     }
 
     def randomize_start(self) -> None:
@@ -73,10 +70,14 @@ class DoLWorld(World):
         locations.create_all_locations(self)
 
     def set_rules(self) -> None:
-        rules.set_all_rules(self)
-
+        # Rules done in regions and locations files
+        
+        # Completion
+        
+        self.set_completion_rule(HasGroupUnique(DoLLocationTypes.antique.value, self.options.completiongoal_antiques.value))
+    
     def create_items(self) -> None:
-        # print(self.item_name_groups.keys())
+        # print(self.item_name_groups)
         # print(f"Key '{DoLLocationTypes.antique.value}' == {self.item_name_groups[DoLLocationTypes.antique.value]}")
         items.create_all_items(self)
 
@@ -87,9 +88,6 @@ class DoLWorld(World):
         return items.get_random_filler_item_name(self)
 
     def fill_slot_data(self) -> Mapping[str, Any]:
-        return self.options.as_dict( # just add toggles here for now I guess?
-            "tentacles", "pregnancy", "parasitic_pregnancy", 
-            "animal_transformations", "divine_transformations", "bestiality", 
-            "lactation", "softvore", "parasites", 
-            "anal", "bodywriting",
+        return self.options.as_dict(
+            "randomization_targets", "completiongoal", "completiongoal_antiques", "completiongoal_money"
         )

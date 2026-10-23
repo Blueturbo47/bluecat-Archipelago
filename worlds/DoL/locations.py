@@ -1,16 +1,11 @@
 from __future__ import annotations
-from enum import StrEnum, Enum
+
+from BaseClasses import Location, Region
+from rule_builder.rules import And
+from .data import DoLLocationData, DoLLocationNames, DoLOptionFilters, DoLRules, ROptionFilter
 
 from typing import TYPE_CHECKING
-
-from BaseClasses import Location
-from Options import Option
-
-from . import items
-from .data import DoLRegionNames, DoLLocationTypes, DoLLocationNames, LOCATION_DATA, LOCATION_RULES, LOCATION_REQUIREMENTS
-
-if TYPE_CHECKING:
-    from .world import DoLWorld
+if TYPE_CHECKING: from .world import DoLWorld
 
 class DolWorldLocation(Location):
     game = "Degrees of Lewdity"
@@ -21,41 +16,53 @@ def create_all_locations(world: DoLWorld) -> None:
 
 
 def create_regular_locations(world: DoLWorld) -> None:
-    LOCATION_TYPE_DATA:dict[DoLLocationTypes, Option] = {
-        DoLLocationTypes.antique: world.options.randomize_antiques,
-        DoLLocationTypes.skill: world.options.randomize_skills
-    }
+    def convertGenRules(genrules:list[ROptionFilter]):
+        """
+        Converts list[ROptionFilter] to list[bool]
+        """
+        genrules_bools = []
+        # print(f"Resolving rules {genrules}")
+        for rule in genrules:
+            if type(rule) == bool:
+                genrules_bools.append(rule)
+                continue
+            else:
+                resolution = rule.resolve(world)
+                genrules_bools.append(resolution)
+        return genrules_bools
 
-    # TODO: recode 
-    # i = {locationname : (locationid, locationtype, [locationregions])}
-    for locname in LOCATION_DATA:
-        loctuple = LOCATION_DATA[locname]
-        locid = loctuple[0]
-        loctype = loctuple[1]
-        locregions = loctuple[2]
-        locrule = ""
-        locrequirement = ""
 
-        # locrule: generation rule to determine availablity at a point
-        # locoption: the rule set in the yaml if we should randomize a location
-        # locrequirement: the rule set in the yaml if its possible to randomize a location in game settings        
-        if locname in LOCATION_RULES: locrule = LOCATION_RULES[locname] 
-        if locname in LOCATION_REQUIREMENTS: locrequirement = LOCATION_REQUIREMENTS[locname]
-        option = LOCATION_TYPE_DATA[loctype]
+    # i = {locationname : (location ID, [Location Regions], [Location Gen Rules], [Location Reach Rules])}
+    for loc in DoLLocationData.__members__.values():
+        locname = DoLLocationNames[loc.name].value
+        print(f"\nAttempting generation for loc '{locname}'")
+        locid = loc.value.location_id
+        locregions = loc.value.locations
+        locgenrules = loc.value.rules_generation
+        locreachrules = loc.value.rules_obtain
 
-        if option and locrequirement:
-            # for regionname in locregions:
-            region = world.get_region(locregions[0]) # TODO: make this work for different locations (discord said something about events, else a new region)
-            region.add_locations({locname.value: locid}, DolWorldLocation)
-            newloc = world.get_location(locname)
-            # print(f"Generated location '{newloc}' with rule '{"" if locrule == "" else locrule.value}'")
-            if locrule != "":
-                world.set_rule(newloc, locrule.value)
+        # print(f"\tRules: {And(*[locrule.value for locrule in locreachrules]).to_dict()}")
+        # NOTE: this print ^ is too large currently as certain feats (gwylan) rules are too large
+        if not all(convertGenRules(locgenrules)):
+            # print(f"{locname}'s genrules prevented gen: {loc.value.rules_generation}")
+            continue
+
+        if len(locregions) > 1:
+            regionname = f"{locname}: {[locarea for locarea in locregions]}"
+            region = Region(regionname, world.player, world.multiworld)
+            world.multiworld.regions.append(region)
+            for locarea in locregions:
+                world.get_region(locarea).connect(region)
+        else: region = world.get_region(locregions[0])
+
+        region.add_locations({locname: locid}, DolWorldLocation)
+        newloc = world.get_location(locname)
+        # print(f"Generated location '{newloc}' with rule '{"" if locrule == "" else locrule.value}'")
+        for rule in locreachrules:
+            # print(f"Set Rule '{rule.value}' : '{rule.value.__class__}'")
+            world.set_rule(newloc, rule.value)
 
 
 
 def create_events(world: DoLWorld) -> None:
     return
-    # danube = world.get_region(DoLRegionNames.danube_street)
-    #danube.add_event("testevent", "victory", location_type=DolWorldLocation, item_type=items.DoLItem)
-    # TODO: create events
