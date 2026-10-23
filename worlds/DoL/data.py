@@ -238,6 +238,7 @@ class DoLRules(Enum):
     type_upgrade_tentacleforest = DoLOptionFilters.type_upgrade_tentacleforest.value.convert()
     type_upgrade_general        = DoLOptionFilters.type_upgrade_general.value.convert()
     type_accessitem             = DoLOptionFilters.type_accessitem.value.convert()
+    type_transformation         = DoLOptionFilters.type_transformation.value.convert()
     
     type_badend                 = DoLOptionFilters.req_badend.value.convert()
     type_seasonal               = DoLOptionFilters.req_seasonal.value.convert()
@@ -254,9 +255,11 @@ class DoLRules(Enum):
     type_upgrade_false                 = Filtered(f, options=[type_upgrade], filtered_resolution=True)
     type_skills_false                  = Filtered(f, options=[type_skills], filtered_resolution=True)
     type_upgrade_tentacleforest_false  = Filtered(f, options=[type_upgrade_tentacleforest, type_upgrade], filtered_resolution=True)
+    type_upgrade_alexfarm_false        = Filtered(f, options=[type_upgrade_alexfarm], filtered_resolution=True)
     type_upgrade_general_false         = Filtered(f, options=[type_upgrade_general, type_upgrade], filtered_resolution=True)
     type_accessitem_false              = Filtered(f, options=[type_accessitem], filtered_resolution=True)
     type_antique_false                 = Filtered(f, options=[type_antique], filtered_resolution=True)
+    type_transformation_false          = Filtered(f, options=[type_transformation], filtered_resolution=True)
 
 
     # -- Skill Rank Items:
@@ -448,29 +451,30 @@ class DoLRules(Enum):
 
 
     # -- Transformations Items:
-    tfrule_angelfull         = Has(DoLItemNames.transformation_angelfull.value)
+    # Only need tffalse on tffull since rules collapse that way
+    tfrule_angelfull         = Has(DoLItemNames.transformation_angelfull.value) | type_transformation_false
     
-    tfrule_demonfull         = Has(DoLItemNames.transformation_demonfull.value)
+    tfrule_demonfull         = Has(DoLItemNames.transformation_demonfull.value) | type_transformation_false
     tfrule_demonappear       = Has(DoLItemNames.transformation_demonappear.value)
     tfrule_demon_full_appear = tfrule_demonfull | tfrule_demonappear
     
-    tfrule_fallenangelfull   = Has(DoLItemNames.transformation_fallenangelfull.value)
+    tfrule_fallenangelfull   = Has(DoLItemNames.transformation_fallenangelfull.value) | type_transformation_false
 
-    tfrule_wolffull          = Has(DoLItemNames.transformation_wolffull.value)
+    tfrule_wolffull          = Has(DoLItemNames.transformation_wolffull.value) | type_transformation_false
     tfrule_wolfappear        = Has(DoLItemNames.transformation_wolfappear.value)
     tfrule_wolf_full_appear  = tfrule_wolffull | tfrule_wolfappear
     
-    tfrule_harpyfull         = Has(DoLItemNames.transformation_harpyfull.value)
+    tfrule_harpyfull         = Has(DoLItemNames.transformation_harpyfull.value) | type_transformation_false
     tfrule_harpyappear       = Has(DoLItemNames.transformation_harpyappear.value)
     tfrule_harpy_full_appear = tfrule_harpyfull | tfrule_harpyappear
 
-    tfrule_foxfull           = Has(DoLItemNames.transformation_foxfull.value)  
+    tfrule_foxfull           = Has(DoLItemNames.transformation_foxfull.value) | type_transformation_false
     tfrule_foxapper          = Has(DoLItemNames.transformation_foxappear.value)
     tfrule_fox_full_appear   = tfrule_foxfull | tfrule_foxapper
     
     tfrule_wings             = tfrule_demonfull | tfrule_angelfull | tfrule_harpyfull | Has(DoLItemNames.transformation_wings.value)
     # reminder: recoding flight to include any wings instead of harpy wings
-    tfrule_flight            = tfrule_wings & Has(DoLItemNames.transformation_flight.value)
+    tfrule_flight            = tfrule_wings & Has(DoLItemNames.transformation_flight.value) | type_transformation_false
 
 
     # -- Area Access General:
@@ -570,8 +574,8 @@ class DoLRules(Enum):
     
     has_adultshopbuilt = Has(DoLItemNames.upgrade_adultshop.value) | (type_upgrade_general_false & access_adultshop)
 
-    has_farmparasitebarn = Has(DoLItemNames.upgrade_farm_parasite.value) | (access_alexfarm & type_upgrade_alexfarm & type_upgrade)
-    has_farmwatchtower = Has(DoLItemNames.upgrade_farm_security.value, 1) | (access_alexfarm & type_upgrade_alexfarm & type_upgrade)
+    has_farmparasitebarn = Has(DoLItemNames.upgrade_farm_parasite.value) | (access_alexfarm & type_upgrade_alexfarm_false & type_upgrade_false)
+    has_farmwatchtower = Has(DoLItemNames.upgrade_farm_security.value, 1) | (access_alexfarm & type_upgrade_alexfarm_false & type_upgrade_false)
     
 
     # -- Access Items:

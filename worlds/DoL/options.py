@@ -174,6 +174,7 @@ class CompletionGoal(Choice):
     """
     display_name = OptionsLocalization.display_goal.value
     option_antiques = 0
+    option_money = 1
     default = option_antiques
 
 class CompletionGoal_Antiques(Range):
