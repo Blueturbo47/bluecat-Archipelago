@@ -161,6 +161,7 @@ class DoLRegionNames(StrEnum):
     pirate_ship = "Pirate Ship"
 
     # -- Debug Regions
+    moneymaker = "Able to Make Money"
     jail = "Arrested"
     ambluance = "Ambluance"
     in_town = "Any Place in Town"
@@ -287,6 +288,11 @@ class DoLItemNames(StrEnum):
     # antique_horn = "" also found in maze
     antique_watch = "Antique: Watch"
 
+    antique_lantern = "Antique: Lantern"
+    antique_shovelhandle = "Antique: Shovel Handle"
+    antique_rustypickaxe = "Antique: Rusty Pickaxe"
+    antique_purplediamond = "Antique: Purple Diamond"
+
 
     # -- Skills
     progressive_skulduggery_rank   = "Progressive Skulduggery Rank"
@@ -370,7 +376,7 @@ class DoLItemNames(StrEnum):
     # Cow:
     transformation_cowfull    = "Cow TF: Full"
     transformation_cowappear  = "Cow TF: Appearance"
-    transformation_sturyhorns = "TF Trait: Sturdy Horns"
+    transformation_sturdyhorns = "TF Trait: Sturdy Horns"
 
     # Harpy:
     transformation_harpyfull   = "Harpy TF: Full"
@@ -413,7 +419,7 @@ class DoLItemNames(StrEnum):
 
     # Basic Traits Combined:
     # transformation_heterochromia
-    # transformation_sturyhorns
+    # transformation_sturdyhorns
     # transformation_strongwings
     # transformation_thrillofthechase
     # transformation_radiant
@@ -443,18 +449,18 @@ class DoLLocationTypes(StrEnum):
     ### Coding:
     Used for item_groups grouping
     """
-    antique = "Antique Item",
-    skill = "Skill Rank",
+    antique = "Antique Item"
+    skill = "Skill Rank"
 
     transformation = "Transformation Item"
     transformation_divine = "Divine Transformation Item"
     transformation_animal = "Animal Transformation Item"
 
-    feat = "Feat",
-    feat_copper = "Copper Feat",
-    feat_silver = "Silver Feat",
-    feat_gold = "Gold Feat",
-    feat_platinum = "Platinum Feat",
+    feat = "Feat"
+    feat_copper = "Copper Feat"
+    feat_silver = "Silver Feat"
+    feat_gold = "Gold Feat"
+    feat_platinum = "Platinum Feat"
     feat_jeweled = "Jeweled Feat"
     feat_transformation = "Transformation Feat"
     feat_loveinterest = "Love Interest Feat"
@@ -586,6 +592,12 @@ class DoLLocationNames(StrEnum):
     antique_dildo = f"{DoLItemNames.antique_dildo.value} : Sewers"
     # antique_horn = also found in maze
     antique_watch = f"{DoLItemNames.antique_watch.value} : Sewers"
+
+    # Mines
+    antique_lantern = f"{DoLItemNames.antique_lantern.value} : Mines"
+    antique_shovelhandle = f"{DoLItemNames.antique_shovelhandle.value} : Mines"
+    antique_rustypickaxe = f"{DoLItemNames.antique_rustypickaxe.value} : Mines"
+    antique_purplediamond = f"{DoLItemNames.antique_purplediamond.value} : Mines"
 
 
     # -- Skill Levels
@@ -783,9 +795,9 @@ class DoLLocationNames(StrEnum):
     feat_millionaire                  = "Feat: Millionaire"
     feat_itbelongsinamuseum           = "Feat: It Belongs in a Museum"
     feat_fullycovered                 = "Feat: Fully Covered"
-    feat_beingaboy                    = "Feat: Being a Boy"
-    feat_beingagirl                   = "Feat: Being a Girl"
-    feat_beingahermaphrodite          = "Feat: Being a Hermaphrodite"
+    feat_beingaboy                    = "Feat: Hard Times"
+    feat_beingagirl                   = "Feat: Tight Squeeze"
+    feat_beingahermaphrodite          = "Feat: Double Trouble"
     feat_beinganorphan                = "Feat: Being an Orphan"
     feat_stressfulchallenge           = "Feat: Stressful Challenge"
     feat_longstressfulchallenge       = "Feat: Long Stressful Challenge"
@@ -1022,8 +1034,17 @@ class DoLLocationNames(StrEnum):
     feat_hailmary                     = "Feat: Hail Mary"
     feat_bicyclemother                = "Feat: Bicycle Mother"
     feat_lifecomesinthrees            = "Feat: Life Comes in Threes"
-    feat_lifebeginswhenyouleastexpect = "Feat: Life begins when you least expect"
+    feat_lifebeginswhenyouleastexpect = "Feat: Life Begins When You Least Expect"
     feat_diversityoflife              = "Feat: Diversity of Life"
+    feat_sanctavexatio                = "Feat: Sancta Vexatio"
+    feat_thetimeisnow                 = "Feat: The Time is Now"
+    feat_rockbottom                   = "Feat: Rock Bottom"
+    feat_pumpkinmaster                = "Feat: Pumpkin Master"
+    feat_nothingcopied                = "Feat: Nothing Copied"
+    feat_wetrod                       = "Feat: Wet Rod"
+    feat_masterbaiter                 = "Feat: Master Baiter"
+    feat_nicebass                     = "Feat: Nice Bass"
+
 
 
     # -- Upgrades
@@ -1074,6 +1095,7 @@ class DoLLocationNames(StrEnum):
     override_transformation_angel       = "Transformation: Angel"
     override_transformation_fallenangel = "Transformation: Fallen Angel"
     override_transformation_demon       = "Transformation: Demon"
+    override_transformation_flight      = "Transformation: Flight Learnt"
 
     override_upgrade_flatsbridge        = "Upgrade: Flats Bridge"
     override_upgrade_forestroad         = "Upgrade: Forest Road"
@@ -1132,7 +1154,7 @@ class _NoteDetail():
     flip: str = ""
     location1: str = ""
     location2: str = ""
-    override_flipstr: str = None
+    override_flipstr: str | None = None
 
     def resolve(self, flip:bool = False):
         """
@@ -1161,6 +1183,9 @@ class ConnectionNotes(Enum):
         prefix, flip_from, DoLRegionNames.forest_lake, DoLRegionNames.forest)
     forest_forestshop = _NoteDetail(
         prefix, flip_from, DoLRegionNames.forest_shop, DoLRegionNames.forest)
+    beach_ocean = _NoteDetail(
+        prefix, flip_from, DoLRegionNames.ocean, DoLRegionNames.beach
+    )
 
     farmlands_manors = _NoteDetail(
         prefix, flip_from, DoLRegionNames.manors, DoLRegionNames.farmlands)
@@ -1201,7 +1226,7 @@ class ConnectionNotes(Enum):
     commercialdrain_commercialalleyways = _NoteDetail(
         prefix, flip_from, DoLRegionNames.commercial_drain, DoLRegionNames.commercial_alleyways)
     industrialdrain_industrialalleyways = _NoteDetail(
-        prefix, flip_from, DoLRegionNames.industrial_alleyways, DoLRegionNames.industrial_alleyways)
+        prefix, flip_from, DoLRegionNames.industrial_drain, DoLRegionNames.industrial_alleyways)
 
     residentialalleyways_commercialalleyways = _NoteDetail(
         prefix, flip_from, DoLRegionNames.residential_alleyways, DoLRegionNames.commercial_alleyways)
@@ -1382,7 +1407,7 @@ class ConnectionNotes(Enum):
     harveststreet_factory = _NoteDetail(
         prefix, flip_from, DoLRegionNames.factory, DoLRegionNames.harvest_street)
     harveststreet_industrialdrain = _NoteDetail(
-        prefix, flip_from, DoLRegionNames.industrial_alleyways, DoLRegionNames.harvest_street)
+        prefix, flip_from, DoLRegionNames.industrial_drain, DoLRegionNames.harvest_street)
     harveststreet_industrialalleyways = _NoteDetail(
         prefix, flip_from, DoLRegionNames.industrial_alleyways, DoLRegionNames.harvest_street)
     harveststreet_farmlandsroad = _NoteDetail(
@@ -1403,7 +1428,7 @@ class ConnectionNotes(Enum):
     merstreet_industrialalleyways = _NoteDetail(
         prefix, flip_from, DoLRegionNames.industrial_alleyways, DoLRegionNames.mer_street)
     merstreet_industrialdrain = _NoteDetail(
-        prefix, flip_from, DoLRegionNames.industrial_alleyways, DoLRegionNames.mer_street)
+        prefix, flip_from, DoLRegionNames.industrial_drain, DoLRegionNames.mer_street)
     
     elkstreet_landfill = _NoteDetail(
         prefix, flip_from, DoLRegionNames.landfill, DoLRegionNames.elk_street)
@@ -1414,7 +1439,7 @@ class ConnectionNotes(Enum):
     elkstreet_industrialalleyways = _NoteDetail(
         prefix, flip_from, DoLRegionNames.industrial_alleyways, DoLRegionNames.elk_street)
     elkstreet_industrialdrain = _NoteDetail(
-        prefix, flip_from, DoLRegionNames.industrial_alleyways, DoLRegionNames.elk_street)
+        prefix, flip_from, DoLRegionNames.industrial_drain, DoLRegionNames.elk_street)
     
     police_prison = _NoteDetail( # oneway entrance
         prefix, flip_from, DoLRegionNames.prison, "Being caught by Police or Turning yourself into the Police with >=5000 Crime Score")

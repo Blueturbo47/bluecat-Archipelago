@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from BaseClasses import Location, Region
 from rule_builder.rules import And
+
 from .data import DoLLocationData, DoLLocationNames, DoLOptionFilters, DoLRules, ROptionFilter
 
 from typing import TYPE_CHECKING
@@ -11,11 +12,6 @@ class DolWorldLocation(Location):
     game = "Degrees of Lewdity"
 
 def create_all_locations(world: DoLWorld) -> None:
-    create_regular_locations(world)
-    create_events(world)
-
-
-def create_regular_locations(world: DoLWorld) -> None:
     def convertGenRules(genrules:list[ROptionFilter]):
         """
         Converts list[ROptionFilter] to list[bool]
@@ -23,28 +19,27 @@ def create_regular_locations(world: DoLWorld) -> None:
         genrules_bools = []
         # print(f"Resolving rules {genrules}")
         for rule in genrules:
-            if type(rule) == bool:
-                genrules_bools.append(rule)
-                continue
-            else:
-                resolution = rule.resolve(world)
-                genrules_bools.append(resolution)
+            resolution = rule.resolve(world)
+            genrules_bools.append(resolution)
         return genrules_bools
 
+    failedantiques = 0
 
-    # i = {locationname : (location ID, [Location Regions], [Location Gen Rules], [Location Reach Rules])}
+    # loc = {locationname : (location ID, [Location Regions], [Location Gen Rules], [Location Reach Rules])}
     for loc in DoLLocationData.__members__.values():
         locname = DoLLocationNames[loc.name].value
-        print(f"\nAttempting generation for loc '{locname}'")
         locid = loc.value.location_id
         locregions = loc.value.locations
         locgenrules = loc.value.rules_generation
         locreachrules = loc.value.rules_obtain
+        # print(f"\nAttempting generation for loc '{locname}'")
 
         # print(f"\tRules: {And(*[locrule.value for locrule in locreachrules]).to_dict()}")
         # NOTE: this print ^ is too large currently as certain feats (gwylan) rules are too large
         if not all(convertGenRules(locgenrules)):
             # print(f"{locname}'s genrules prevented gen: {loc.value.rules_generation}")
+            # Reduce the ceiling on total antiques if one fails to generate
+            if DoLOptionFilters.type_antiques.value in locgenrules: failedantiques += 1
             continue
 
         if len(locregions) > 1:
@@ -60,9 +55,7 @@ def create_regular_locations(world: DoLWorld) -> None:
         # print(f"Generated location '{newloc}' with rule '{"" if locrule == "" else locrule.value}'")
         for rule in locreachrules:
             # print(f"Set Rule '{rule.value}' : '{rule.value.__class__}'")
-            world.set_rule(newloc, rule.value)
+            world.set_rule(newloc, rule)
 
-
-
-def create_events(world: DoLWorld) -> None:
-    return
+    # Fix world option if antiques set is higher than possible to generate
+    world.options.completiongoal_antiques.value = min(world.options.completiongoal_antiques.range_end - failedantiques, world.options.completiongoal_antiques.value)

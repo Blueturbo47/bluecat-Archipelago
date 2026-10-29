@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from enum import StrEnum
 
 from Options import Choice, OptionGroup, OptionSet, PerGameCommonOptions, Range, Toggle
-from .localization.en import OptionsLocalization
+
+from .en import OptionsLocalization
 
 # -------------- Basic Options
 
@@ -20,17 +20,18 @@ class TrapChance(Range):
 
 class RandomizationTargets(OptionSet):
     """
-    Choose what you want to randomize defined in a list.
-    I highly recommend keeping 'feats' on, as that is the bulk
-    of checks.
+    Choose what you want to randomize.
+
+    I highly recommend keeping 'feats' on, as that is the bulk of checks
+    You can remove hard ones however from Randomization Target Requirements
 
     Full List: 
     ['feats', 'antiques', 'skills', 'transformations', 'area_upgrades', 'area_unlocks']
 
 
     1: 'feats'
-        Your toggles and other options remove feats you cannot get, 
-        so don't worry if you might make an impossible check with your settings!
+        Your toggles and other options remove feats you cannot get, so don't worry 
+        if you might make an impossible check with your game settings!
     2: 'antiques'
         Note: Obtaining the item is what gives the check,
         you don't have to turn them in to the museum
@@ -38,7 +39,7 @@ class RandomizationTargets(OptionSet):
         Examples: Exhibitionism, Math, or Thigh Skill
         (Purity, Beauty, and Awareness excluded)
     4: 'transformations'
-        Details explained in Randomize Transformation Type option
+        Details explained in Randomize Transformations Type option
         If you want to disable animal/divine specifically, use World Options
     5: 'area_upgrades'
         Locations like Tentacle Forest mayor upgrades, or Alex's Farm upgrades
@@ -62,7 +63,7 @@ class RandomizationTargets(OptionSet):
 
 class RandomizeTransformationsType(Choice):
     """
-    Determines how transformatins are randomized. 
+    Determines how transformations are randomized. 
     Must be added to Randomization Targets for them to get randomized.
     
     Note: If its detected there's not enough checks in the pool, tfparts will default
@@ -82,7 +83,13 @@ class RandomizeTransformationsType(Choice):
 
 class RandomizationTargetRequirements(OptionSet):
     """
-    Determines what type of locations you need to check
+    Disables checks if one of the below requirements is omitted.
+
+    These are just requirements for checks, for example:
+    'get transformation' (if transformations is in Randomization Targets)
+    will not be disabled if 'transformation' is omitted from this
+
+    If you want to disable checks of a type, use Randomization Targets instead
 
     Full List: 
     ['feat_copper', 'feat_silver', 'feat_gold', 'feat_platinum', 'feat_jeweled', 
@@ -177,9 +184,15 @@ class CompletionGoal(Choice):
     option_money = 1
     default = option_antiques
 
+# TODO: limit number if you can't reach that many
+# based on target requirements
 class CompletionGoal_Antiques(Range):
     """
     Number of antiques required for Completion Goal of Antiques
+
+    Forces Antiques as a Randomization Target
+    Range End will scale down based on Randomization Target Requirements
+
     Range of 1 to 63
     Default: 40
     """

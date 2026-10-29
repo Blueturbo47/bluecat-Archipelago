@@ -1,18 +1,24 @@
 from __future__ import annotations
+from collections import deque
+import copy
+import json
+import time
+
 from BaseClasses import Region
 from rule_builder.rules import And
-from .localization.en import ConnectionNotes, DoLRegionNames, OptionsLocalization
+from worlds.Files import APAutoPatchInterface
 
+from .en import ConnectionNotes, DoLRegionNames, OptionsLocalization
 from .data import DoLOptionFilters, DoLRules
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal
 if TYPE_CHECKING: 
     from .world import DoLWorld
-    from .localization.en import _NoteDetail
+    from .en import _NoteDetail
+    from rule_builder.rules import Rule
+    from .data import ROptionFilter
 
-
-
-def create_and_connect_regions(world:DoLWorld) -> None:
+def create_and_connect_regions(world:DoLWorld):
     player = world.player
     multiworld = world.multiworld
     options = world.options
@@ -21,69 +27,56 @@ def create_and_connect_regions(world:DoLWorld) -> None:
         """
         Container for a connection. Takes this area this connection leads to and the list of rules it needs to connect. 
 
+        Note on connection_type: This can be simiplified to just a bool, however its kept as 'exit', 'entrance', ''
+        to make it easier to organize. Internally their regions are just seen as 'parent' and 'child, so the connections
+        won't change depending on how its assigned. You shouldn't add both an entrance and exit of the same line
+        to 2 regions however, as that would create duplicates
+
+        To Simplify it:
+
+        `oxfordstreet(AreaConnection(forestlake, connection_type="exit"))` = oxfordstreet -> forestlake
+        `beach(AreaConnection(prison, connection_type="entrance"))` = prison -> beach
+
+        However if you wanted to keep all connections to and from the prison, you could move it
+        so its the other way around (swap beach, prison and change connection_type to exit)
+
         :param area: Area which this connection is bridging to
         :param rules: List of world Rules that this connection requires
-        :param connection_type: (optional) 'exit' or 'entrance'
+        :param connection_type: (optional) 'exit' or 'entrance', exit would be where this region leads
+        to, entrance would be where another region comes in from.
         :param note: Adds a note to connection, giving the user more info on the connection
+        :param generation_rules: Rules that can stop a connection from generating
         """
 
-        def __init__(self, area:Area, rules:list[DoLRules] | None = None, connection_type:str = "", note:ConnectionNotes = None):
-            self.area = area
+        def __init__(self, area:Area, rules:list[Rule[Any]] | None = None, connection_type:Literal['entrance', 'exit', ''] | None = "", 
+                            note:ConnectionNotes | None = None):
+            self.initsubarea = area
             self.rules = rules if rules is not None else []
-            self.connection_type = connection_type
+            self.connection_type:Literal['entrance', 'exit', ''] | None = connection_type
             self.note = note
+            self.relationship:dict[str, Area]
 
+        def program(self, parent):
+            """
+            Function that fleshes out this connection, to be called whenever
+            a Area is init'd, extended, or appended to.
 
-        def has_rules(self):
-            return True if not self.rules else False
+            This sets the parent region, outgoing region correctly based on 
+            connection_type, to help with randomization and connection notes
 
-        def append_rules(self, rule:DoLRules):
-            self.rules.append(rule)
+            It will be called inside Area whenever extended, appended, or init'd, so
+            no need to call this on your own, unless you want loose AreaConnections
+            that aren't a part of an Area but still attached to one
+            """
+            match(self.connection_type):
+                case("entrance"):
+                    # Entrance:
+                    # Init region (region passed to AreaConnection) has the exit
+                    # to the parent region
+                    self.relationship = {"parent": self.initsubarea, "child": parent}
+                case _:
+                    self.relationship = {"parent": parent, "child": self.initsubarea}
 
-        def extend_rules(self, rules:list[DoLRules]):
-            self.rules.extend(rules)
-
-        def pop_rules(self):
-            rules, self.rules = self.rules, []
-            return rules
-
-        def return_rules(self):
-            rules = []
-            for rule in self.rules:
-                rules.append(rule.value)
-            return rules
-
-
-        def set_connectionType(self, connection_type:str):
-            self.connection_type = connection_type
-
-        def return_connectionType(self):
-            return self.connection_type
-
-
-        def pop_area(self):
-            area, self.area = self.area, None
-            return area
-
-        def set_area(self, area:Area):
-            self.area = area
-
-        def return_area(self):
-            return self.area
-
-        def return_areaName(self):
-            return self.area.name()
-
-        def return_areaRegion(self):
-            return self.area.return_region()
-
-
-        def pop_note(self):
-            note, self.note = self.note, ""
-            return note
-
-        def set_note(self, newnote:_NoteDetail):
-            self.note = newnote
 
     class Area:
         """
@@ -103,117 +96,126 @@ def create_and_connect_regions(world:DoLWorld) -> None:
             Example: regionnames.foo
         
         :param AreaList sub_regions: List of AreaConnection that will this region will connect to when running connect() \
-            Example: [AreaConnection(regionnames.bar), AreaConnection(regionnames.baz, rules.1)]
+            Example: `[AreaConnection(regionnames.bar), AreaConnection(regionnames.baz, rules.1)]`
         
         ### Functions:
 
-        - name(): returns name
+        - append(): Adds an AreaConnection to the list of connections
 
-        - return_region(): returns the Region class for this Area
+        - extend(): Extends the list of connections with a list of AreaConnection
 
-        - return_areas(): returns the list of connections
+        - add_to_multiworld(): Adds the Region to the world. Run this before .connect()
 
-        - pop_areas(): returns and clears the list of connections
+        - connect(): Connects regions defined in sub_regions lists with this region. Run this to finalize the region after add_to_multiworld()
 
-        - append(): adds an AreaConnection to the list of connections
-
-        - extend(): extends the list of connections with a list of AreaConnection
-
-        - add_to_multiworld(): adds the region to the world, run this before .connect()
-
-        - connect(): connects regions defined in the sub_regions lists with this region. Run this to finalize the region after add_to_multiworld()
+        - check_connection_similarity(): Checks if this Area connects to an Area other than itself
         """
 
         def __init__(self, region_name:DoLRegionNames, sub_regions:list[AreaConnection] | None = None):
             self.region_name = region_name
             self.sub_regions = sub_regions if sub_regions is not None else []
+            for i in self.sub_regions: i.program(self)
 
             self.self_region = Region(self.region_name.value, player, multiworld)
 
-            # removelater = []
-            # for connect in self.sub_regions:
-            #     removelater.append(connect.return_areaName())
-            # print(f"{self.region_name} generated with {removelater} connections")
-
-        def name(self):
-            return self.region_name
-
         def add_to_multiworld(self):
             """
-            Adds the region to the multiworld. Run this before running connect()
+            Adds the region to the multiworld. 
+
+            - Run this before running connect()
             """
             # print(f"Adding '{self.region_name}' with connections '{self.self_region.entrances}'")
             multiworld.regions.append(self.self_region)
 
         def connect(self):
             """
-            Adds all connections to the Region for this Area. Run this after running add_to_multiworld()
+            Adds all connections to the Region for this Area. 
+            
+            Run this after running add_to_multiworld() and randomizing its pool if needed
             """
             for connection in self.sub_regions:
                 self.designate_connections(connection)
 
         def designate_connections(self, connection:AreaConnection):
             """
-            Leave blank for a normal connection
-            connection_type (optional): 'exit' or 'entrance'
+            Add a connection to this Area's Region
+
+            Ran by .connect()
             """
 
-            connectiontype = connection.return_connectionType()
-            selfregion = world.get_region(self.region_name.value)
+            def region_connect(parent:Region, child:Region, note:str, rules:list[Rule[Any]]):
+                en = parent.connect(child, note, And(*rules))
+                # Since the regions contain very few rules, this
+                # isn't a huge issue to add indirect conditions
+                # to every region with rules, however a better
+                # implementation should be added later
+                if len(rules) > 0: multiworld.register_indirect_condition(parent, en)
 
-            # print(f"\nConnection '{self.region_name.value}' {"->" if connectiontype == "entrance" else "<-" if connectiontype == "exit" else "<->"} '{connection.return_areaName().value}'")
-            # print(f"\tNote: '{connection.note}'")
-            # print(f"\tRules: {And(*connection.return_rules()).to_dict()}")
 
+            if connection.note == None or isinstance(connection.note, str):
+                connection_note = f"{connection.relationship['parent'].region_name} -> {connection.relationship['child'].region_name}"
+                connection_note_flip = f"{connection.relationship['child'].region_name} -> {connection.relationship['parent'].region_name}"
+            elif isinstance(connection.note.value, str):
+                connection_note = f"{connection.relationship['parent'].region_name} -> {connection.relationship['child'].region_name} | {connection.note.value}"
+                connection_note_flip = f"{connection.relationship['child'].region_name} -> {connection.relationship['parent'].region_name} | {connection.note.value}"
+            else:
+                connection_note = f"{connection.relationship['parent'].region_name} -> {connection.relationship['child'].region_name} | {connection.note.value.resolve()}"
+                connection_note_flip = f"{connection.relationship['child'].region_name} -> {connection.relationship['parent'].region_name} | {connection.note.value.resolve(True)}"
 
-            if (connectiontype == "entrance" or connectiontype == None or connectiontype == ""):
-                connection.return_areaRegion().connect(
-                    selfregion, # incoming only
-                    f"{connection.return_areaName()} -> {self.self_region.name} {f"| {connection.note.value.resolve()}" if connection.note is not None else ""}",
-                    And(*connection.return_rules())
-                )
-                
-            if (connectiontype == "exit" or connectiontype == None or connectiontype == ""):
-                selfregion.connect(
-                    connection.return_areaRegion(), # outgoing only
-                    f"{self.self_region.name} -> {connection.return_areaName()} {f"| {connection.note.value.resolve()}" if connection.note is not None else ""}",
-                    And(*connection.return_rules())
+            region_connect(
+                connection.relationship['parent'].self_region,
+                connection.relationship['child'].self_region,
+                connection_note,
+                connection.rules
+            )
+            if connection.connection_type not in {"entrance", "exit"}:
+                region_connect( # Swap parent and child and connect if connection is twoway
+                    connection.relationship['child'].self_region,
+                    connection.relationship['parent'].self_region,
+                    connection_note_flip,
+                    connection.rules
                 )
 
         def extend(self, connection_list:list[AreaConnection]):
             """
-            Extends the connection lists
-
-            connection_type: None (normal connection), "exit", or "entrance"
+            Extends the connection list with list[AreaConnection]
             """
             # removelater = []
             # for connect in connection_list:
-            #     removelater.append(connect.return_areaName())
+            #     removelater.append(connect.area.region_name)
             # print(f"{self.name()} got {removelater} connections")
-
+            for i in connection_list: i.program(self)
             self.sub_regions.extend(connection_list)
 
         def append(self, connection:AreaConnection):
             """
             Adds to the connection list
-
-            connection_type: None (normal connection), "exit", or "entrance"
             """
-            # print(f"{self.name()} got {connection.return_areaName()} connection")
-
+            # print(f"{self.name()} got {connection.area.region_name} connection")
+            connection.program(self)
             self.sub_regions.append(connection)
 
-        def return_region(self):
-            return self.self_region
+        def check_connection_similarity(self):
+            """
+            Check if all connections are circular
+            (all lead into the current region)
 
-        def return_areas(self):
-            return self.sub_regions
+            returns True if there exists a connection that does
+            not have None as an areaname and is not equal to this
+            region's name
 
-        def pop_areas(self):
-            areas = self.sub_regions
-            self.sub_regions = []
-            return areas
-
+            otherwise returns False
+            """
+            for conn in self.sub_regions:
+                match(conn.connection_type):
+                    case("entrance"):
+                        conntype = "parent"
+                    case _:
+                        conntype = "child"
+                if ((conn.relationship[conntype].region_name != self.region_name) and 
+                    (conn.relationship[conntype].region_name is not None)):
+                    return True
+            return False
 
     world_regions: list[Area] = []
     badends: list[Area] = []
@@ -379,7 +381,10 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     badends.append(kylar_manor := Area(DoLRegionNames.kylar_manor))
     badends.append(bird_tower := Area(DoLRegionNames.bird_tower))
     badends.append(remy_farm := Area(DoLRegionNames.remy_farm))
-    badends.append(wolf_cave := Area(DoLRegionNames.wolf_cave))
+        
+    wolf_cave = Area(DoLRegionNames.wolf_cave)
+    if (OptionsLocalization.toggle_bestiality.value in options.gameworld_options or OptionsLocalization.toggle_monsterpeople.value in options.gameworld_options):
+        badends.append(wolf_cave)
 
 
     # Tentacle Plains and Tentacle Forest
@@ -394,6 +399,7 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     debug.append(events_street := Area(DoLRegionNames.events_street))
     debug.append(jail := Area(DoLRegionNames.jail))
     debug.append(ambulance := Area(DoLRegionNames.ambluance))
+    debug.append(moneymaker := Area(DoLRegionNames.moneymaker))
 
 
 
@@ -411,7 +417,9 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     forest_shop.append(
         AreaConnection(forest, note=ConnectionNotes.forest_forestshop)
     )
-    # Ocean -- None
+    ocean.append(
+        AreaConnection(beach, note=ConnectionNotes.beach_ocean)
+    )
     
     # -- Outskirts
     # Farmlands
@@ -421,14 +429,14 @@ def create_and_connect_regions(world:DoLWorld) -> None:
         AreaConnection(riding_school, note=ConnectionNotes.farmlands_ridingschool), 
         AreaConnection(alex_farm, note=ConnectionNotes.farmlands_alexfarm), 
         AreaConnection(farmlands_road, note=ConnectionNotes.farmlands_farmlandsroad),
-        AreaConnection(maze, [DoLRules.has_mazekey], note=ConnectionNotes.farmlands_maze)
+        AreaConnection(maze, [DoLRules.has_mazekey.value], note=ConnectionNotes.farmlands_maze)
     ])
 
     # Moor
     # don't connect badends because badend rando rules
     moor.append(
         AreaConnection(remy_estate, 
-                       [DoLRules.access_remyestate_rules], 
+                       [DoLRules.access_remyestate_rules.value], 
                        note=ConnectionNotes.moor_remyestate)
     )
 
@@ -445,10 +453,9 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     # Since 1 is a failable check, I'm going to code
     # being able to fail purposefully to get this, so only rules
     # will just be access forest (parent region, no rule)
-    # TODO: CODE bog access failing
     bog.extend([
         AreaConnection(moor, 
-                       [DoLRules.access_forest], 
+                       [DoLRules.access_forest.value], 
                        note=ConnectionNotes.bog_moor), 
         AreaConnection(forest, 
                        connection_type="entrance", 
@@ -492,7 +499,7 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     danube_street.extend([
         AreaConnection(spa, note=ConnectionNotes.danubestreet_spa), 
         AreaConnection(avery_mansion, 
-                        [DoLRules.has_adoptionpapers, DoLRules.access_orphanage], 
+                        [DoLRules.has_adoptionpapers.value, DoLRules.access_orphanage.value], 
                         note=ConnectionNotes.danubestreet_averymansion), 
         AreaConnection(danube_houses, note=ConnectionNotes.danubestreet_danubehouses), 
         AreaConnection(forest, note=ConnectionNotes.danubestreet_forest), 
@@ -609,10 +616,10 @@ def create_and_connect_regions(world:DoLWorld) -> None:
 
     # Oxford Street
     school.extend([
-        AreaConnection(park, [DoLRules.science_1], note=ConnectionNotes.school_park),
+        AreaConnection(park, [DoLRules.science_1.value], note=ConnectionNotes.school_park),
         AreaConnection(industrial_alleyways, note=ConnectionNotes.school_industrialalleyways), 
         AreaConnection(commercial_drain, 
-                        [DoLRules.history_3],
+                        [DoLRules.history_3.value],
                         note=ConnectionNotes.school_commercialdrain)
     ])
     oxford_street.extend([
@@ -623,10 +630,10 @@ def create_and_connect_regions(world:DoLWorld) -> None:
         AreaConnection(industrial_alleyways, note=ConnectionNotes.oxfordstreet_industrialalleyways), 
         AreaConnection(park, note=ConnectionNotes.oxfordstreet_park),
         AreaConnection(forest_lake, 
-                        connection_type="entrance", 
+                        connection_type="exit", 
                         note=ConnectionNotes.oxfordstreet_forestlake), # student walking to lake
         AreaConnection(orphanage, 
-                        connection_type="entrance",
+                        connection_type="exit",
                         note=ConnectionNotes.oxfordstreet_orphanage), # :: Robin Walk School 
     ])
 
@@ -637,7 +644,7 @@ def create_and_connect_regions(world:DoLWorld) -> None:
         AreaConnection(forest, note=ConnectionNotes.pub_forest)
     )
     harvest_street.extend([
-        AreaConnection(brothel, [DoLRules.access_brothel_rules], note=ConnectionNotes.harveststreet_brothel), 
+        AreaConnection(brothel, [DoLRules.access_brothel_rules.value], note=ConnectionNotes.harveststreet_brothel), 
         AreaConnection(pub, note=ConnectionNotes.harveststreet_pub), 
         AreaConnection(bus_station, note=ConnectionNotes.harveststreet_bustation), 
         AreaConnection(factory, note=ConnectionNotes.harveststreet_factory), 
@@ -649,13 +656,13 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     # Mer Street
     docks.append(
         AreaConnection(beach, # the Docks part of the Beach, not technically ocean
-                        [DoLRules.skulduggery_4], 
+                        [DoLRules.skulduggery_4.value], 
                         "exit",
                         ConnectionNotes.docks_beach)
     )
     coastal_path.append(
         AreaConnection(meadow,
-                        [DoLRules.history_4], 
+                        [DoLRules.history_4.value], 
                         note=ConnectionNotes.costalpath_meadow)
     )
     mer_street.extend([
@@ -663,7 +670,7 @@ def create_and_connect_regions(world:DoLWorld) -> None:
         AreaConnection(beach, note=ConnectionNotes.docks_beach),
         AreaConnection(docks, note=ConnectionNotes.merstreet_docks), 
         AreaConnection(coastal_path, 
-                        [DoLRules.history_3],
+                        [DoLRules.history_3.value],
                         note=ConnectionNotes.merstreet_costalpath), 
         AreaConnection(industrial_alleyways, note=ConnectionNotes.merstreet_industrialalleyways), 
         AreaConnection(industrial_drain, note=ConnectionNotes.merstreet_industrialdrain),
@@ -672,11 +679,11 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     # Elk Street
     elk_street.extend([
         AreaConnection(landfill, 
-                        [DoLRules.access_landfill_rules], 
+                        [DoLRules.access_landfill_rules.value], 
                         note=ConnectionNotes.elkstreet_landfill), 
         AreaConnection(adult_shop, note=ConnectionNotes.elkstreet_adultshop), # no rules (don't need to build it to go there)
         AreaConnection(compound, 
-                        [DoLRules.access_compound_rules], 
+                        [DoLRules.access_compound_rules.value], 
                         note=ConnectionNotes.elkstreet_compound),
         AreaConnection(industrial_alleyways, note=ConnectionNotes.elkstreet_industrialalleyways), 
         AreaConnection(industrial_drain, note=ConnectionNotes.elkstreet_industrialdrain)
@@ -686,19 +693,17 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     # -- Bad Ends
 
     # prison: 1
-    # entrance logic is hospital for high arrest chance
     prison.extend([
         # Entrances
-        # Entrance done below badends from jail region
-        AreaConnection(hospital, connection_type="entrance", note=ConnectionNotes.police_prison), # :: Police Prison Intro
+        AreaConnection(jail, connection_type="entrance", note=ConnectionNotes.police_prison), # :: Police Prison Intro
         
         # Exits
         AreaConnection(orphanage, connection_type="exit", note=ConnectionNotes.prison_orphanage), # :: Prison End Car Silent, Prison End Car Thank, Prison End Car Angry
         AreaConnection(docks, connection_type="exit", note=ConnectionNotes.prison_docks), # :: Prison Kylar Escape Ask, Prison Kylar Escape Nod, Prison Wren Escape 3
         # NOTE: 2 ocean connections, however one doesn't require swimming 10
-        AreaConnection(ocean, [DoLRules.swimming_10], "exit", ConnectionNotes.prison_oceanswim), # :: Prison Escape
+        AreaConnection(ocean, [DoLRules.swimming_10.value], "exit", ConnectionNotes.prison_oceanswim), # :: Prison Escape
         AreaConnection(ocean, connection_type="exit", note=ConnectionNotes.prison_oceanpassout), # ::Passout Rut 2
-        AreaConnection(beach, [DoLRules.tfrule_flight], "exit", ConnectionNotes.prison_beach), # :: Prison Soar Escape
+        AreaConnection(beach, [DoLRules.tfrule_flight.value], "exit", ConnectionNotes.prison_beach), # :: Prison Soar Escape
     ])
 
     # pirate_ship: 2
@@ -706,7 +711,7 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     pirate_ship.extend([
         # Entrances
         AreaConnection(ocean, connection_type="entrance", note=ConnectionNotes.ocean_pirateship),  # :: Pirate Intro (Passout Pirates Hot Cold, Passout Pirate)
-        AreaConnection(old_sewers, [DoLRules.access_temple], "entrance", ConnectionNotes.oldsewers_pirateship),  # :: Smuggler Pub Zephyr
+        AreaConnection(old_sewers, [DoLRules.access_temple.value], "entrance", ConnectionNotes.oldsewers_pirateship),  # :: Smuggler Pub Zephyr
     
         # Exits
         #AreaConnection(island, connection_type="exit", note="via: On the Pirate Ship, passout or become a mate and asking Zephyr"), # :: Pirate Passout Wake, Pirate End Run, Pirate End Islanders
@@ -763,7 +768,7 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     ])
     # Extra Entrance
     if OptionsLocalization.toggle_animaltransformations.value in options.randomization_target_requirements:
-        dog_pound_ending.append(AreaConnection(in_town, [DoLRules.tfrule_wolf_full_appear], "entrance", ConnectionNotes.wolfabudction_dogpoundbadend))
+        dog_pound_ending.append(AreaConnection(in_town, [DoLRules.tfrule_wolf_full_appear.value], "entrance", ConnectionNotes.wolfabudction_dogpoundbadend))
 
 
     # mines: 7
@@ -807,7 +812,7 @@ def create_and_connect_regions(world:DoLWorld) -> None:
         AreaConnection(moor, connection_type="entrance", note=ConnectionNotes.greathawk_birdtower), # :: Bird Capture, Moor Bird Wake
     
         # Exits
-        AreaConnection(farmlands, [DoLRules.tfrule_flight], "exit", note=ConnectionNotes.birdtower_farmlands), # :: Bird Tower Farmlands
+        AreaConnection(farmlands, [DoLRules.tfrule_flight.value], "exit", note=ConnectionNotes.birdtower_farmlands), # :: Bird Tower Farmlands
         AreaConnection(moor, connection_type="exit", note=ConnectionNotes.birdtower_moor) # :: Bird Tower Rope Escape, Bird Tower Base Leave, Bird Tower Glide ['', 2]
     ])
 
@@ -827,7 +832,7 @@ def create_and_connect_regions(world:DoLWorld) -> None:
         AreaConnection(orphanage, connection_type="entrance", note=ConnectionNotes.bailey_remyfarm),  # :: Street Van Bailey
         AreaConnection(moor, connection_type="entrance", note=ConnectionNotes.moor_remyfarm),       # :: Moor Abduction Remy Wake
         AreaConnection(remy_estate, connection_type="entrance", note=ConnectionNotes.remyestate_remyfarm),  # :: Passout Estate Remy Hot Cold, widget"blackjackCaughtCheatingSurrender"
-        AreaConnection(cliff_street, [DoLRules.access_cafe], "entrance", ConnectionNotes.cliffstreet_remyfarm),  # :: Chef Blackmail Livestock 2
+        AreaConnection(cliff_street, [DoLRules.access_cafe.value], "entrance", ConnectionNotes.cliffstreet_remyfarm),  # :: Chef Blackmail Livestock 2
         AreaConnection(pub, connection_type="entrance", note=ConnectionNotes.pub_remyfarm), # :: Pub White Pill Van
         AreaConnection(in_town, connection_type="entrance", note=ConnectionNotes.intown_remyfarm), # TODO: this entrance
     
@@ -836,8 +841,7 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     ])
 
     # wolf_cave: 12
-    # unable to enter if monster people or bestiality is disabled
-    if DoLOptionFilters.bestiality_or_monsterpeople.value.resolve(world):
+    if (OptionsLocalization.toggle_bestiality.value in options.gameworld_options or OptionsLocalization.toggle_monsterpeople.value in options.gameworld_options):
         wolf_cave.append(
             AreaConnection(forest, connection_type="entrance", note=ConnectionNotes.forest_wolfcave) # :: Forest Wolf Cave Intro
         )
@@ -847,8 +851,10 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     if OptionsLocalization.animal_tentacles.value in options.gameanimal_options:
         # NOTE: we don't want logic to think orphanage -> tentacle plains -> asylum is possible
         # so tentacle plains are enter only
-        tentacle_plains.append(AreaConnection(asylum, connection_type="entrance", note=ConnectionNotes.asylum_tentacleplains))
-        tentacle_plains.append(AreaConnection(orphanage, [DoLRules.deviancy_5], "entrance", ConnectionNotes.orphanage_tentacleplains))
+        tentacle_plains.extend([
+            AreaConnection(asylum, connection_type="entrance", note=ConnectionNotes.asylum_tentacleplains),
+            AreaConnection(orphanage, [DoLRules.deviancy_5.value], "entrance", ConnectionNotes.orphanage_tentacleplains)
+        ])
         tentacle_forest.append(AreaConnection(hookah_parlour, note=ConnectionNotes.hookahparlour_tentacleforest))
 
     # Any place that can exist in town, and therefore
@@ -918,8 +924,9 @@ def create_and_connect_regions(world:DoLWorld) -> None:
         AreaConnection(residential_drain, connection_type="entrance"),              # start - passoutdrain
         AreaConnection(commercial_drain, connection_type="entrance"),
         AreaConnection(industrial_drain, connection_type="entrance"),               # end - passoutdrain
+
+        AreaConnection(hospital, connection_type="exit", note=ConnectionNotes.hospital_fainting)
     ])
-    hospital.append(AreaConnection(ambulance, connection_type="entrance", note=ConnectionNotes.hospital_fainting))
     
     if OptionsLocalization.toggle_pregnancy.value in options.randomization_target_requirements:
         island.append(AreaConnection(hospital, connection_type="exit", note=ConnectionNotes.island_hospital)) # :: Pregnancy Island
@@ -946,109 +953,419 @@ def create_and_connect_regions(world:DoLWorld) -> None:
     
     jail.extend([ # TODO: police connections
         AreaConnection(brothel),
-        AreaConnection(cliff_street, [DoLRules.access_cafe]),
-        AreaConnection(docks, [DoLRules.skulduggery_4]),
-        AreaConnection(flats, [DoLRules.skulduggery_2]),
+        AreaConnection(cliff_street, [DoLRules.access_cafe.value]),
+        AreaConnection(docks, [DoLRules.skulduggery_4.value]),
+        AreaConnection(flats, [DoLRules.skulduggery_2.value]),
         AreaConnection(hospital),
         AreaConnection(park),
         # AreaConnection(), # TODO: bondage
         # AreaConnection(), # TODO: maybe combine streetevent and car entrap
         # AreaConnection(), # ^
-        AreaConnection(ambulance, [DoLRules.access_school], note=ConnectionNotes.arrested_kylarambluance), # kylar basement event
+        AreaConnection(ambulance, [DoLRules.access_school.value], note=ConnectionNotes.arrested_kylarambluance), # kylar basement event
     ])
-    prison.append(AreaConnection(jail, connection_type="entrance", note=ConnectionNotes.police_prison)), # :: Police Prison Intro
     if OptionsLocalization.req_seasonal.value in options.randomization_target_requirements:
-        police_station.append(AreaConnection(beach))
+        jail.append(AreaConnection(beach))
+
+    # TODO: moneymaker
+    moneymaker.extend([
+        AreaConnection(spa, [], "entrance"), # hands req
+        AreaConnection(alex_farm, [DoLRules.access_produesell.value], "entrance"),
+        AreaConnection(cafe), 
+    ])
 
 
 
     # -- END Connections
 
+    def build_region_map(start:Area, subzone:dict[DoLRegionNames, list[Area]] | None = None):
+        """
+        Returns a set of every region name that can be connected to this region, using
+        the world_map
+
+        subzone is a zone map from build_zone_map that this function will prioritize
+        if the value is found, if not or None is provided it will use the world_map instead
+        """
+        visited:set[DoLRegionNames] = {start.region_name}
+        queue:deque[Area] = deque([start])
+    
+        def fill(node:Area, _map:dict[DoLRegionNames, list[Area]]):
+            for reg in _map[node.region_name]:
+                for child in reg.sub_regions:
+                    nextnode_child = child.relationship['child']
+                    nextnode_parent = child.relationship['parent']
+                    if not nextnode_child.region_name in visited:
+                        visited.add(nextnode_child.region_name)
+                        queue.append(nextnode_child)
+                    if child.connection_type not in {"entrance", "exit"}:
+                        if not nextnode_parent.region_name in visited:
+                            visited.add(nextnode_parent.region_name)
+                            queue.append(nextnode_parent)
+
+        while queue:
+            node = queue.popleft()
+            if subzone is None:
+                fill(node, world_map)
+            elif node.region_name in subzone:
+                fill(node, subzone)
+            elif node.region_name in world_map:
+                fill(node, world_map)
+            else: 
+                print(node.region_name)
+                raise ValueError("Area not found in maps")
+        return visited
+
+    def build_zone_map(zone:list[Area]):
+        """
+        Builds a dictionary of 'regionname : all connections of each region' from a list of Area
+        """
+        zone_map:dict[DoLRegionNames, list[Area]] = {}
+        for reg in zone:
+            for connection in reg.sub_regions:
+                child = connection.relationship['child']
+                parent = connection.relationship['parent']
+                zone_map.setdefault(parent.region_name, []).append(child)
+
+                # Also add child to parent if connection is twoway
+                if connection.connection_type not in {"exit", "entrance"}:
+                    zone_map.setdefault(child.region_name, []).append(parent)
+                elif parent.region_name not in zone_map:
+                    zone_map[parent.region_name] = []
+            # if it had no connections add it to map
+            if reg.region_name not in zone_map:
+                zone_map[reg.region_name] = []
+        return zone_map
+
+    def rebuild_maps():
+        """
+        Rebuild all_combined_regions and world_map. 
+        Automatically called before randomization
+
+        These values can be used outside this, but mainly used
+        for testing of randomization
+        """
+        nonlocal all_combined_regions
+        nonlocal world_map
+        all_combined_regions = list(world_regions) + list(shops) + list(debug) + list(badends)
+        world_map.clear()
+        world_map.update(build_zone_map(all_combined_regions))
+
     class RandomizationPool:
         """
         Helper class to randomize a list of regions
+
+        To use, do RandomizationPool(pool).run()
+
+        :param pool: List of Area
+        :param notest: Variable if you don't want to test that the regions in the region pool are reachable.
+                       Used for if the areas in the area pool don't connect to each other
         """
         # Randomization System:
-        # go through every area passed as a list
-        # remove every connection in every area in that region and add it to a pool
-        # world.random.shuffle that pool
-        # add all connections back, keeping intact their to rules to enter the connection, number of connections for the area, 
+        # 1. go through every area passed as a list, and take its
+        # connections regions, remove them, and add it to a pool
+        # 2. world.random.shuffle that pool
+        # 3. add all regions back, keeping intact their to rules, number of connections for the area, 
         # and its connection note to make it easier to see where you have to come from
-            # Note: unless you have the option to prevent this, this will make oneway connections
-            # randomize into the pool. Otherwise oneway connections only randomize within themselves
 
-        def __init__(self, largearealist:list[Area]):
+        # reason for implementation of connections rules like this:
+        # since we're gonna just be changing the destination, the requirements to reach the destination still need to be in place
+        # for example:
+        #   index0: ocean -> beach  [none]          note="leaving the ocean"
+        #   index1: prisn -> ocean  [flight]        note="flying away"
+        #   index2: cabin -> forst  [skul 5, dev 5] note="adopting a dog"
+        # needs to turn to
+        #   index0: ocean -> ocean  [none]          note="leaving the ocean"
+        #   index1: prisn -> forst  [flight]        note="flying away"
+        #   index2: cabin -> beach  [skul 5, dev 5] note="adopting a dog"
+
+        def __init__(self, largearealist:list[Area], notest = False):
             self.arealist = largearealist
-
-        def seperate(pool:list[Area]):
-            """
-            Takes a list of areas, removes its connections, and sorts them into 2 lists based on connection_type
-            """
-            newpool_normal:list[AreaConnection] = []
-            newpool_exitentrance:list[AreaConnection] = []
-            for area in pool:
-                connections = area.pop_areas()
-                for connect in connections:
-                    match(connect.return_connectionType()):
-                        case("exit" | "entrance"):
-                            newpool_exitentrance.append(connect)
-                        case _:
-                            newpool_normal.append(connect)
-            return newpool_normal, newpool_exitentrance
+            self.notest = notest
     
-        def strip(self, pool:list[AreaConnection]):
+        def strip(self, pool:list[Area]):
             """
-            Function used to strip a list of connections to:
-            - A list of size of the connection
-            - The list of connections
-            - A list of the lists of rules each connection has
+            Takes a list of regions and then converts it to a single pool
+            of all their connections destinations
+                                 
+            If pool_onewayconnections option is disabled, all connection types
+            will be registered as twoway
+            Otherwise their types will either be 'twoway', 'entrance' or 'exit'
             """
-            pool_size = len(pool)
-            newpool:list[AreaConnection] = []
-            pool_areas:list[Area] = []
-            for connection in pool:
-                # reason for implementation of connections rules like this:
-                # since we're gonna just be changing the destination, the requirements to reach the destination still need to be in place
-                # for example:
-                #   index0: ocean -> beach  [none]          note="leaving the ocean"
-                #   index1: prisn -> ocean  [flight]        note="flying away"
-                #   index2: cabin -> forst  [skul 5, dev 5] note="adopting a dog"
-                # needs to turn to
-                #   index0: ocean -> ocean  [none]          note="leaving the ocean"
-                #   index1: prisn -> forst  [flight]        note="flying away"
-                #   index2: cabin -> beach  [skul 5, dev 5] note="adopting a dog"
+            pool_relationship:dict[str, list[Area]] = {'twoway': [], 'entrance': [], 'exit': []}
 
+            # zone_map:dict[DoLRegionNames, list[Area]] = {}
+            # zone_map.setdefault(parent.region_name, []).append(child)
+
+
+            def addtopool(area:Area, contype:str):
+                if options.pool_onewayrandomization:
+                    pool_relationship[contype].append(area)
+                else:
+                    pool_relationship['twoway'].append(area)
+        
+            for area in pool:
+                for connection in area.sub_regions:
+                    # print(f"Adding to Pool: {connection.relationship['parent'].region_name} : {connection.relationship['child'].region_name} : type: {connection.connection_type}")
+                    match(connection.connection_type):
+                        case("entrance"):
+                            addtopool(connection.relationship['parent'], "entrance")
+                        case("exit"):
+                            addtopool(connection.relationship['child'], "exit")
+                        case _:
+                            addtopool(connection.relationship['child'], "twoway")
+            # print("\n\n")
+            return pool_relationship
+        
+        def shuffleback(self, pool_relationships:dict[str, list[Area]]):
+            """
+            Used after .strip() or .seperate(), this shuffles the list of relationships and
+            then replaces each releationship in the connection pool
+
+            For a full shuffle of a pool of Area, you should do self.shuffleback(*self.strip(pool))
+
+            :params pool_connections: A list of all area connections the pool has
+            :params pool_regions: A list of all regions in the pool
+            :params pool_size: A list of all regions size (number of AreaConnection)
+            :params pool_children: A list of the children each connection has
+            """
+
+            # A --> B
+            # C <-- D
+            # E <-> F
+            #
+            # E needs to replace B            
+            # F Needs to replace C
+            #
+            # Relationship of A -> B is Exit
+            # Relationship of C <- D is Entrance
+            #
+            # C is considered 'Child'
+            # B is considered 'Child'
+            #
+            # E is considered 'Parent'
+            # F is considered 'Child'
+            #
+            # Steps:
+            #
+            # We go through the list of Areas (A, C, E)
+            #
+            # We add their exits to the pool (B, C, F)
+            # then shuffle this list
+            # 
+            # Go through the list of Areas again (A, C, E)
+            #
+            # Replace their exits with the shuffled list
+            #
+            # Finished
+            #
+            # Var Details:
+            #
+            # pool_relationships is each area we need to connect
+            # to for each region sorted by connection type of
+            # the original connection, if pool_oneway is off then
+            # all connections will be twoway
+            #
+            # pool_relationships already has either the parent or
+            # child depending on what the connection originally had
+            # for a connectiontype, so it just contains a list
+            # of all outgoing connections
+            #
+            # Our 'replacelist' is the pool_relationships
+            # post being shuffled and tested
+
+
+            def testconnections():
+                """
+                Simulates the world regions and tests if they can all be reached
+                """
                 
-                pool_areas.append(connection.pop_area())
-                newpool.append(connection) # add the cleaned connection into the pool
-            return pool_size, newpool, pool_areas
+                to_replace_regions:list[Area] = []
+                test_world:dict[str, Area] = {} # {RegionName: Area}
 
-        def shuffleback(self, pool:list[AreaConnection], pool_size:list[int], pool_areas:list[Area]):
-            """
-            Takes the original list of areas, the list of connections they all have, the size of area, and the rules for the connections
+                # Go over every region that exists in the pool
+                # Make a copy of it and copies of its connections
+                # Replace the copied connections in the copied region
+                # with our area_connections list taking their original from our copies
+                # Build a map using it to see if all regions
+                #   in the pool are able to be reached
 
-            Then afterwards, shuffles the connections, and adds them back with their original rules and area size
-            """
-            world.random.shuffle(pool)
-            for areanum, area in enumerate(self.arealist):
-                i = 0
-                while i < pool_size[areanum]:
-                    connection = pool[i]
-                    connection.set_area(pool_areas.pop(0))
-                    area.append(connection)
-                    i += 1
+                # Populate a test world with the regions we wish to randomize
+                for region in self.arealist:
+                    # print(f"adding region {region.region_name} : {len(region.sub_regions)}")
+                    to_replace_regions.append(copiedregion := Area(region.region_name))
+                    test_world.setdefault(copiedregion.region_name, copiedregion)
+
+                # Populate the regions that don't exist in the pool
+                # so we can test the world with their connections
+                for region in all_combined_regions:
+                    if region.region_name not in test_world:
+                        copiedregion = Area(region.region_name)
+                        test_world.setdefault(copiedregion.region_name, copiedregion)
+
+                # Create copies of their connections basing off the
+                # copies of the regions
+                for region in all_combined_regions:
+                    for og_conn in region.sub_regions:
+                        cop_conn = AreaConnection(test_world[og_conn.initsubarea.region_name], None, og_conn.connection_type, og_conn.note)
+                        test_world[region.region_name].append(cop_conn)
+
+                # Replace the connections of the copied regions
+                conn_num = {"twoway": 0, "entrance": 0, "exit": 0}
+                for region in to_replace_regions: # use our copied list instead of self.arealist
+                    # print(f"\n{region.region_name} Test: Size = {len(region.sub_regions)}")
+
+                    # Preventitive measures for full circles
+                    # this will apply to the final connections
+                    # so no need to be duplicated
+                    reg_entrance_placed = 0
+                    reshuffles = 0
+                    reg_entrance_num = 0
+                    for og_conn in region.sub_regions:
+                        if og_conn.connection_type != "exit":
+                            reg_entrance_num += 1
+
+                    # Start the test replace
+                    for og_conn in region.sub_regions:
+
+                        # set contype to the type of connection we need
+                        if options.pool_onewayrandomization:
+                            if og_conn.connection_type in {"exit", "entrance"}: 
+                                contype = og_conn.connection_type
+                            else: contype = "twoway"
+                        else: contype = "twoway"
+
+                        # Get the connection we need
+                        new_reg = pool_relationships[contype][conn_num[contype]]
+
+                        # Prevent full circles by modifying the list if needed
+                        if reg_entrance_placed == reg_entrance_num and reg_entrance_num != 0 and og_conn.connection_type != "exit":
+                            match(og_conn.connection_type):
+                                case("entrance"): compare_area = og_conn.relationship['parent']
+                                case _: compare_area = og_conn.relationship['child']
+                            while compare_area.region_name == new_reg.region_name:
+                                if len(pool_relationships[contype]) < reshuffles + conn_num[contype]: 
+                                    print(f"Degrees of Lewdity: Detected Full Circle with no regions left for {region.region_name}, reshuffling")
+                                    return False
+                                else:
+                                    print(f"Degrees of Lewdity: Detected Full Circle for {region.region_name}, moving list around")
+                                    pool_relationships[contype].append(pool_relationships[contype].pop(conn_num[contype]))
+                                    new_reg = pool_relationships[contype][conn_num[contype]]
+                                    reshuffles += 1
+
+                        # Update numbers after full circle detection
+                        conn_num[contype] += 1
+                        if og_conn.connection_type != "exit":
+                            reg_entrance_placed += 1
+
+                        # Replace that connections parent or child
+                        # depending on the type of connection the original is
+                        # print(f"Applying AreaConnection: Cur Type: {contype}, Con Type: {og_conn.connection_type}, Parent: {og_conn.relationship['parent'].region_name}, Child: {og_conn.relationship['child'].region_name}")
+                        match(og_conn.connection_type):
+                            case("entrance"):
+                                # print(f"\t{og_conn.relationship['parent'].region_name} -> {new_reg.region_name}")
+                                og_conn.relationship['parent'] = test_world[new_reg.region_name]
+                            case _:
+                                # print(f"\t{og_conn.relationship['child'].region_name} -> {new_reg.region_name}")
+                                og_conn.relationship['child'] = test_world[new_reg.region_name]
+
+                # Test run WalkableTown settings if
+                # the regions exist in the pool
+                if options.walkable_town:
+                    simulated_domus = test_world[DoLRegionNames.domus_street]
+                    simulated_barb = test_world[DoLRegionNames.barb_street]
+                    simulated_danube = test_world[DoLRegionNames.danube_street]
+                    simulated_connudatus = test_world[DoLRegionNames.connudatus_street]
+                    simulated_cliff = test_world[DoLRegionNames.cliff_street]
+                    simulated_wolf = test_world[DoLRegionNames.wolf_street]
+                    simulated_high = test_world[DoLRegionNames.high_street]
+                    simulated_starfish = test_world[DoLRegionNames.starfish_street]
+                    simulated_nightingale = test_world[DoLRegionNames.nightingale_street]
+                    simulated_oxford = test_world[DoLRegionNames.oxford_street]
+                    simulated_mer = test_world[DoLRegionNames.mer_street]
+                    simulated_elk = test_world[DoLRegionNames.elk_street]
+                    simulated_harvest = test_world[DoLRegionNames.harvest_street]
+                    simulated_domus.extend([        AreaConnection(simulated_barb),         AreaConnection(simulated_danube)])
+                    simulated_barb.extend([         AreaConnection(simulated_cliff),        AreaConnection(simulated_connudatus)])
+                    simulated_danube.extend([       AreaConnection(simulated_wolf),         AreaConnection(simulated_connudatus)])
+                    simulated_connudatus.extend([   AreaConnection(simulated_cliff),        AreaConnection(simulated_wolf)])
+                    simulated_cliff.extend([        AreaConnection(simulated_starfish),     AreaConnection(simulated_high)])
+                    simulated_wolf.extend([         AreaConnection(simulated_nightingale),  AreaConnection(simulated_high)])
+                    simulated_high.extend([         AreaConnection(simulated_starfish),     AreaConnection(simulated_nightingale)])
+                    simulated_starfish.extend([     AreaConnection(simulated_oxford),       AreaConnection(simulated_mer)])
+                    simulated_nightingale.extend([  AreaConnection(simulated_oxford),       AreaConnection(simulated_elk)])
+                    simulated_oxford.extend([       AreaConnection(simulated_mer),          AreaConnection(simulated_elk)])
+                    simulated_mer.extend([          AreaConnection(simulated_harvest)])
+                    simulated_elk.extend([          AreaConnection(simulated_elk)])
+                    # simulated_harvest.extend([])
+
+                # Build the map and see if all regions in the pool exist
+                zonemap = build_zone_map([reg for reg in test_world.values()])
+                # print(zonemap)
+                testregionmap = build_region_map(test_world[DoLRegionNames.orphanage], zonemap)
+                # print({reg: [conname.region_name for conname in con] for reg, con in zonemap.items()})
+                # print(testregionmap)
+                for reg in self.arealist:
+                    if not (reg.region_name in testregionmap):
+                        # print(json.dumps({key: [regname.region_name for regname in reg] for key, reg in zonemap.items()}))
+                        print(f"Degrees of Lewdity: {reg.region_name} is unreachable, Reshuffling")
+                        # time.sleep(20)
+                        return False
+                # print("\n\nTests Finished\n\n")
+                return True
+
+            def keepshuffling():
+                """
+                Function that keeps shuffling pool_releationships
+                until it reaches a state where every             
+                area in the area_pool can be reached by the world
+                """
+                for pool in pool_relationships.values(): world.random.shuffle(pool)
+                
+                # Test that all regions are reachable
+                if not testconnections(): return False
+                return True
+
+            # Create Replacement Regions
+            while not keepshuffling(): continue
+
+            # Replace the connections
+            conn_num = {"twoway": 0, "entrance": 0, "exit": 0}
+            for region in self.arealist:
+                # print(f"\n{region.region_name} Actual")
+                for og_conn in region.sub_regions:
+
+                    # set contype to the type of connection we need
+                    if options.pool_onewayrandomization:
+                        if og_conn.connection_type in {"exit", "entrance"}: 
+                            contype = og_conn.connection_type
+                        else: contype = "twoway"
+                    else: contype = "twoway"
+
+                    # Get the conn of the contype we need
+                    new_reg = pool_relationships[contype][conn_num[contype]]
+                    conn_num[contype] += 1
+
+                    # Replace that connections parent or child
+                    # depending on the type of connection the original is
+                    # print(f"Applying AreaConnection: Cur Type: {contype}, Con Type: {og_conn.connection_type}, Parent: {og_conn.relationship['parent'].region_name}, Child: {og_conn.relationship['child'].region_name}")
+                    match(og_conn.connection_type):
+                        case("entrance"):
+                            # print(f"\t{og_conn.relationship['parent'].region_name} -> {new_reg.region_name}")
+                            og_conn.relationship['parent'] = new_reg
+                        case _:
+                            # print(f"\t{og_conn.relationship['child'].region_name} -> {new_reg.region_name}")
+                            og_conn.relationship['child'] = new_reg
+            print(f"Degrees of Lewdity: Shuffle Finished Successfully\nConnections Made: {conn_num} : Total: {[len(item) for item in pool_relationships.values()]}")
 
         def run(self):
             """
             Runs through a list of Areas passed to the init of this class, and then returns that list shuffled
+
+            If the onewayrandomization option is enabled, seperates the pools first and 
+            shuffles them inbetween themselves
             """
+            rebuild_maps()
             # print(f"Randomization pool started randomization containing {self.arealist[0].name()}")
-            if options.pool_onewayrandomization:
-                for pooltype in self.seperate(self.arealist):
-                    self.shuffleback(self.strip(pooltype))
-            else:
-                self.shuffleback(self.strip(self.arealist))
-            return self.arealist
+            self.shuffleback(self.strip(self.arealist))
 
     def walkabletown_connections():
         """
@@ -1167,65 +1484,131 @@ def create_and_connect_regions(world:DoLWorld) -> None:
 
     # -------- Start: Randomization --------
 
+    all_combined_regions:list[Area] = []
+    world_map:dict[DoLRegionNames, list[Area]] = {}
+    rebuild_maps()
+    
+
     # Connections between streets
     if not options.walkable_town: 
         walkabletown_connections()
     # .extend Shops
     if options.shop_locations == options.shop_locations.option_anywhere: 
         world_regions.extend(shops)
+        shops.clear()
     # .extend Badends
     if options.randomize_badends == options.randomize_badends.option_anywhere:
         world_regions.extend(badends)
+        badends.clear()
     # .append Tentacle Areas (they can exist in region list even if tent disabled)
-    if options.randomize_tentacleareas: 
+    if options.randomize_tentacleareas and OptionsLocalization.animal_tentacles.value in options.gameanimal_options:
         world_regions.append(tentacle_forest)
         world_regions.append(tentacle_plains)
 
     # Run Randomize
     if options.randomize_entrances: 
-        world_regions = RandomizationPool(world_regions).run()
+        RandomizationPool(world_regions).run()
+
+    #print([f"{regcon.relationship['parent'].region_name} : {regcon.relationship['child'].region_name} : type: {regcon.connection_type}" for reg in world_regions for regcon in reg.sub_regions])
 
     # -------- Post: World Randomization --------
 
     # Run Randomize & .extend(): Shop (if not done above)
     if options.shop_locations == options.shop_locations.option_between_themselves: 
-        shops = RandomizationPool(shops).run()
+        RandomizationPool(shops).run()
         world_regions.extend(shops)
+        shops.clear()
+
     # Run Randomize & .extend(): Bad Ends (if not done above)
     if options.randomize_badends == options.randomize_badends.option_between_themelves:
-        badends = RandomizationPool(badends).run()
+        RandomizationPool(badends).run()
         world_regions.extend(badends)
+        badends.clear()
 
 
     # -------- Post: Randomization --------
-    
-    # non-randomized loose regions
-    world_regions.extend(debug)
 
+    # -- Add non-randomized loose regions
+    world_regions.extend(debug)
+    debug.clear()
+
+    # -- Final Connections
     # Connections between streets (if not done above)
     if options.walkable_town: 
         walkabletown_connections()
     # .extend Shops (if not done above)
     if options.shop_locations == options.shop_locations.option_disabled: 
         world_regions.extend(shops)
+        shops.clear()
     # .extend Badends (if not done above)
     if options.randomize_badends == options.randomize_badends.option_disabled: 
         world_regions.extend(badends)
-    # .append Tentacle Areas (they can exist in region list even if tent disabled) (if not done above)
-    if not options.randomize_tentacleareas: 
+        badends.clear()
+
+    # -- No Connection Areas
+    # These areas still need to be in the region pool (for rules)
+    # however they won't have any connections to anything
+   
+    # .append Tentacle Areas (if not done above)
+    if not options.randomize_tentacleareas or not(OptionsLocalization.animal_tentacles.value in options.gameanimal_options): 
         world_regions.append(tentacle_forest)
         world_regions.append(tentacle_plains)
 
+    if not (OptionsLocalization.toggle_bestiality.value in options.gameworld_options or OptionsLocalization.toggle_monsterpeople.value in options.gameworld_options):
+        world_regions.append(wolf_cave)
+
+    # -- Final test
+    double_test_zone_map = build_zone_map(world_regions)
+    double_test_map = build_region_map(orphanage, double_test_zone_map)
+    for reg in world_regions:
+        if reg.region_name == DoLRegionNames.wolf_cave and not (OptionsLocalization.toggle_bestiality.value in options.gameworld_options or OptionsLocalization.toggle_monsterpeople.value in options.gameworld_options):
+            continue
+        elif reg.region_name in {DoLRegionNames.tentacle_forest, DoLRegionNames.tentacle_plains} and not (OptionsLocalization.animal_tentacles.value in options.gameanimal_options):
+            continue
+        if reg.region_name not in double_test_map:
+            print({reg: [conname.region_name for conname in con] for reg, con in double_test_zone_map.items()})
+            print("\n\nRelevant Error Info Above\n")
+            raise Exception(f"Degrees of Lewdity: Noticed missing region post-randomization ({reg.region_name}), raising error to prevent an unaccessable region in world")
+
+
+    # -- Create World Map Dictionary
+    connection_dictionary:dict[ConnectionNotes, Area] = {}
+    # Note of Connection: Area to replace
+
+    # TODO: will need to make a file localizing the name
+    # of each connection to the actual value it in ingame
+
+    # Afterwards we can do a large switch case based off note (note == note)
+    # to make the file that we can send to the user
+
+    for region in world_regions:
+        for conn in region.sub_regions:
+            if conn.note == None or conn.note == "":
+                continue
+            match(conn.connection_type):
+                case("entrance"):
+                    connection_dictionary.setdefault(conn.note, conn.relationship['parent'])
+                case _:
+                    connection_dictionary.setdefault(conn.note, conn.relationship['child'])
+
+    # -- World Map
+    # Convert this to a file in the spoiler log eventually
 
     in_global = Area(DoLRegionNames.in_global)
-    for reg in world_regions: in_global.append(AreaConnection(reg, note=ConnectionNotes.note_world)) 
+    for reg in world_regions: in_global.append(AreaConnection(reg, connection_type="entrance", note=ConnectionNotes.note_world)) 
     world_regions.append(in_global)
+
+
+    # -- Finalize
+
 
     # You must add_to_multiworld all regions before running .connect 
     for reg in world_regions:
         reg.add_to_multiworld()
 
     for reg in world_regions:
-        # subareas = [sub.return_areaName().value for sub in reg.sub_regions]
+        # subareas = [sub.area.region_name.value for sub in reg.sub_regions]
         # print(f"attempting to connect {reg.name()} with connections {subareas}")
         reg.connect()
+
+    return connection_dictionary

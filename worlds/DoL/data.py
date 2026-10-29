@@ -1,17 +1,23 @@
 from __future__ import annotations
+from collections.abc import Callable
 from enum import StrEnum, Enum
 from dataclasses import dataclass
+from functools import reduce
 import math
+import operator
 
 from BaseClasses import ItemClassification
-from rule_builder.rules import And, AtLeast, Filtered, Has, HasGroupUnique, Or, CanReachRegion, Rule, True_, False_
-from rule_builder.options import OptionFilter
+from rule_builder.rules import And, AtLeast, Filtered, Has, HasGroupUnique, Or, CanReachRegion, True_, False_
+from rule_builder.options import OptionFilter, OPERATORS as standardOPERATORS, OPERATOR_STRINGS as standardOPERATOR_STRINGS
+
 from .options import DOL_OPTION_NAME, DoLOptions, GameAnimalOptions, GameWorldOptions, RandomizationTargets, RandomizeBadends, RandomizeEntrances, RandomizationTargetRequirements, RandomizeStart, RandomizeTentacleAreas, RandomizeTransformationsType, RandomizeUpgradesType, ShopLocations, TrapChance, WalkableTown
+from .en import DoLItemNames, DoLLocationNames, DoLLocationTypes, DoLRegionNames, OptionsLocalization
 
-from .localization.en import DoLItemNames, DoLLocationNames, DoLLocationTypes, DoLRegionNames, OptionsLocalization
-
-from typing import TYPE_CHECKING
-if TYPE_CHECKING: from .world import DoLWorld
+from typing import TYPE_CHECKING, Any, Final, Literal
+if TYPE_CHECKING: 
+    from worlds.AutoWorld import World
+    from Options import Option
+    from rule_builder.rules import Rule
 
 
 # TODO: ITEM missing items below
@@ -43,6 +49,34 @@ class DoLRegionGroups(Enum):
 
 # World Rules
 
+# Taken from options.py in rule_builder
+OperatorsList = Literal["eq", "ne", "gt", "lt", "ge", "le", "contains", "in", "not-contains", "not-in", "and", "or"]
+OPERATORS: Final[dict[OperatorsList, Callable[..., bool]]] = {
+    "eq": operator.eq,
+    "ne": operator.ne,
+    "gt": operator.gt,
+    "lt": operator.lt,
+    "ge": operator.ge,
+    "le": operator.le,
+
+    # New
+    "contains": operator.contains,
+    "in": lambda option, value: operator.contains(value, option),
+    "not-contains": lambda option, value: not operator.contains(option, value),
+    "not-in": lambda option, value: not operator.contains(value, option),
+    "and": operator.and_,
+    "or": operator.or_,
+}
+OPERATOR_STRINGS: Final[dict[OperatorsList, str]] = {
+    "eq": "==",
+    "ne": "!=",
+    "gt": ">",
+    "lt": "<",
+    "ge": ">=",
+    "le": "<=",
+}
+
+
 # Rule Optionfilter combination class
 @dataclass(frozen=True)
 class ROptionFilter:
@@ -68,37 +102,26 @@ class ROptionFilter:
 
     If you wish to convert back to OptionFilter for rules, use .convert()
     """
-    option: DoLOptions | ROptionFilter
+    option: type[Option[Any]] | ROptionFilter
     value: bool | str | int | ROptionFilter
-    operator: str = "eq"
+    operator: OperatorsList = "eq"
 
-    def resolve(self, world:DoLWorld):
+    def resolve(self, world:World):
         """
         Pass the current world and resolve the rule once you're running
         inside the world functions
         """
         # print(f"Running {self.option} '{self.operator}', '{self.value}'")
 
-        if type(self.option).__name__ == ROptionFilter.__name__: option = self.option.resolve(world)
+        if isinstance(self.option, ROptionFilter): option = self.option.resolve(world)
         else: option = getattr(world.options, DOL_OPTION_NAME[self.option])
 
-        if type(self.value).__name__ == ROptionFilter.__name__: value = self.value.resolve(world)
+        if isinstance(self.value, ROptionFilter): value = self.value.resolve(world)
         else: value = self.value
 
-        match self.operator:
-            case "eq": final = option == value
-            case "ne": final = option != value
-            case "gt": final = option > value
-            case "lt": final = option < value
-            case "ge": final = option >= value
-            case "le": final = option <= value
-            case "contains": final = value in option
-            case "not-contains": final = not (value in option)
-            case "in": final = option in value
-            case "not-in": final = not (option in value)
-            case "and": final = option and value
-            case "or": final = option or value
-            case _: raise ValueError("Invalid ROptionFilter Operator")
+        if not (self.operator in OPERATORS): raise ValueError("Invalid ROptionFilter Operator")
+        final = OPERATORS[self.operator](option, value)
+        
         # print(f"Resolution for {self.option}: '{option}', '{self.operator}', '{value}' IS {final}")
         return final
 
@@ -108,25 +131,27 @@ class ROptionFilter:
         Current data must follow OptionFilter construction requirements 
         (normal operators, no ROptionFilter in option or value)
         """
+        if isinstance(self.option, ROptionFilter) or isinstance(self.value, ROptionFilter) or (not (self.operator in standardOPERATORS) and not (self.operator in standardOPERATOR_STRINGS)):
+            raise ValueError("When converting ROptionFilter; Option, Value, and Operator must be normal OptionFilter components")
         return OptionFilter(self.option, self.value, self.operator)
 
-    def __and__(self, other:'ROptionFilter' | bool | str | int):
+    def __and__(self, other:ROptionFilter | bool | str | int):
         return ROptionFilter(ROptionFilter(self.option, self.value, self.operator), other, "and")
     
-    def __rand__(self, other:'ROptionFilter' | bool | str | int):
-        return self.__and__(self.option, other, "and")
+    def __rand__(self, other:ROptionFilter | type[Option[Any]]):
+        return ROptionFilter(other, ROptionFilter(self.option, self.value, self.operator), "and")
     
-    def __or__(self, other:'ROptionFilter' | bool | str | int):
+    def __or__(self, other:ROptionFilter | bool | str | int):
         return ROptionFilter(ROptionFilter(self.option, self.value, self.operator), other, "or")
 
-    def __ror__(self, other:'ROptionFilter' | bool | str | int):
-        return self.__or__(self.option, other, "or")
+    def __ror__(self, other:ROptionFilter | type[Option[Any]]):
+        return ROptionFilter(other, ROptionFilter(self.option, self.value, self.operator), "or")
 
     def __invert__(self):
         # Reminder:
         # (True == False) = False
         # (False == False) = True
-        return ROptionFilter(self.option, False)
+        return ROptionFilter(ROptionFilter(self.option, self.value, self.operator), False)
 
     def __bool__(self):
         raise TypeError("Use '|', '&', and '~' to handle rules")
@@ -157,7 +182,7 @@ class DoLOptionFilters(Enum):
     toggle_slimes      = ROptionFilter(GameAnimalOptions, OptionsLocalization.animal_slimes.value,      operator="contains")
 
 
-    # -- World Location Enable/Disables:
+    # -- World Location:
     type_antiques       = ROptionFilter(RandomizationTargets, OptionsLocalization.target_antiques.value,          operator="contains")
     type_skills         = ROptionFilter(RandomizationTargets, OptionsLocalization.target_skills.value,            operator="contains")
     type_feat           = ROptionFilter(RandomizationTargets, OptionsLocalization.target_feats.value,             operator="contains")
@@ -165,7 +190,7 @@ class DoLOptionFilters(Enum):
     type_upgrade        = ROptionFilter(RandomizationTargets, OptionsLocalization.target_areaupgrades.value,      operator="contains")
     type_accessitem     = ROptionFilter(RandomizationTargets, OptionsLocalization.target_areaunlocks.value,       operator="contains")
     
-
+    # -- World Location Options:
     req_feat_copper    = ROptionFilter(RandomizationTargetRequirements, OptionsLocalization.req_featcopper.value,       operator="contains")
     req_feat_silver    = ROptionFilter(RandomizationTargetRequirements, OptionsLocalization.req_featsilver.value,       operator="contains")
     req_feat_gold      = ROptionFilter(RandomizationTargetRequirements, OptionsLocalization.req_featgold.value,         operator="contains")
@@ -180,6 +205,7 @@ class DoLOptionFilters(Enum):
 
     _tf_parts = ROptionFilter(RandomizeTransformationsType, RandomizeTransformationsType.option_tfparts)
     _tf_full  = ROptionFilter(RandomizeTransformationsType, RandomizeTransformationsType.option_transformations)
+    _tf_either = _tf_parts | _tf_full
 
     # NOTE: do not need to add these to gen rules for feats, since its still possible to get them
     type_upgrade_alexfarm       = ROptionFilter(RandomizeUpgradesType, OptionsLocalization.upgrade_alexfarm.value,         operator="contains")
@@ -198,18 +224,18 @@ class DoLOptionFilters(Enum):
 
     # -- Overrides
     # rules to create more locations or less items if needed
-    filler_override                = type_antiques | type_skills | (type_feat & (req_feat_copper | req_feat_silver))
-    override_feat_transformation   = (~type_feat) & (_tf_parts | _tf_full)
-    override_feat_upgrade          = (~type_feat) & type_upgrade
+    filler_override                = type_feat & (req_feat_copper | req_feat_silver)
+    # override_feat_transformation   = _tf_either & (~(type_feat & type_transformation))
+    # override_feat_upgrade          = type_upgrade & (~type_feat)
     # override_feat_upgrade_alex     = override_feat_upgrade & type_upgrade_alexfarm
-    override_feat_upgrade_tentacle = override_feat_upgrade & type_upgrade_tentacleforest
-    override_feat_upgrade_general  = override_feat_upgrade & type_upgrade_general
+    # override_feat_upgrade_tentacle = override_feat_upgrade & type_upgrade_tentacleforest
+    # override_feat_upgrade_general  = override_feat_upgrade & type_upgrade_general
 
 
     # -- Post Overrides
     randomize_tf_parts = _tf_parts & filler_override
     randomize_tf_full = _tf_full | (_tf_parts & ~filler_override)
-    randomize_tf_either = _tf_parts | _tf_full
+    randomize_tf_either = _tf_either
 
     req_angel = (randomize_tf_either & req_transformation) | req_multipleruns
 
@@ -255,7 +281,7 @@ class DoLRules(Enum):
     type_upgrade_false                 = Filtered(f, options=[type_upgrade], filtered_resolution=True)
     type_skills_false                  = Filtered(f, options=[type_skills], filtered_resolution=True)
     type_upgrade_tentacleforest_false  = Filtered(f, options=[type_upgrade_tentacleforest, type_upgrade], filtered_resolution=True)
-    type_upgrade_alexfarm_false        = Filtered(f, options=[type_upgrade_alexfarm], filtered_resolution=True)
+    type_upgrade_alexfarm_false        = Filtered(f, options=[type_upgrade_alexfarm, type_upgrade], filtered_resolution=True)
     type_upgrade_general_false         = Filtered(f, options=[type_upgrade_general, type_upgrade], filtered_resolution=True)
     type_accessitem_false              = Filtered(f, options=[type_accessitem], filtered_resolution=True)
     type_antique_false                 = Filtered(f, options=[type_antique], filtered_resolution=True)
@@ -443,13 +469,6 @@ class DoLRules(Enum):
     deviancy_6 = Has(DoLItemNames.progressive_deviancy_rank.value, 6) | type_skills_false  # lust
     # if needed later add weapon skills here too
 
-
-    # -- Museum Items:
-    antiques_10 = HasGroupUnique(DoLLocationTypes.antique.value, 10) | type_antique_false
-    antiques_20 = HasGroupUnique(DoLLocationTypes.antique.value, 20) | type_antique_false
-    has_serpentpainting = Has(DoLItemNames.antique_serpentpainting.value)
-
-
     # -- Transformations Items:
     # Only need tffalse on tffull since rules collapse that way
     tfrule_angelfull         = Has(DoLItemNames.transformation_angelfull.value) | type_transformation_false
@@ -541,7 +560,12 @@ class DoLRules(Enum):
     access_stripclub            = CanReachRegion(DoLRegionNames.strip_club.value)
     access_barbstreet           = CanReachRegion(DoLRegionNames.barb_street.value)
     access_maze                 = CanReachRegion(DoLRegionNames.maze.value)
+    access_factory              = CanReachRegion(DoLRegionNames.factory.value)
 
+    # -- Museum Items:
+    antiques_10 = HasGroupUnique(DoLLocationTypes.antique.value, 10) | type_antique_false
+    antiques_20 = HasGroupUnique(DoLLocationTypes.antique.value, 20) | type_antique_false
+    has_serpentpainting = Has(DoLItemNames.antique_serpentpainting.value) | (type_antique_false & access_maze)
 
     # -- World Upgrades:
     access_upgrade_tentacleforest = access_tentacleforest & access_mayorsoffice
@@ -574,8 +598,8 @@ class DoLRules(Enum):
     
     has_adultshopbuilt = Has(DoLItemNames.upgrade_adultshop.value) | (type_upgrade_general_false & access_adultshop)
 
-    has_farmparasitebarn = Has(DoLItemNames.upgrade_farm_parasite.value) | (access_alexfarm & type_upgrade_alexfarm_false & type_upgrade_false)
-    has_farmwatchtower = Has(DoLItemNames.upgrade_farm_security.value, 1) | (access_alexfarm & type_upgrade_alexfarm_false & type_upgrade_false)
+    has_farmparasitebarn = Has(DoLItemNames.upgrade_farm_parasite.value) | (access_alexfarm & type_upgrade_alexfarm_false)
+    has_farmwatchtower = Has(DoLItemNames.upgrade_farm_security.value, 1) | (access_alexfarm & type_upgrade_alexfarm_false)
     
 
     # -- Access Items:
@@ -588,6 +612,7 @@ class DoLRules(Enum):
     access_alleyway = access_alleyway_commercial | access_alleyway_industrial | access_alleyway_residential
     access_recipe = access_school | access_averymansion
     access_eventstreet = access_intown | access_alleyway | access_park
+    access_produesell = access_factory | access_connudatusstreet
 
 
     # -- Area Access Rules:
@@ -892,6 +917,10 @@ class DoLRules(Enum):
     # currently they don't use future outfits for love, but will
     # need to add future outfits if gotten from checks
 
+    # TODO: lowprio, I never made the progress requirement, however
+    # you'll probably get enough world access by having to obtain
+    # enough outfits to progress
+
     # Pre First Ritual
     # Jasper: Gold request
     outfit_jasper = ( # (/2 because talk + clothes)
@@ -900,20 +929,20 @@ class DoLRules(Enum):
         (access_forestlake) | (has_adultshopbuilt & access_adultshop)
     )
 
-    # First Ritual
-    gwylan_beast = AtLeast(math.ceil(50 * 0.5), outfit_jasper, *list_outfit_nongwylan) & access_forestshop
+    # First Ritual (snoop 3, beast)
+    gwylan_beast = AtLeast(math.ceil(40 * 0.5), outfit_jasper, *list_outfit_nongwylan) & access_forestshop
     firstverse = gwylan_beast
 
-    # Second Ritual (love requirements start being % instead)
-    gwylan_forestvessel = AtLeast(math.ceil(number_outfits * 0.65), outfit_jasper, *list_outfit_nongwylan) & access_forestshop
+    # Second Ritual (love requirements start being % instead) (struggles)
+    gwylan_forestvessel = AtLeast(math.ceil(number_outfits * 0.55), outfit_jasper, *list_outfit_nongwylan) & access_forestshop
     outfit_flowers = access_school & (access_orphanage | access_birdtower) & gwylan_forestvessel
     outfit_sagehat = gwylan_forestvessel
 
-    # Partners
-    gwylan_partners = AtLeast(math.ceil(number_outfits * 0.8), outfit_jasper, outfit_flowers, outfit_sagehat, *list_outfit_nongwylan) & access_forestshop
+    # Partners (partners, promenade walk)
+    gwylan_partners = AtLeast(math.ceil(number_outfits * 0.7), outfit_jasper, outfit_flowers, outfit_sagehat, *list_outfit_nongwylan) & access_forestshop
     foxbane = gwylan_partners & access_edencabin 
     
-    outfit_familiarcollar = AtLeast(math.ceil(number_outfits * 0.85), outfit_jasper, outfit_flowers, outfit_sagehat, *list_outfit_nongwylan) & access_forestshop
+    outfit_familiarcollar = AtLeast(math.ceil(number_outfits * 0.75), outfit_jasper, outfit_flowers, outfit_sagehat, *list_outfit_nongwylan) & access_forestshop
 
     outfit_greater_fox = (
         outfit_foxmask & outfit_shrine & outfit_jasper
@@ -1025,11 +1054,11 @@ class DoLRules(Enum):
     #
     #   'meetAtShop'
     #   |   info:  Chain Event, Forest Beast Ritual
-    #   |   req:   snoop 3; love 50, talked 10, progress 6, event 'lights'
+    #   |   req:   snoop 3
     #
     #   'meetAtCafe'
     #   |   info:  Chain Event, Struggles Intro
-    #   |   req:   progress 15, lovepercent 65, event 'ritual_beast', gwylanbeast date 2, dom 10, lust 25
+    #   |   req:   progress 9, lovepercent 55, event 'ritual_beast', gwylanbeast date 2, dom 10, lust 25
     #   |   note:  no ++request
     #
     #   'yearning'
@@ -1104,6 +1133,8 @@ class DoLRules(Enum):
     #
     #   'ghostbrew'
     #   |   unused (no made req)
+    #
+    #   TODO: new task?
     #
     #
     # - Status:
@@ -1214,11 +1245,11 @@ class DoLRules(Enum):
     #   gives: 'hat_found'
     #
     #   Shoop 2: Lights
-    #   requires: love 35, events 'hat_found', progress 3, requests 2
+    #   requires: love 30, events 'hat_found', progress 3, requests 2
     #   gives: 'lights'
     #
     #   Snoop 3: Forest Shop Snoop
-    #   requires: love 50, events 'lights', talked 10, progress 6
+    #   requires: love 40, events 'lights', talked 10, progress 6
     #   -> Forest Shop Hunt Event
     #
     #
@@ -1263,7 +1294,7 @@ class DoLRules(Enum):
     #
     # - Event: Struggles Intro
     #   requires: 
-    #   |   progress 15, lovepercent 65, 'ritual_beast', 
+    #   |   progress 9, lovepercent 55, 'ritual_beast', 
     #   |   gwylanbeast date 2, dom 10, lust 25
     #   gives: 'meetAtCafe'
     #
@@ -1283,7 +1314,7 @@ class DoLRules(Enum):
     #
     # - Event: Promenade Walk
     #   requires:
-    #   |   lovepercent 80, dom 75, date gwylansex 5,
+    #   |   lovepercent 70, dom 75, date gwylansex 5,
     #   |   gwylansea 5, status lust
     #   gives: 'partners', potential love interest status
     #
@@ -1296,13 +1327,13 @@ class DoLRules(Enum):
     #
     #
     # - Event: Deepest Hypnosis
-    #   requires: hypno dev 4, lovepercent 80, status lust
+    #   requires: hypno dev 4, lovepercent 70, status lust
     #   gives: 'hypnosis_deepest'
     #
     # 
     # - Event: Familiar Collar
     #   requires: 
-    #   |   lovepercent 85, dom 120, hypno dev 3,
+    #   |   lovepercent 75, dom 120, hypno dev 3,
     #   |   events all 'partners', 'hypnosis_deepest', 'petplay'
     #   gives: familiar collar
     #
@@ -1347,21 +1378,21 @@ class DoLRules(Enum):
     # 'clothes_intro'       - talk
     # 'intruder'            love 10
     # 'hat_found'           love 20 : snoop
-    # 'lights'              love 35, progress 3, request 2 : snoop
-    # 'caught'/_no_lewd'    love 50, talked 10, progress 6 : snoop
+    # 'lights'              love 30, progress 3, request 2 : snoop
+    # 'caught'/_no_lewd'    love 40, talked 10, progress 6 : snoop
     # 'meetAtShop'          - chain
     # 'ritual_beast'        - chain
-    # 'meetAtCafe'          lovepercent 65, progress 15, datebeast 2, dom 10, lust 25
+    # 'meetAtCafe'          lovepercent 55, progress 9, datebeast 2, dom 10, lust 25
     # 'struggles'           - chain
     # 'ritual_sex_intro'    - do beast ritual
     # 'ritual_sex'          - do vessel ritual
-    # 'partners'            lovepercent 80, dom 75, gwylansex 5, gwylansea 5, status lust
+    # 'partners'            lovepercent 70, dom 75, gwylansex 5, gwylansea 5, status lust
     #
     # 'Forest Gwylan Eden'  - prev (partners)
     #
     # 'petplay'             - prev (ritual_sex)
-    # 'hypnosis_deepest'    lovepercent 80, hypno dev 4, status lust
-    # 'Familiar Collar'     lovepercent 85, dom 120, hypno dev 3, event 'partners'
+    # 'hypnosis_deepest'    lovepercent 70, hypno dev 4, status lust
+    # 'Familiar Collar'     lovepercent 75, dom 120, hypno dev 3, event 'partners'
     # 
     # 
     # 'romance'             unimplemented?
@@ -1498,7 +1529,7 @@ class DoLRules(Enum):
     ballroomshowoff                = dancing_8 | promiscuity_2
     shoppingcentre_or_forestshop   = access_shoppingcentre | access_forestshop
     recipe_or_shoppingcentre       = access_recipe | access_shoppingcentre
-    has_leathermap                 = Has(DoLItemNames.antique_leathermap.value)
+    has_leathermap                 = Has(DoLItemNames.antique_leathermap.value) | type_antique_false
     hand_or_dance_400              = Or(hands_2, dancing_4)
     playingwithfire                = willpower_4 | oral_4
     corneredrogue                  = ((toggle_monsterpeople & athletics_7 & skulduggery_7) | 
@@ -1541,10 +1572,6 @@ class _LocDetail:
     """
     Container for details of a location
 
-    Gen Rules and Locations should be [enumfoo.bar.value]
-    
-    Obtain Rules should be [enumfoo.bar]
-
     ### Definition:
 
     Location_Name = LocDetail(Location ID, 
@@ -1552,17 +1579,21 @@ class _LocDetail:
         [Rules to generate the location], 
         [Rules to get to the location],
     )
-    """ # no _ so I don't accidently mass replace the docstring
+    """ # no _ in locdetail so I don't accidently mass replace the docstring
     location_id: int
     locations: list[str]
     # Rules for generation should use world options
-    rules_generation: list[Rule]
-    rules_obtain: list[DoLRules]
+    rules_generation: list[ROptionFilter]
+    rules_obtain: list[Rule[Any]]
 
     # function to copy and return the class with changes
+    # useful for if a locations gen rules would prevent it from
+    # generating, but still need a location of that type, you can
+    # create an override location that only generates if all the genrules
+    # of the previous are not true
     def override(self,
-            addloc:list[DoLLocationNames] = None, addgenrule:list[DoLRules] = None, addobtainrule:list[DoLRules] = None,
-            swaploc:list[DoLLocationNames] = None, swapgenrule:list[DoLRules] = None, swapobtainrule:list[DoLRules] = None,
+            addloc:list[str] | None = None, addgenrule:list[ROptionFilter] | None = None, addobtainrule:list[Rule[Any]] | None = None,
+            swaploc:list[str] | None = None, swapgenrule:list[ROptionFilter] | None = None, swapobtainrule:list[Rule[Any]] | None = None,
         ) -> '_LocDetail':
 
         addloc = addloc or []
@@ -1577,7 +1608,7 @@ class _LocDetail:
         rules_generation.extend(addgenrule)
         rules_obtain.extend(addobtainrule)
 
-        # can keep id the same since we should gen previous
+        # can keep id the same since we shouldn't gen previous
         return _LocDetail(self.location_id, locations, rules_generation, rules_obtain)
 
 
@@ -1648,18 +1679,6 @@ class DoLLocationData(Enum):
     # NOTE: Reminder that a rule does not need to be set for
     # the region that it needs to go to, that's already implied
 
-    # Required to build details correctly
-    def __new__(cls, value):
-        obj = object.__new__(cls)
-        obj._value_ = value
-        return obj
-
-    # Fixes 'Any' when looking for locdetail
-    @property
-    def value(self) -> _LocDetail:
-        return self._value_
-
-
     # ---------------- Antiques ----------------
     
     antique_ivorystatuette = _LocDetail(100, [
@@ -1672,43 +1691,57 @@ class DoLLocationData(Enum):
             DoLRegionNames.forest.value, # old churchyard
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquesilvercoin
+        ], [
+            # TODO: tend, skul
+        ]) # antiquesilvercoin
                 
     antique_crystal = _LocDetail(102, [
             DoLRegionNames.forest.value # old churchyard
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquewhitecrystal
+        ], [
+            # TODO: tend req
+        ]) # antiquewhitecrystal
                 
     antique_silverblade = _LocDetail(103, [
             DoLRegionNames.forest.value # old churchyard
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquesilverblade
+        ], [
+            # TODO: skul check
+        ]) # antiquesilverblade
                 
     antique_coppercoin = _LocDetail(104, [
             DoLRegionNames.forest.value # old churchyard
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquecoppercoin
+        ], [
+            # TODO: skul check
+        ]) # antiquecoppercoin
                 
     antique_silvergoblet = _LocDetail(105, [
             DoLRegionNames.forest.value # old churchyard
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquesilvergoblet
+        ], [
+            # TODO: skul req
+        ]) # antiquesilvergoblet
                 
     antique_fetish = _LocDetail(106, [
             DoLRegionNames.forest.value # old churchyard
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquestrangefetish
+        ], [
+            # TODO: skul req
+        ]) # antiquestrangefetish
                 
     antique_goldcoin = _LocDetail(107, [
             DoLRegionNames.forest.value # old churchyard
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquegoldcoin
+        ], [
+            # TODO: tending, skul
+        ]) # antiquegoldcoin
                 
     antique_forestdagger = _LocDetail(108, [
             DoLRegionNames.forest.value
@@ -1738,19 +1771,30 @@ class DoLLocationData(Enum):
             DoLRegionNames.forest_lake.value
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquebox
+        ], [
+            # historytrait gte 4
+            DoLRules.history_4.value
+        ]) # antiquebox
                 
     antique_silverring = _LocDetail(113, [
             DoLRegionNames.forest_lake.value
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquesilverring
+        ], [
+            # skuldiff 300
+            # skull 300 50% = skulduggery.0
+            # (no rule)
+        ]) # antiquesilverring
                 
     antique_goldnecklace = _LocDetail(114, [
             DoLRegionNames.forest_lake.value
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquegoldnecklace
+        ], [
+            # skuldiff 300
+            # skull 300 50% = skulduggery.0
+            # (no rule)
+        ]) # antiquegoldnecklace
                 
     antique_chastitybelt = _LocDetail(115, [
             DoLRegionNames.forest_lake.value
@@ -1799,13 +1843,17 @@ class DoLLocationData(Enum):
             DoLRegionNames.moor.value
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquegoldring
+        ], [
+            # TODO: swimming check
+        ]) # antiquegoldring
                 
     antique_bell = _LocDetail(123, [
             DoLRegionNames.moor.value
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquebell
+        ], [
+            DoLRules.has_leathermap.value,
+        ]) # antiquebell
                 
     antique_bullet = _LocDetail(124, [
             DoLRegionNames.moor.value,
@@ -1830,7 +1878,9 @@ class DoLLocationData(Enum):
             DoLRegionNames.dance_studio.value
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquegoldbrooch
+        ], [
+            # TODO: skul check
+        ]) # antiquegoldbrooch
                 
     antique_silverbrooch = _LocDetail(128, [
             DoLRegionNames.orphanage.value
@@ -1870,7 +1920,9 @@ class DoLLocationData(Enum):
             DoLRegionNames.landfill.value
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiqueminesign
+        ], [
+            # TODO: housekeeping req
+        ]) # antiqueminesign
                 
     antique_incenseburner = _LocDetail(134, [
             DoLRegionNames.landfill.value
@@ -1889,7 +1941,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_antiques.value
         ], [
-            DoLRules.antiques_20
+            DoLRules.antiques_20.value
         ]) # antiquesilvermask
                 
     antique_silveramulet = _LocDetail(137, [
@@ -1901,9 +1953,12 @@ class DoLLocationData(Enum):
     antique_hourglass = _LocDetail(138, [
             DoLRegionNames.pirate_ship.value
         ], [
+            
             DoLOptionFilters.type_antiques.value,
             DoLOptionFilters.req_badend.value,
-        ], []) # antiquehourglass
+        ], [
+            # TODO: requires ivory wraith
+        ]) # antiquehourglass
                 
     antique_swordcane = _LocDetail(139, [
             DoLRegionNames.pirate_ship.value
@@ -1957,7 +2012,9 @@ class DoLLocationData(Enum):
             DoLRegionNames.ocean.value
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquecoralring
+        ], [
+            # TODO: swim req
+        ]) # antiquecoralring
                 
     antique_diamond = _LocDetail(147, [
             DoLRegionNames.ocean.value
@@ -2008,7 +2065,9 @@ class DoLLocationData(Enum):
             DoLRegionNames.beach.value
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquecutlass
+        ], [
+            # TODO: skul req
+        ]) # antiquecutlass
                 
     antique_silverdagger = _LocDetail(155, [
             DoLRegionNames.beach.value
@@ -2026,7 +2085,10 @@ class DoLLocationData(Enum):
             DoLRegionNames.old_sewers.value
         ], [
             DoLOptionFilters.type_antiques.value
-        ], []) # antiquecrystal
+        ], [
+            # swimmingskill gte random(1, 800)
+            DoLRules.swimming_4.value,
+        ]) # antiquecrystal
                 
     antique_candlestick = _LocDetail(158, [
             DoLRegionNames.old_sewers.value
@@ -2058,6 +2120,44 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_antiques.value,
         ], []) # serpentpainting
 
+    # TODO: create items for these antiques
+    antique_lantern = _LocDetail(163, [ # NOTE: not placed?
+            DoLRegionNames.mines, # suggests mines
+        ], [
+            DoLOptionFilters.type_antiques.value,
+            DoLOptionFilters.req_badend.value,
+            DoLOptionFilters.f.value,
+        ], []) # antiquelantern
+        
+    antique_shovelhandle = _LocDetail(164, [ # NOTE: not placed?
+            DoLRegionNames.mines, # suggests mines
+        ], [
+            DoLOptionFilters.type_antiques.value,
+            DoLOptionFilters.req_badend.value,
+            DoLOptionFilters.f.value,
+        ], []) # antiqueshovelhandle
+        
+    antique_rustypickaxe = _LocDetail(165, [ # NOTE: not placed?
+            DoLRegionNames.mines, # suggests mines
+        ], [
+            DoLOptionFilters.type_antiques.value,
+            DoLOptionFilters.req_badend.value,
+            DoLOptionFilters.f.value,
+        ], []) # antiquerustypickaxe
+        
+    antique_purplediamond = _LocDetail(166, [
+            # Random event in the mines
+            DoLRegionNames.mines,
+        ], [
+            DoLOptionFilters.type_antiques.value,
+            DoLOptionFilters.req_badend.value,
+        ], [
+            # <<swimmingdifficulty 700 1000>>
+            DoLRules.swimming_9.value,
+        ]) # antiquepurplediamond
+        
+
+
 
     # ---------------- Skills ----------------
     
@@ -2085,7 +2185,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.skulduggery_1,
+            DoLRules.skulduggery_1.value,
         ])
     
     skill_skulduggery_5 = _LocDetail(504, [
@@ -2093,7 +2193,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.skulduggery_2,
+            DoLRules.skulduggery_2.value,
         ])
     
     skill_skulduggery_6 = _LocDetail(505, [
@@ -2101,7 +2201,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.skulduggery_3,
+            DoLRules.skulduggery_3.value,
         ])
     
     skill_skulduggery_7 = _LocDetail(506, [
@@ -2109,7 +2209,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.skulduggery_4,
+            DoLRules.skulduggery_4.value,
         ])
     
     skill_skulduggery_8 = _LocDetail(507, [
@@ -2117,7 +2217,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.skulduggery_5,
+            DoLRules.skulduggery_5.value,
         ])
     
     skill_skulduggery_9 = _LocDetail(508, [
@@ -2125,7 +2225,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.skulduggery_6,
+            DoLRules.skulduggery_6.value,
         ])
     
     skill_skulduggery_10 = _LocDetail(509, [
@@ -2133,7 +2233,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.skulduggery_7,
+            DoLRules.skulduggery_7.value,
         ])
 
 
@@ -2504,7 +2604,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.oral_1
+            DoLRules.oral_1.value
         ])
     
     skill_oral_4 = _LocDetail(568, [
@@ -2512,7 +2612,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.oral_2
+            DoLRules.oral_2.value
         ])
     
     skill_oral_5 = _LocDetail(569, [
@@ -2520,7 +2620,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.oral_3
+            DoLRules.oral_3.value
         ])
 
 
@@ -2542,7 +2642,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.chest_1,
+            DoLRules.chest_1.value,
         ])
     
     skill_chest_4 = _LocDetail(573, [
@@ -2550,7 +2650,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.chest_2,
+            DoLRules.chest_2.value,
         ])
     
     skill_chest_5 = _LocDetail(574, [
@@ -2558,7 +2658,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.chest_3,
+            DoLRules.chest_3.value,
         ])
 
 
@@ -2580,7 +2680,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.hands_1,
+            DoLRules.hands_1.value,
         ])
     
     skill_hands_4 = _LocDetail(578, [
@@ -2588,7 +2688,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.hands_2
+            DoLRules.hands_2.value
         ])
     
     skill_hands_5 = _LocDetail(579, [
@@ -2596,7 +2696,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.hands_3
+            DoLRules.hands_3.value
         ])
 
 
@@ -2618,7 +2718,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.buttocks_1,
+            DoLRules.buttocks_1.value,
         ])
     
     skill_buttocks_4 = _LocDetail(583, [
@@ -2626,7 +2726,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.buttocks_2,
+            DoLRules.buttocks_2.value,
         ])
     
     skill_buttocks_5 = _LocDetail(584, [
@@ -2634,7 +2734,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.buttocks_3,
+            DoLRules.buttocks_3.value,
         ])
 
 
@@ -2656,7 +2756,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.privates_1,
+            DoLRules.privates_1.value,
         ])
     
     skill_privates_4 = _LocDetail(588, [
@@ -2664,7 +2764,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.privates_2,
+            DoLRules.privates_2.value,
         ])
     
     skill_privates_5 = _LocDetail(589, [
@@ -2672,7 +2772,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.privates_3,
+            DoLRules.privates_3.value,
         ])
 
 
@@ -2694,7 +2794,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.anal_1,
+            DoLRules.anal_1.value,
         ])
     
     skill_anal_4 = _LocDetail(593, [
@@ -2702,7 +2802,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.anal_2,
+            DoLRules.anal_2.value,
         ])
     
     skill_anal_5 = _LocDetail(594, [
@@ -2710,7 +2810,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.anal_3,
+            DoLRules.anal_3.value,
         ])
 
 
@@ -2733,7 +2833,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.thighs_1,
+            DoLRules.thighs_1.value,
         ])
     
     skill_thighs_4 = _LocDetail(598, [
@@ -2741,7 +2841,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.thighs_2,
+            DoLRules.thighs_2.value,
         ])
     
     skill_thighs_5 = _LocDetail(599, [
@@ -2749,7 +2849,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.thighs_3,
+            DoLRules.thighs_3.value,
         ])
 
 
@@ -2771,7 +2871,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.feet_1,
+            DoLRules.feet_1.value,
         ])
     
     skill_feet_4 = _LocDetail(603, [
@@ -2779,7 +2879,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.feet_2,
+            DoLRules.feet_2.value,
         ])
     
     skill_feet_5 = _LocDetail(604, [
@@ -2787,7 +2887,7 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_skills.value,
         ], [
-            DoLRules.feet_3,
+            DoLRules.feet_3.value,
         ])
 
 
@@ -3137,21 +3237,21 @@ class DoLLocationData(Enum):
                 DoLRegionNames.in_town.value,
             ], [
                 DoLOptionFilters.type_feat.value,
-                DoLOptionFilters.req_feat_copper.value,
+                DoLOptionFilters.req_feat_silver.value,
             ], [])
 
     feat_tycoon = _LocDetail(1002, [
             DoLRegionNames.in_town.value,
         ], [
             DoLOptionFilters.type_feat.value,
-            DoLOptionFilters.req_feat_silver.value,
+            DoLOptionFilters.req_feat_gold.value,
         ], [])
 
     feat_millionaire = _LocDetail(1003, [
             DoLRegionNames.in_town.value,
         ], [
             DoLOptionFilters.type_feat.value,
-            DoLOptionFilters.req_feat_gold.value,
+            DoLOptionFilters.req_feat_platinum.value,
             DoLOptionFilters.req_difficult.value,
         ], [])
 
@@ -3162,7 +3262,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_gold.value,
             DoLOptionFilters.req_difficult.value,
         ], [
-            DoLRules.access_antiques,
+            DoLRules.access_antiques.value,
         ])
 
     feat_fullycovered = _LocDetail(1005, [
@@ -3347,7 +3447,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_seasonal.value,
         ], [
-            DoLRules.sciencefairwinner,
+            DoLRules.sciencefairwinner.value,
         ])
 
     feat_thesisoffence = _LocDetail(1028, [
@@ -3368,11 +3468,11 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_seasonal.value,
             DoLOptionFilters.req_difficult.value, # rng + seasonal
         ], [
-            DoLRules.sciencefairoffence,
+            DoLRules.sciencefairoffence.value,
             # doing 100% chance because 20% chance total
-            DoLRules.physique_6, # physique(4000, 14000) (very high, need large body to guarentee)
-            DoLRules.seduction_4, # seduction(4000)
-            DoLRules.skulduggery_4, # skul(400) 
+            DoLRules.physique_6.value, # physique(4000, 14000) (very high, need large body to guarentee)
+            DoLRules.seduction_4.value, # seduction(4000)
+            DoLRules.skulduggery_4.value, # skul(400) 
         ])
 
     feat_mathscompetitionwinner = _LocDetail(1029, [
@@ -3382,7 +3482,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_seasonal.value,
         ], [
-            DoLRules.mathcomp
+            DoLRules.mathcomp.value
         ])
 
     feat_richhearts = _LocDetail(1030, [
@@ -3401,14 +3501,14 @@ class DoLLocationData(Enum):
             DoLRegionNames.in_town.value,
         ], [
             DoLOptionFilters.type_feat.value,
-            DoLOptionFilters.req_feat_copper.value,
+            DoLOptionFilters.req_feat_silver.value,
         ], [])
 
     feat_mostinnocent = _LocDetail(1032, [
             DoLRegionNames.asylum.value,
         ], [
             DoLOptionFilters.type_feat.value,
-            DoLOptionFilters.req_feat_copper.value,
+            DoLOptionFilters.req_feat_silver.value,
         ], [])
 
     feat_nomorecontrol = _LocDetail(1033, [
@@ -3426,7 +3526,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.skulduggery_7,
+            DoLRules.skulduggery_7.value,
         ])
 
     feat_mayihavethisdance = _LocDetail(1035, [
@@ -3452,7 +3552,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.seduction_3,
+            DoLRules.seduction_3.value,
         ])
 
     feat_greenfingered = _LocDetail(1038, [
@@ -3471,7 +3571,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.housekeeping_7,
+            DoLRules.housekeeping_7.value,
         ])
 
     feat_swift = _LocDetail(1040, [
@@ -3536,16 +3636,16 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.access_alexfarm,
+            DoLRules.access_alexfarm.value,
         ])
 
     feat_merchant = _LocDetail(1048, [
             DoLRegionNames.connudatus_street.value,
         ], [
             DoLOptionFilters.type_feat.value,
-            DoLOptionFilters.req_feat_silver.value,
+            DoLOptionFilters.req_feat_gold.value,
         ], [
-            DoLRules.access_alexfarm,
+            DoLRules.access_alexfarm.value,
         ])
 
     feat_twisteddesire = _LocDetail(1049, [ # maybe modify loc (maso)
@@ -3627,8 +3727,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_loveinterest.value,
         ], [
-            DoLRules.access_orphanage,
-            DoLRules.access_recipe,
+            DoLRules.access_orphanage.value,
+            DoLRules.access_recipe.value,
         ])
 
     feat_robinssong = _LocDetail(1059, [
@@ -3639,8 +3739,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
             DoLOptionFilters.req_seasonal.value,
         ], [
-            DoLRules.shoppingcentre_or_forestshop,
-            DoLRules.access_school,
+            DoLRules.shoppingcentre_or_forestshop.value,
+            DoLRules.access_school.value,
         ])
 
     feat_whitneythebully = _LocDetail(1060, [
@@ -3660,7 +3760,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
         ], [
             # redundant rule, school place means access recipe
-            # DoLRules.access_recipe
+            # DoLRules.access_recipe.value
         ])
 
     feat_delinquentantics = _LocDetail(1062, [
@@ -3679,7 +3779,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
             DoLOptionFilters.statrandomized_or_multipleruns.value,
         ], [
-            DoLRules.physique_6
+            DoLRules.physique_6.value
         ])
 
     feat_whitneyssecret = _LocDetail(1064, [ # TODO: ITEM
@@ -3689,7 +3789,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_loveinterest.value,
         ], [
-            DoLRules.access_alleyway,
+            DoLRules.access_alleyway.value,
             # whitney's upgrade to orphanage loft
         ])
 
@@ -3712,7 +3812,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
         ], [
             # Redudant rule, need school for recipe but loc at school
-            #DoLRules.access_recipe
+            #DoLRules.access_recipe.value
         ])
 
     feat_edenthelonely = _LocDetail(1067, [
@@ -3785,7 +3885,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
         ], [
             # redundant rule, recipe access implied by avery mansion
-            # DoLRules.access_recipe
+            # DoLRules.access_recipe.value
         ])
 
     feat_leightontheshady = _LocDetail(1075, [
@@ -3814,7 +3914,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_loveinterest.value,
         ], [
-            DoLRules.access_recipe,
+            DoLRules.access_recipe.value,
         ])
 
     feat_greathawktheterror = _LocDetail(1078, [
@@ -3835,7 +3935,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
             DoLOptionFilters.req_badend.value,
         ], [
-            DoLRules.access_recipe,
+            DoLRules.access_recipe.value,
         ])
 
     feat_feathertrick = _LocDetail(1080, [
@@ -3845,18 +3945,18 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_loveinterest.value,
             DoLOptionFilters.req_transformation.value,
-            DoLOptionFilters.toggle_transformation_either.value, # need flight
+            DoLOptionFilters.toggle_transformation_animal.value, # need flight
             DoLOptionFilters.req_badend.value,
         ], [
-            DoLRules.dancing_9, # 50%
-            DoLRules.tending_4, # 57%
+            DoLRules.dancing_9.value, # 50%
+            DoLRules.tending_4.value, # 57%
             # for you to get the ability to hunt
             # for lurkers, you need harpy tf to eat one
             # and like eating one. HOWEVER, this is for
             # targeted hunts and you seem to still be able
             # to get one randomly
-            # DoLRules.tfrule_harpy_full_appear,
-            DoLRules.tfrule_flight,
+            # DoLRules.tfrule_harpy_full_appear.value,
+            DoLRules.tfrule_flight.value,
             # NOTE: from what it looks like, lurkers
             # do not need to be enabled for this
         ])
@@ -3889,8 +3989,9 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_loveinterest.value,
             DoLOptionFilters.req_badend.value,
+            DoLOptionFilters.toggle_bestiality.value,
         ], [
-            DoLRules.access_recipe,
+            DoLRules.access_recipe.value,
         ])
 
     feat_sydneythepurehearted = _LocDetail(1084, [
@@ -3910,7 +4011,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_loveinterest.value,
         ], [
-            DoLRules.access_recipe,
+            DoLRules.access_recipe.value,
         ])
 
     feat_harperthehypnotist = _LocDetail(1086, [
@@ -3947,7 +4048,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
             DoLOptionFilters.req_difficult.value, # guessing its difficult?
         ], [
-            DoLRules.gwylan_forestvessel,
+            DoLRules.gwylan_forestvessel.value,
         ])
 
     feat_covencomforts = _LocDetail(1089, [
@@ -3957,7 +4058,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_loveinterest.value,
         ], [
-            DoLRules.access_recipe,
+            DoLRules.access_recipe.value,
         ])
 
     feat_lovetriangles = _LocDetail(1090, [
@@ -3986,7 +4087,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
             DoLOptionFilters.req_seasonal.value,
         ], [
-            DoLRules.recipe_or_shoppingcentre,
+            DoLRules.recipe_or_shoppingcentre.value,
         ])
 
     feat_ballroomshowoff = _LocDetail(1093, [
@@ -3996,7 +4097,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_copper.value,
             DoLOptionFilters.req_loveinterest.value,
         ], [
-            DoLRules.ballroomshowoff
+            DoLRules.ballroomshowoff.value
         ])
 
     feat_underthetable = _LocDetail(1094, [
@@ -4036,7 +4137,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_loveinterest.value,
         ], [
-            DoLRules.access_school,
+            DoLRules.access_school.value,
         ])
 
     feat_masonsshame = _LocDetail(1097, [
@@ -4060,7 +4161,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.skulduggery_4, # ~50%
+            DoLRules.skulduggery_4.value, # ~50%
         ])
 
     feat_firstkiss = _LocDetail(1100, 
@@ -4098,8 +4199,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
             DoLOptionFilters.req_badend.value,
         ], [
-            DoLRules.access_kylarmanor,
-            DoLRules.access_intown,
+            DoLRules.access_kylarmanor.value,
+            DoLRules.access_intown.value,
         ])
 
     feat_warmestwinter = _LocDetail(1104, [
@@ -4108,7 +4209,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.access_museum,
+            DoLRules.access_museum.value,
         ])
 
     feat_trialsoffaith = _LocDetail(1105, [
@@ -4116,8 +4217,9 @@ class DoLLocationData(Enum):
         ], [
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_platinum.value,
+            DoLOptionFilters.req_difficult.value,
         ], [
-            DoLRules.has_serpentpainting,
+            DoLRules.has_serpentpainting.value,
         ])
 
     feat_firstverse = _LocDetail(1106, [
@@ -4127,7 +4229,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_copper.value,
             DoLOptionFilters.req_loveinterest.value,
         ], [
-            DoLRules.firstverse,
+            DoLRules.firstverse.value,
         ]) 
 
     feat_wildsong = _LocDetail(1107, [
@@ -4137,7 +4239,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_loveinterest.value,
         ], [
-            DoLRules.gwylan_forestvessel,
+            DoLRules.gwylan_forestvessel.value,
         ]) 
 
     feat_foxbane = _LocDetail(1108, [
@@ -4147,7 +4249,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_loveinterest.value,
         ], [
-            DoLRules.foxbane,
+            DoLRules.foxbane.value,
         ])
 
 
@@ -4251,7 +4353,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.access_pub,
+            DoLRules.access_pub.value,
             # no skul req?
         ])
 
@@ -4321,7 +4423,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.promiscuity_3,
+            DoLRules.promiscuity_3.value,
         ])
 
     feat_neckdeep = _LocDetail(1122, [ # INFO
@@ -4350,7 +4452,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.willpower_5,
+            DoLRules.willpower_5.value,
         ])
 
     feat_seedy = _LocDetail(1123, [
@@ -4359,7 +4461,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.seeds_50p
+            DoLRules.seeds_50p.value
         ])
 
     feat_breedy = _LocDetail(1124, [
@@ -4370,7 +4472,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value, # gwylan required for 100% seeds
             DoLOptionFilters.req_badend.value, # asylum/edens required for 100% seeds
         ], [
-            DoLRules.seeds_100p
+            DoLRules.seeds_100p.value
         ])
 
     feat_athunderousresponse = _LocDetail(1125, [
@@ -4379,7 +4481,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.exhibitionism_5,
+            DoLRules.exhibitionism_5.value,
         ])
 
     feat_alewdadventure = _LocDetail(1126, [
@@ -4388,7 +4490,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.exhibitionism_5,
+            DoLRules.exhibitionism_5.value,
         ])
 
     feat_sourdealing = _LocDetail(1127, [
@@ -4434,31 +4536,11 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.antiques_10,
-            DoLRules.willpower_4
+            DoLRules.antiques_10.value,
+            DoLRules.willpower_4.value
         ])
 
     feat_submerged = _LocDetail(1129, [
-            DoLRegionNames.museum.value,
-        ], [
-            DoLOptionFilters.type_feat.value,
-            DoLOptionFilters.req_feat_silver.value,
-        ], [
-            DoLRules.antiques_20,
-            DoLRules.swimming_9,
-        ])
-
-    feat_wrongsize = _LocDetail(1130, [
-            DoLRegionNames.school.value,
-        ], [
-            DoLOptionFilters.type_feat.value,
-            DoLOptionFilters.req_feat_copper.value,
-            DoLOptionFilters.req_multipleruns.value,
-        ], [
-            DoLRules.skulduggery_4,
-        ])
-
-    feat_idlehands = _LocDetail(1131, # INFO
         # INFO feat_submerged : by bluecat
         #
         # extreme 1: nothing (swim check for 3 here)
@@ -4483,17 +4565,37 @@ class DoLLocationData(Enum):
         # 900 swim:  (100%, 85.71%, 37.5%)  32.14%  (~1/3)
         # 1000 swim: (100%, 100%,   50%)    50%     (1/2)
         # 1/3 isn't unbelievable so will go with that
+            DoLRegionNames.museum.value,
+        ], [
+            DoLOptionFilters.type_feat.value,
+            DoLOptionFilters.req_feat_silver.value,
+        ], [
+            DoLRules.antiques_20.value,
+            DoLRules.swimming_9.value,
+        ])
+
+    feat_wrongsize = _LocDetail(1130, [
+            DoLRegionNames.school.value,
+        ], [
+            DoLOptionFilters.type_feat.value,
+            DoLOptionFilters.req_feat_copper.value,
+            DoLOptionFilters.req_multipleruns.value,
+        ], [
+            DoLRules.skulduggery_4.value,
+        ])
+
+    feat_idlehands = _LocDetail(1131, # INFO
         [
             DoLRegionNames.spa.value,
         ], [
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.skulduggery_1, # (1/3 at f+)
+            DoLRules.skulduggery_1.value, # (1/3 at f+)
             # spa req: 6/7 max beauty or handskill >= 400
             # since beauty isn't randomized, we can technically
             # not have a req for hands, but include anyway
-            DoLRules.hands_2
+            DoLRules.hands_2.value
         ])
 
     feat_stolentechnology = _LocDetail(1132, [
@@ -4502,7 +4604,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.access_landfill,
+            DoLRules.access_landfill.value,
             # brothel show req just needs finding
             # the canister in the trash, access landfill enough
         ])
@@ -4520,7 +4622,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.skulduggery_4, # 40%, 5 = 60%
+            DoLRules.skulduggery_4.value, # 40%, 5 = 60%
         ])
 
     feat_buriedtreasure = _LocDetail(1135, [
@@ -4529,7 +4631,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_gold.value,
         ], [
-            DoLRules.has_leathermap
+            DoLRules.has_leathermap.value
         ]) 
 
     feat_flurry = _LocDetail(1136, # INFO
@@ -4557,7 +4659,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
             DoLOptionFilters.req_seasonal.value,
         ], [
-            DoLRules.hand_or_dance_400,
+            DoLRules.hand_or_dance_400.value,
         ])
 
     feat_afestivehome = _LocDetail(1137, [
@@ -4568,7 +4670,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_copper.value,
             DoLOptionFilters.req_seasonal.value,
         ], [
-            DoLRules.access_shoppingcentre,
+            DoLRules.access_shoppingcentre.value,
         ])
 
     feat_employeebenefits = _LocDetail(1138, [
@@ -4579,7 +4681,7 @@ class DoLLocationData(Enum):
         ], [
             # need 400 to examine a container, this
             # goes into another check, but its easier
-            DoLRules.skulduggery_4
+            DoLRules.skulduggery_4.value
         ])
 
     feat_dealing = _LocDetail(1139, [
@@ -4588,7 +4690,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.access_alexfarm,
+            DoLRules.access_alexfarm.value,
         ]) 
 
     feat_bentcopper = _LocDetail(1140, [
@@ -4597,7 +4699,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.skulduggery_4,
+            DoLRules.skulduggery_4.value,
         ])
 
     feat_socialcontract = _LocDetail(1141, [
@@ -4613,7 +4715,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.access_orphanage,
+            DoLRules.access_orphanage.value,
         ])
 
     # dance job offering has a min req of 800 dance (the 3 feats below)
@@ -4623,7 +4725,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.dancing_8,
+            DoLRules.dancing_8.value,
         ])
 
     feat_belleoftheball = _LocDetail(1144, [
@@ -4632,8 +4734,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.exhibitionism_5,
-            DoLRules.dancing_8,
+            DoLRules.exhibitionism_5.value,
+            DoLRules.dancing_8.value,
         ])
 
     feat_breakingthestone = _LocDetail(1145, [
@@ -4642,8 +4744,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_gold.value,
         ], [
-            DoLRules.skulduggery_10,
-            DoLRules.dancing_8,
+            DoLRules.skulduggery_10.value,
+            DoLRules.dancing_8.value,
         ])
 
     feat_poundalpha = _LocDetail(1146, [
@@ -4709,8 +4811,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_badend.value,
         ], [
-            DoLRules.tending_4, # tending(1, 1000)
-            DoLRules.skulduggery_2,
+            DoLRules.tending_4.value, # tending(1, 1000)
+            DoLRules.skulduggery_2.value,
         ])
 
     feat_thevalueofpain = _LocDetail(1150, [
@@ -4721,7 +4823,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_transformation.value,
             DoLOptionFilters.toggle_transformation_divine.value,
         ], [
-            DoLRules.tfrule_demon_full_appear,
+            DoLRules.tfrule_demon_full_appear.value,
         ])
 
     feat_bewitchingechoes = _LocDetail(1151, [ # INFO
@@ -4750,8 +4852,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_transformation.value,
             DoLOptionFilters.toggle_transformation_divine.value,
         ], [
-            DoLRules.tfrule_demon_full_appear,
-            DoLRules.seduction_4,
+            DoLRules.tfrule_demon_full_appear.value,
+            DoLRules.seduction_4.value,
         ])
 
 
@@ -4779,8 +4881,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_copper.value,
             DoLOptionFilters.toggle_tentacles.value,
         ], [
-            DoLRules.access_tentacleforest,
-            DoLRules.access_mayorsoffice,
+            DoLRules.access_tentacleforest.value,
+            DoLRules.access_mayorsoffice.value,
         ]) 
 
     # Tentacle Forest Money Check, decend 2
@@ -4791,10 +4893,10 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_copper.value,
             DoLOptionFilters.toggle_tentacles.value,
         ], [
-            DoLRules.access_tentacleforest,
-            DoLRules.access_mayorsoffice,
+            DoLRules.access_tentacleforest.value,
+            DoLRules.access_mayorsoffice.value,
             # requires all previous decend items
-            DoLRules.has_flatsbridge,
+            DoLRules.has_flatsbridge.value,
         ]) 
 
     # Tentacle Forest Money Check, decend 3
@@ -4805,11 +4907,11 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_copper.value,
             DoLOptionFilters.toggle_tentacles.value,
         ], [
-            DoLRules.access_tentacleforest,
-            DoLRules.access_mayorsoffice,
+            DoLRules.access_tentacleforest.value,
+            DoLRules.access_mayorsoffice.value,
             # requires all previous decend items
-            DoLRules.has_flatsbridge,
-            DoLRules.has_forestroad,
+            DoLRules.has_flatsbridge.value,
+            DoLRules.has_forestroad.value,
         ])
 
     # Tentacle Forest Money Check, ascend 1
@@ -4820,8 +4922,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_copper.value,
             DoLOptionFilters.toggle_tentacles.value,
         ], [
-            DoLRules.access_tentacleforest,
-            DoLRules.access_mayorsoffice,
+            DoLRules.access_tentacleforest.value,
+            DoLRules.access_mayorsoffice.value,
         ]) 
 
     # Tentacle Forest Money Check, ascend 2
@@ -4832,10 +4934,10 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_copper.value,
             DoLOptionFilters.toggle_tentacles.value,
         ], [
-            DoLRules.access_tentacleforest,
-            DoLRules.access_mayorsoffice,
+            DoLRules.access_tentacleforest.value,
+            DoLRules.access_mayorsoffice.value,
             # requires all previous ascend items
-            DoLRules.has_residentialthicket,
+            DoLRules.has_residentialthicket.value,
         ])
 
     # free check after tentacle forest stuff, "ascend 3"
@@ -4847,12 +4949,12 @@ class DoLLocationData(Enum):
             DoLOptionFilters.toggle_tentacles.value,
         ], [
             # requires all previous decend items
-            DoLRules.has_flatsbridge,
-            DoLRules.has_forestroad,
-            DoLRules.has_fieldoffice,
+            DoLRules.has_flatsbridge.value,
+            DoLRules.has_forestroad.value,
+            DoLRules.has_fieldoffice.value,
             # requires all previous ascend items
-            DoLRules.has_residentialthicket,
-            DoLRules.has_schoolgreen,
+            DoLRules.has_residentialthicket.value,
+            DoLRules.has_schoolgreen.value,
         ])
 
     # free check after tentacle forest stuff
@@ -4864,14 +4966,14 @@ class DoLLocationData(Enum):
             DoLOptionFilters.toggle_tentacles.value,
         ], [
             # Mimic Rules from Hookah Master
-            DoLRules.access_tentacleforest,
+            DoLRules.access_tentacleforest.value,
             # requires all previous decend items
-            DoLRules.has_flatsbridge,
-            DoLRules.has_forestroad,
-            DoLRules.has_fieldoffice,
+            DoLRules.has_flatsbridge.value,
+            DoLRules.has_forestroad.value,
+            DoLRules.has_fieldoffice.value,
             # requires all previous ascend items
-            DoLRules.has_residentialthicket,
-            DoLRules.has_schoolgreen,
+            DoLRules.has_residentialthicket.value,
+            DoLRules.has_schoolgreen.value,
         ]) 
 
     # end tentacle forest stuff
@@ -4893,7 +4995,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.skulduggery_2,
+            DoLRules.skulduggery_2.value,
             # min physique / able to win encounter
         ])
 
@@ -4903,8 +5005,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.willpower_5,
-            DoLRules.science_4,
+            DoLRules.willpower_5.value,
+            DoLRules.science_4.value,
             # ^ wiki recommendation
         ])
 
@@ -5073,7 +5175,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             # maybe make difficult
         ], [
-            DoLRules.exhibitionism_3,
+            DoLRules.exhibitionism_3.value,
         ])
 
     feat_maxthoseshots = _LocDetail(1165, [
@@ -5092,13 +5194,13 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_badend.value, # wolfcave, prison, tower
         ], [
             # 1 from tutorial
-            DoLRules.access_oldsewers, # 2
-            DoLRules.access_tentacleplains, # 3
-            DoLRules.access_compound, # 4
-            DoLRules.access_wolfcave, # 5
-            DoLRules.access_remyfarm, # 6
-            DoLRules.access_prison, # 7
-            DoLRules.access_birdtower, # 8
+            DoLRules.access_oldsewers.value, # 2
+            DoLRules.access_tentacleplains.value, # 3
+            DoLRules.access_compound.value, # 4
+            DoLRules.access_wolfcave.value, # 5
+            DoLRules.access_remyfarm.value, # 6
+            DoLRules.access_prison.value, # 7
+            DoLRules.access_birdtower.value, # 8
         ])
 
     feat_openedpandorasbox = _LocDetail(1166, [
@@ -5123,11 +5225,11 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.access_brothel,
-            DoLRules.has_adultshopbuilt,
-            DoLRules.access_adultshop,
-            DoLRules.access_shoppingcentre,
-            DoLRules.access_pharmacy,
+            DoLRules.access_brothel.value,
+            DoLRules.has_adultshopbuilt.value,
+            DoLRules.access_adultshop.value,
+            DoLRules.access_shoppingcentre.value,
+            DoLRules.access_pharmacy.value,
         ])
 
     feat_playerofthematch = _LocDetail(1169, [
@@ -5138,7 +5240,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.skulduggery_5 # (~9/10, ~1/2)
+            DoLRules.skulduggery_5.value # (~9/10, ~1/2)
         ])
 
 
@@ -5158,7 +5260,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
         ], [
             # min swimming is 3, and not to max out with it if you play nice
-            DoLRules.swimming_3,
+            DoLRules.swimming_3.value,
         ])
 
     feat_wetandruined = _LocDetail(1172, [
@@ -5176,9 +5278,9 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
             DoLOptionFilters.req_transformation.value, # need* flight to get items
             DoLOptionFilters.req_badend.value,
-            DoLOptionFilters.toggle_transformation_either.value # flight
+            DoLOptionFilters.toggle_transformation_animal.value # need flight
         ], [
-            DoLRules.tfrule_flight, # need* flight to get items
+            DoLRules.tfrule_flight.value, # need* flight to get items
         ])
 
     feat_birdsofafeather = _LocDetail(1174, [
@@ -5189,12 +5291,12 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_loveinterest.value,
             DoLOptionFilters.req_badend.value,
             DoLOptionFilters.req_transformation.value, # Hunt Feat
-            DoLOptionFilters.toggle_transformation_either.value, # just need flight
+            DoLOptionFilters.toggle_transformation_animal.value, # just need flight
             # I don't think this req preg?
             # it pushs to your babies, but no explicit
             # checks for it anywhere
         ], [
-            DoLRules.tfrule_flight,
+            DoLRules.tfrule_flight.value,
         ])
 
     feat_runawaycattle = _LocDetail(1175, [
@@ -5220,7 +5322,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.promiscuity_4,
+            DoLRules.promiscuity_4.value,
         ]) 
 
     feat_corneredrogue = _LocDetail(1178, [ # INFO
@@ -5254,7 +5356,7 @@ class DoLLocationData(Enum):
             # I thought about putting the rng option here
             # however this is just spamming meadow relax button
         ], [
-            DoLRules.corneredrogue,
+            DoLRules.corneredrogue.value,
         ])
 
     feat_farmprotector = _LocDetail(1179, [
@@ -5323,8 +5425,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_gold.value,
         ], [
             # defiant trait displaydefiantoption(500)
-            DoLRules.dancing_6, # dance(200, 1000)
-            DoLRules.english_3, # english(200, 1000)
+            DoLRules.dancing_6.value, # dance(200, 1000)
+            DoLRules.english_3.value, # english(200, 1000)
         ])
 
     feat_undertheice = _LocDetail(1183, [
@@ -5351,7 +5453,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.toggle_bestiality.value,
             DoLOptionFilters.toggle_bees.value,
         ], [
-            DoLRules.tending_8, # tending gte 800
+            DoLRules.tending_8.value, # tending gte 800
         ])
 
     feat_notlikethemovies = _LocDetail(1186, [
@@ -5362,7 +5464,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
         ], [
             # higher than 200 because it needs to happen 5 times
-            DoLRules.willpower_3 # willpower(1, 400)
+            DoLRules.willpower_3.value # willpower(1, 400)
         ])
 
     feat_slippery = _LocDetail(1187, [ # INFO
@@ -5382,7 +5484,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.slippery,
+            DoLRules.slippery.value,
         ])
 
     feat_highreflection = _LocDetail(1188, [
@@ -5412,7 +5514,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.toggle_transformation_animal.value, # need harpy tf to learn flight
         ], [
             # this is learning to fly, so doesn't require flight
-            DoLRules.tfrule_harpy_full_appear
+            DoLRules.tfrule_harpy_full_appear.value
         ])
 
     feat_tradingdignity = _LocDetail(1191, [
@@ -5463,7 +5565,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.playingwithfire,
+            DoLRules.playingwithfire.value,
         ])
 
     feat_firestarter = _LocDetail(1193, [
@@ -5480,7 +5582,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_copper.value,
         ], [
             # access to alex farm implied if you don't have upgrades randomized
-            DoLRules.has_farmwatchtower,
+            DoLRules.has_farmwatchtower.value,
         ])
 
     feat_reliableemployer = _LocDetail(1195, [
@@ -5489,8 +5591,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.access_pub,
-            DoLRules.has_farmwatchtower,
+            DoLRules.access_pub.value,
+            DoLRules.has_farmwatchtower.value,
         ])
 
     feat_intothesunset = _LocDetail(1196, [ # INFO
@@ -5506,7 +5608,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.intothesunset,
+            DoLRules.intothesunset.value,
         ])
 
     feat_institutionalised = _LocDetail(1197, [
@@ -5579,7 +5681,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_badend.value,
         ], [
             # just methodical guard
-            DoLRules.tending_or_althletics_500,
+            DoLRules.tending_or_althletics_500.value,
         ])
 
     feat_friendsinthesky = _LocDetail(1201, [
@@ -5634,7 +5736,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_copper.value,
         ], [
-            DoLRules.willpower_2,
+            DoLRules.willpower_2.value,
         ])
 
     feat_darkdelvings = _LocDetail(1204, [
@@ -5643,7 +5745,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_silver.value,
         ], [
-            DoLRules.skulduggery_5,
+            DoLRules.skulduggery_5.value,
         ])
 
     feat_lurkerbeyond = _LocDetail(1205, [
@@ -5654,7 +5756,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.toggle_tentacles.value,
         ], [
             # arousalmax, then skulduggery 1000
-            DoLRules.skulduggery_7,
+            DoLRules.skulduggery_7.value,
         ])
 
     feat_downbelow = _LocDetail(1206, [
@@ -5696,7 +5798,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_badend.value,
         ], [
-            DoLRules.housekeeping_10,
+            DoLRules.housekeeping_10.value,
         ])
 
     feat_naturalised = _LocDetail(1211, [
@@ -5813,7 +5915,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.toggle_lactation.value,
             DoLOptionFilters.req_difficult.value,
         ], [
-            DoLRules.access_specialtrait_all
+            DoLRules.access_specialtrait_all.value
         ])
 
     feat_produceroflewdfluids = _LocDetail(1217, [
@@ -5862,7 +5964,7 @@ class DoLLocationData(Enum):
             DoLRegionNames.alex_farm.value,
         ], [
             DoLOptionFilters.type_feat.value,
-            DoLOptionFilters.req_feat_gold.value,
+            DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.req_loveinterest.value,
         ], [])
 
@@ -5957,7 +6059,7 @@ class DoLLocationData(Enum):
             # spa req: 6/7 max beauty or handskill >= 400
             # since beauty isn't randomized, we can technically
             # not have a req for hands, but include anyway
-            DoLRules.hands_2
+            DoLRules.hands_2.value
         ])
 
 
@@ -6054,7 +6156,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_feat_silver.value,
             DoLOptionFilters.f.value, # disabled for now
         ], [
-            DoLRules.outfit_50p,
+            DoLRules.outfit_50p.value,
         ])
 
     feat_wickedwardrobe = _LocDetail(1234, [ # TODO: lowprio, LOGIC (disabled) (clothing)
@@ -6066,7 +6168,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_difficult.value,
             DoLOptionFilters.f.value, # disabled for now
         ], [
-            DoLRules.outfit_100p,
+            DoLRules.outfit_100p.value,
         ])
 
     # figure out how I wanna handle these (feat%)
@@ -6083,6 +6185,7 @@ class DoLLocationData(Enum):
         ])
 
     feat_mytimelesscollectionoffeats = _LocDetail(1236, [ # TODO: lowprio (disabled) (feat%)
+            DoLRegionNames.in_global
         ], [
             DoLOptionFilters.type_feat.value,
             DoLOptionFilters.req_feat_jeweled.value,
@@ -6092,8 +6195,7 @@ class DoLLocationData(Enum):
         ], [
             # has access to feats for 95% of coins
         ])
-
-
+    
     # Preg Feats
 
     # INFO Parasite Locations : by bluecat 
@@ -6318,8 +6420,8 @@ class DoLLocationData(Enum):
             DoLOptionFilters.toggle_parasiticpregnancy.value,
             DoLOptionFilters.tentacles_or_bestiality.value,
         ], [
-            DoLRules.access_parasite_delivery,
-            DoLRules.access_parasite_any,
+            DoLRules.access_parasite_delivery.value,
+            DoLRules.access_parasite_any.value,
         ])
 
     feat_topbroodmotherhost = _LocDetail(1238,
@@ -6331,19 +6433,19 @@ class DoLLocationData(Enum):
             DoLOptionFilters.tentacles_or_bestiality.value,
             DoLOptionFilters.req_difficult.value,
         ], [
-            DoLRules.topbroodmother,
+            DoLRules.topbroodmother.value,
         ])
 
     feat_broodmotherzoologist = _LocDetail(1239, 
             DoLRegionGroups.parasitedelivery.value
         , [
             DoLOptionFilters.type_feat.value,
-            DoLOptionFilters.req_feat_gold.value,
+            DoLOptionFilters.req_feat_platinum.value,
             DoLOptionFilters.toggle_parasiticpregnancy.value,
             DoLOptionFilters.toggle_tentacles.value,
             DoLOptionFilters.toggle_bestiality.value,
         ], [
-            DoLRules.access_parasite_all,
+            DoLRules.access_parasite_all.value,
         ])
 
     feat_miracleoflife = _LocDetail(1240, [
@@ -6393,7 +6495,7 @@ class DoLLocationData(Enum):
             DoLRegionNames.pharmacy.value,
         ], [
             DoLOptionFilters.type_feat.value,
-            DoLOptionFilters.req_feat_silver.value,
+            DoLOptionFilters.req_feat_gold.value,
             DoLOptionFilters.toggle_pregnancy.value,
         ], [])
 
@@ -6415,12 +6517,62 @@ class DoLLocationData(Enum):
             DoLRegionNames.hospital.value,
         ], [
             DoLOptionFilters.type_feat.value,
-            DoLOptionFilters.req_feat_platinum.value,
+            DoLOptionFilters.req_feat_gold.value,
             DoLOptionFilters.toggle_pregnancy.value,
         ], [
-            DoLRules.diversityoflife,
+            DoLRules.diversityoflife.value,
         ])
 
+    # New Feats!
+
+    feat_sanctavexatio = _LocDetail(1247, [
+            DoLRegionNames.in_global # TODO: replace
+        ], [
+            DoLOptionFilters.type_feat.value,
+        ], [])
+    
+    feat_thetimeisnow = _LocDetail(1248, [
+            DoLRegionNames.in_global # TODO: replace
+        ], [
+            DoLOptionFilters.type_feat.value,
+        ], [])
+    
+    feat_rockbottom = _LocDetail(1249, [
+            DoLRegionNames.in_global # TODO: replace
+        ], [
+            DoLOptionFilters.type_feat.value,
+        ], [])
+    
+    feat_pumpkinmaster = _LocDetail(1250, [
+            DoLRegionNames.in_global # TODO: replace
+        ], [
+            DoLOptionFilters.type_feat.value,
+        ], [])
+    
+    feat_nothingcopied = _LocDetail(1251, [
+            DoLRegionNames.in_global # TODO: replace
+        ], [
+            DoLOptionFilters.type_feat.value,
+        ], [])
+    
+    feat_wetrod = _LocDetail(1252, [
+            DoLRegionNames.in_global # TODO: replace
+        ], [
+            DoLOptionFilters.type_feat.value,
+        ], [])
+    
+    feat_masterbaiter = _LocDetail(1253, [
+            DoLRegionNames.in_global # TODO: replace
+        ], [
+            DoLOptionFilters.type_feat.value,
+        ], [])
+    
+    feat_nicebass = _LocDetail(1254, [
+            DoLRegionNames.in_global # TODO: replace
+        ], [
+            DoLOptionFilters.type_feat.value,
+        ], [])
+    
 
     # ---------------- Upgrades ----------------
     upgrade_farm_wall_1 = _LocDetail(1500, [
@@ -6563,7 +6715,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_upgrade_loft.value,
             DoLOptionFilters.req_loveinterest.value, # Kylar
         ], [
-            DoLRules.access_school,
+            DoLRules.access_school.value,
         ])
 
     upgrade_loft_kitchen = _LocDetail(1520, [ # TODO: LOGIC
@@ -6574,7 +6726,7 @@ class DoLLocationData(Enum):
             # River, non LI
         ], [
             # River 80% love location
-            DoLRules.access_soupkitchen, # talk to River at soup kitchen
+            DoLRules.access_soupkitchen.value, # talk to River at soup kitchen
         ])
 
     upgrade_loft_window = _LocDetail(1521, [
@@ -6585,9 +6737,9 @@ class DoLLocationData(Enum):
             DoLOptionFilters.req_badend.value, # Great Hawk stockholm
             DoLOptionFilters.req_loveinterest.value,
         ], [
-            DoLRules.access_birdtower,
-            DoLRules.tfrule_harpy_full_appear, # sing at birdtower
-            DoLRules.access_pub, # also need to ask Landry about this
+            DoLRules.access_birdtower.value,
+            DoLRules.tfrule_harpy_full_appear.value, # sing at birdtower
+            DoLRules.access_pub.value, # also need to ask Landry about this
         ])
 
     upgrade_loft_nook = _LocDetail(1522, [ # TODO: LOGIC
@@ -6601,7 +6753,7 @@ class DoLLocationData(Enum):
         ], [
             # doren love to 50% location
             # doren flat unlock and location
-            DoLRules.access_park, # talk to doren at park
+            DoLRules.access_park.value, # talk to doren at park
         ])
 
     upgrade_loft_coffee = _LocDetail(1523, [
@@ -6612,7 +6764,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_upgrade_loft.value,
             # Sam, non LI
         ], [
-            DoLRules.access_cafe, 
+            DoLRules.access_cafe.value, 
         ])
 
     upgrade_loft_whitney = _LocDetail(1524, [ # TODO: LOGIC
@@ -6622,7 +6774,7 @@ class DoLLocationData(Enum):
             DoLOptionFilters.type_upgrade_loft.value,
             DoLOptionFilters.req_loveinterest.value, # whitney
         ], [
-            DoLRules.access_orphanage
+            DoLRules.access_orphanage.value
             # I remember reading through this code for whitney
             # but have lost memory of it, I think it
             # was just any alleyways or eventstreet though
@@ -6654,26 +6806,140 @@ class DoLLocationData(Enum):
     # we have stuff like transformations randomized, and need
     # a location to put them.
     # These should have rules set up to not generate if the original does
-    override_transformation_cat         = feat_purrfect.override(swapgenrule=[DoLOptionFilters.override_feat_transformation.value])
-    override_transformation_wolf        = feat_howlatthemoon.override(swapgenrule=[DoLOptionFilters.override_feat_transformation.value])
-    override_transformation_cow         = feat_messwiththebull.override(swapgenrule=[DoLOptionFilters.override_feat_transformation.value])
-    override_transformation_harpy       = feat_flylikeaneagle.override(swapgenrule=[DoLOptionFilters.override_feat_transformation.value])
-    override_transformation_fox         = feat_youslyfox.override(swapgenrule=[DoLOptionFilters.override_feat_transformation.value])
-    override_transformation_angel       = feat_walklikeanangel.override(swapgenrule=[DoLOptionFilters.override_feat_transformation.value])
-    override_transformation_fallenangel = feat_fallingfallingfalling.override(swapgenrule=[DoLOptionFilters.override_feat_transformation.value])
-    override_transformation_demon       = feat_devilishlooks.override(swapgenrule=[DoLOptionFilters.override_feat_transformation.value])
+    
+    # override_feat_transformation   = _tf_either & (~(type_feat & req_feat_copper & type_transformation))
+
+    # -- Overrides Transformations
+
+    override_transformation_cat = feat_purrfect.override(swapgenrule=[
+        DoLOptionFilters._tf_either.value,
+        DoLOptionFilters.type_transformation.value,
+        DoLOptionFilters.toggle_transformation_animal.value,
+        # Make sure the original has not generated
+        ~(reduce(operator.and_, feat_purrfect.rules_generation)),
+    ])
+    
+    override_transformation_wolf = feat_howlatthemoon.override(swapgenrule=[
+        DoLOptionFilters._tf_either.value,
+        DoLOptionFilters.type_transformation.value,
+        DoLOptionFilters.toggle_transformation_animal.value,
+        ~(reduce(operator.and_, feat_howlatthemoon.rules_generation)),
+    ])
+    
+    override_transformation_cow = feat_messwiththebull.override(swapgenrule=[
+        DoLOptionFilters._tf_either.value,
+        DoLOptionFilters.type_transformation.value,
+        DoLOptionFilters.toggle_transformation_animal.value,
+        DoLOptionFilters.req_badend.value, # remy farm
+        ~(reduce(operator.and_, feat_messwiththebull.rules_generation)),
+    ])
+    
+    override_transformation_harpy = feat_flylikeaneagle.override(swapgenrule=[
+        DoLOptionFilters._tf_either.value,
+        DoLOptionFilters.type_transformation.value,
+        DoLOptionFilters.toggle_transformation_animal.value,
+        DoLOptionFilters.req_badend.value, # bird tower
+        ~(reduce(operator.and_, feat_flylikeaneagle.rules_generation)),
+    ])
+    
+    override_transformation_fox  = feat_youslyfox.override(swapgenrule=[
+        DoLOptionFilters._tf_either.value,
+        DoLOptionFilters.type_transformation.value,
+        DoLOptionFilters.toggle_transformation_animal.value,
+        ~(reduce(operator.and_, feat_youslyfox.rules_generation)),
+    ])
+    
+    override_transformation_angel = feat_walklikeanangel.override(swapgenrule=[
+        DoLOptionFilters._tf_either.value,
+        DoLOptionFilters.type_transformation.value,
+        DoLOptionFilters.toggle_transformation_divine.value,
+        ~(reduce(operator.and_, feat_walklikeanangel.rules_generation)),
+    ])
+    
+    override_transformation_fallenangel = feat_fallingfallingfalling.override(swapgenrule=[
+        DoLOptionFilters.type_transformation.value,
+        DoLOptionFilters.toggle_transformation_divine.value,
+        ~(reduce(operator.and_, feat_fallingfallingfalling.rules_generation)),
+    ])
+    
+    override_transformation_demon = feat_devilishlooks.override(swapgenrule=[
+        DoLOptionFilters.type_transformation.value,
+        DoLOptionFilters.toggle_transformation_divine.value,
+        ~(reduce(operator.and_, feat_devilishlooks.rules_generation)),
+    ])
+    
+    override_transformation_flight = feat_catchthewind.override(swapgenrule=[
+        DoLOptionFilters.type_transformation.value,
+        DoLOptionFilters.toggle_transformation_either.value,
+        DoLOptionFilters.req_loveinterest.value,
+        DoLOptionFilters.req_badend.value, # bird tower
+        DoLOptionFilters.toggle_transformation_animal.value, # need harpy tf to learn flight
+        ~(reduce(operator.and_, feat_catchthewind.rules_generation)),
+    ])
+
+    # -- Overrides Upgrades
     
     # no need for alex upgrades as they
     # have no associated feats
-    override_upgrade_flatsbridge        = feat_bridgingthepast.override(swapgenrule=[DoLOptionFilters.override_feat_upgrade_tentacle.value])
-    override_upgrade_forestroad         = feat_safetrail.override(swapgenrule=[DoLOptionFilters.override_feat_upgrade_tentacle.value])
-    override_upgrade_fieldoffice        = feat_fieldwork.override(swapgenrule=[DoLOptionFilters.override_feat_upgrade_tentacle.value])
-    override_upgrade_residentialthicket = feat_concretewoodland.override(swapgenrule=[DoLOptionFilters.override_feat_upgrade_tentacle.value])
-    override_upgrade_schoolgreen        = feat_schoolgreen.override(swapgenrule=[DoLOptionFilters.override_feat_upgrade_tentacle.value])
-    override_upgrade_hookahparlour      = feat_hookahmaster.override(swapgenrule=[DoLOptionFilters.override_feat_upgrade_tentacle.value])
-    override_upgrade_adultshop          = feat_openedpandorasbox.override(swapgenrule=[DoLOptionFilters.override_feat_upgrade_general.value])
-    override_upgrade_cafeopening        = feat_headchef.override(swapgenrule=[DoLOptionFilters.override_feat_upgrade_general.value])
+    
+    override_upgrade_flatsbridge = feat_bridgingthepast.override(swapgenrule=[
+        DoLOptionFilters.type_upgrade.value,
+        DoLOptionFilters.type_upgrade_tentacleforest.value,
+        DoLOptionFilters.toggle_tentacles.value,
+        ~(reduce(operator.and_, feat_bridgingthepast.rules_generation)),
+    ])
+    
+    override_upgrade_forestroad  = feat_safetrail.override(swapgenrule=[
+        DoLOptionFilters.type_upgrade.value,
+        DoLOptionFilters.type_upgrade_tentacleforest.value,
+        DoLOptionFilters.toggle_tentacles.value,
+        ~(reduce(operator.and_, feat_safetrail.rules_generation)),
+    ])
+    
+    override_upgrade_fieldoffice = feat_fieldwork.override(swapgenrule=[
+        DoLOptionFilters.type_upgrade.value,
+        DoLOptionFilters.type_upgrade_tentacleforest.value,
+        DoLOptionFilters.toggle_tentacles.value,
+        ~(reduce(operator.and_, feat_fieldwork.rules_generation)),
+    ])
+    
+    override_upgrade_residentialthicket = feat_concretewoodland.override(swapgenrule=[
+        DoLOptionFilters.type_upgrade.value,
+        DoLOptionFilters.type_upgrade_tentacleforest.value,
+        DoLOptionFilters.toggle_tentacles.value,
+        ~(reduce(operator.and_, feat_concretewoodland.rules_generation)),
+    ])
+    
+    override_upgrade_schoolgreen = feat_schoolgreen.override(swapgenrule=[
+        DoLOptionFilters.type_upgrade.value,
+        DoLOptionFilters.type_upgrade_tentacleforest.value,
+        DoLOptionFilters.toggle_tentacles.value,
+        ~(reduce(operator.and_, feat_schoolgreen.rules_generation)),
+    ])
+    
+    override_upgrade_hookahparlour = feat_hookahmaster.override(swapgenrule=[
+        DoLOptionFilters.type_upgrade.value,
+        DoLOptionFilters.type_upgrade_tentacleforest.value,
+        DoLOptionFilters.toggle_tentacles.value,
+        ~(reduce(operator.and_, feat_hookahmaster.rules_generation)),
+    ])
+    
+    override_upgrade_adultshop = feat_openedpandorasbox.override(swapgenrule=[
+        DoLOptionFilters.type_upgrade.value,
+        DoLOptionFilters.type_upgrade_general.value,
+        ~(reduce(operator.and_, feat_openedpandorasbox.rules_generation)),
+    ])
 
+    # feat_openedpandorascocks is not included (not really an upgrade)
+    
+    override_upgrade_cafeopening = feat_headchef.override(swapgenrule=[
+        DoLOptionFilters.type_upgrade.value,
+        DoLOptionFilters.type_upgrade_general.value,
+        ~(reduce(operator.and_, feat_headchef.rules_generation)),
+    ])
+
+
+# Item Data
 
 @dataclass(frozen=True)
 class _ItemDetail:
@@ -6691,7 +6957,7 @@ class _ItemDetail:
     item_multiplier: int
     types: ItemClassification
     # Rules for generation should use world options
-    rules_generation: list[Rule] | list[ROptionFilter]
+    rules_generation: list[ROptionFilter]
 
 
 class DoLItemData(Enum):
@@ -6707,17 +6973,6 @@ class DoLItemData(Enum):
     """ # no _ so I don't accidently mass replace the docstring
 
 
-    # Required to build details correctly
-    def __new__(cls, value):
-        obj = object.__new__(cls)
-        obj._value_ = value
-        return obj
-
-    # Fixes 'Any' when looking for locdetail
-    @property
-    def value(self) -> _ItemDetail:
-        return self._value_
-
     # Trap
     #"Force Combat Encounter Trap": ItemClassification.trap, # TBA
     #"Force Stalk Encounter Trap": ItemClassification.trap, # TBA
@@ -6729,496 +6984,614 @@ class DoLItemData(Enum):
     # -- Antiques
     antique_ivorystatuette = _ItemDetail(2, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_ivorystatuette.value.rules_generation
+        )
 
     antique_silvercoin = _ItemDetail(3, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_silvercoin.value.rules_generation
+        )
 
     antique_silvercrown = _ItemDetail(4, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_silvercrown.value.rules_generation
+        )
 
     antique_crystal = _ItemDetail(5, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_crystal.value.rules_generation
+        )
 
     antique_silverblade = _ItemDetail(6, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_silverblade.value.rules_generation
+        )
 
     antique_coppercoin = _ItemDetail(7, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_coppercoin.value.rules_generation
+        )
 
     antique_silvergoblet = _ItemDetail(8, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_silvergoblet.value.rules_generation
+        )
 
     antique_fetish = _ItemDetail(9, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_fetish.value.rules_generation
+        )
 
     antique_goldcoin = _ItemDetail(10, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_goldcoin.value.rules_generation
+        )
 
     antique_forestdagger = _ItemDetail(11, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_forestdagger.value.rules_generation
+        )
 
     antique_forestgem = _ItemDetail(12, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_forestgem.value.rules_generation
+        )
 
     antique_arrow = _ItemDetail(13, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_arrow.value.rules_generation
+        )
 
     antique_ivorynecklace = _ItemDetail(14, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_ivorynecklace.value.rules_generation
+        )
 
     antique_ivorybox = _ItemDetail(15, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_ivorybox.value.rules_generation
+        )
 
     antique_silverring = _ItemDetail(16, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_silverring.value.rules_generation
+        )
 
     antique_goldnecklace = _ItemDetail(17, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_goldnecklace.value.rules_generation
+        )
 
     antique_chastitybelt = _ItemDetail(18, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_chastitybelt.value.rules_generation
+        )
 
     antique_stonetalisman = _ItemDetail(19, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_stonetalisman.value.rules_generation
+        )
 
     antique_horn = _ItemDetail(20, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_horn.value.rules_generation
+        )
 
     antique_snuffer = _ItemDetail(21, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_snuffer.value.rules_generation
+        )
 
     antique_bucket = _ItemDetail(22, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_bucket.value.rules_generation
+        )
 
     antique_silvermanacle = _ItemDetail(23, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_silvermanacle.value.rules_generation
+        )
 
     antique_whip = _ItemDetail(24, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_whip.value.rules_generation
+        )
 
     antique_goldring = _ItemDetail(25, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_goldring.value.rules_generation
+        )
 
     antique_bell = _ItemDetail(26, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_bell.value.rules_generation
+        )
 
     antique_bullet = _ItemDetail(27, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_bullet.value.rules_generation
+        )
 
     antique_artilleryshell = _ItemDetail(28, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_artilleryshell.value.rules_generation
+        )
 
     antique_grenade = _ItemDetail(29, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_grenade.value.rules_generation
+        )
 
     antique_goldbrooch = _ItemDetail(30, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_goldbrooch.value.rules_generation
+        )
 
     antique_silverbrooch = _ItemDetail(31, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_silverbrooch.value.rules_generation
+        )
 
     antique_islanderarrow = _ItemDetail(32, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_islanderarrow.value.rules_generation
+        )
 
     antique_islandermask = _ItemDetail(33, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_islandermask.value.rules_generation
+        )
 
     antique_obsidiandisc = _ItemDetail(34, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_obsidiandisc.value.rules_generation
+        )
 
     antique_trilobitefossil = _ItemDetail(35, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_trilobitefossil.value.rules_generation
+        )
 
     antique_baileyminesign = _ItemDetail(36, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_baileyminesign.value.rules_generation
+        )
 
     antique_incenseburner = _ItemDetail(37, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_incenseburner.value.rules_generation
+        )
 
     antique_cup = _ItemDetail(38, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_cup.value.rules_generation
+        )
 
     antique_silvermask = _ItemDetail(39, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_silvermask.value.rules_generation
+        )
 
     antique_silveramulet = _ItemDetail(40, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_silveramulet.value.rules_generation
+        )
 
     antique_hourglass = _ItemDetail(41, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_hourglass.value.rules_generation
+        )
 
     antique_swordcane = _ItemDetail(42, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_swordcane.value.rules_generation
+        )
 
     antique_chocolate = _ItemDetail(43, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_chocolate.value.rules_generation
+        )
 
     antique_teacaddy = _ItemDetail(44, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_teacaddy.value.rules_generation
+        )
 
     antique_woodenfigurine = _ItemDetail(45, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_woodenfigurine.value.rules_generation
+        )
 
     antique_copperring = _ItemDetail(46, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_copperring.value.rules_generation
+        )
 
     antique_goldcompass = _ItemDetail(47, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_goldcompass.value.rules_generation
+        )
 
     antique_coppercompass = _ItemDetail(48, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_coppercompass.value.rules_generation
+        )
 
     antique_coralring = _ItemDetail(49, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_coralring.value.rules_generation
+        )
 
     antique_diamond = _ItemDetail(50, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_diamond.value.rules_generation
+        )
 
     antique_brassstatuette = _ItemDetail(51, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_brassstatuette.value.rules_generation
+        )
 
     antique_golddagger = _ItemDetail(52, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_golddagger.value.rules_generation
+        )
 
     antique_goldamulet = _ItemDetail(53, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_goldamulet.value.rules_generation
+        )
 
     antique_goldmask = _ItemDetail(54, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_goldmask.value.rules_generation
+        )
 
     antique_silvercompass = _ItemDetail(55, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_silvercompass.value.rules_generation
+        )
 
     antique_leathermap = _ItemDetail(56, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_leathermap.value.rules_generation
+        )
 
     antique_cutlass = _ItemDetail(57, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_cutlass.value.rules_generation
+        )
 
     antique_silverdagger = _ItemDetail(58, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_silverdagger.value.rules_generation
+        )
 
     antique_rustedcutlass = _ItemDetail(59, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_rustedcutlass.value.rules_generation
+        )
 
     antique_pinkcrystal = _ItemDetail(60, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_pinkcrystal.value.rules_generation
+        )
 
     antique_candlestick = _ItemDetail(61, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_candlestick.value.rules_generation
+        )
 
     antique_dildo = _ItemDetail(62, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_dildo.value.rules_generation
+        )
 
     antique_watch = _ItemDetail(63, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_watch.value.rules_generation
+        )
 
     # Serpant Painting is not an antique, but still randomized by them
     antique_serpentpainting = _ItemDetail(64, 1, 
             ItemClassification.progression
-        , [
-            DoLOptionFilters.type_antiques.value])
+        ,
+            DoLLocationData.antique_serpentpainting.value.rules_generation
+        )
+
+    antique_lantern = _ItemDetail(65, 1,
+            ItemClassification.progression
+        ,
+            DoLLocationData.antique_lantern.value.rules_generation
+        )
+
+    antique_shovelhandle = _ItemDetail(66, 1,
+            ItemClassification.progression
+        ,
+            DoLLocationData.antique_shovelhandle.value.rules_generation
+        )
+
+    antique_rustypickaxe = _ItemDetail(67, 1,
+            ItemClassification.progression
+        ,
+            DoLLocationData.antique_rustypickaxe.value.rules_generation
+        )
+
+    antique_purplediamond = _ItemDetail(68, 1,
+            ItemClassification.progression
+        ,
+            DoLLocationData.antique_purplediamond.value.rules_generation
+        )
+
 
 
     # -- Skills
-    progressive_skulduggery_rank = _ItemDetail(65, 10, 
+    progressive_skulduggery_rank = _ItemDetail(69, 10, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_dancing_rank = _ItemDetail(66, 10, 
+    progressive_dancing_rank = _ItemDetail(70, 10, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_swimming_rank = _ItemDetail(67, 10, 
+    progressive_swimming_rank = _ItemDetail(71, 10, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_athletics_rank = _ItemDetail(68, 10, 
+    progressive_athletics_rank = _ItemDetail(72, 10, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_tending_rank = _ItemDetail(69, 10, 
+    progressive_tending_rank = _ItemDetail(73, 10, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_housekeeping_rank = _ItemDetail(70, 10, 
+    progressive_housekeeping_rank = _ItemDetail(74, 10, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_seduction_rank = _ItemDetail(71, 5, 
+    progressive_seduction_rank = _ItemDetail(75, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_oral_rank = _ItemDetail(72, 5, 
+    progressive_oral_rank = _ItemDetail(76, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_chest_rank = _ItemDetail(73, 5, 
+    progressive_chest_rank = _ItemDetail(77, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_hands_rank = _ItemDetail(74, 5, 
+    progressive_hands_rank = _ItemDetail(78, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_buttocks_rank = _ItemDetail(75, 5, 
+    progressive_buttocks_rank = _ItemDetail(79, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_privates_rank = _ItemDetail(76, 5, 
+    progressive_privates_rank = _ItemDetail(80, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_anal_rank = _ItemDetail(77, 5, 
+    progressive_anal_rank = _ItemDetail(81, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_thighs_rank = _ItemDetail(78, 5, 
+    progressive_thighs_rank = _ItemDetail(82, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_feet_rank = _ItemDetail(79, 5, 
+    progressive_feet_rank = _ItemDetail(83, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_science_rank = _ItemDetail(80, 5, 
+    progressive_science_rank = _ItemDetail(84, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_math_rank = _ItemDetail(81, 5, 
+    progressive_math_rank = _ItemDetail(85, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_english_rank = _ItemDetail(82, 5, 
+    progressive_english_rank = _ItemDetail(86, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_history_rank = _ItemDetail(83, 5, 
+    progressive_history_rank = _ItemDetail(87, 5, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_willpower_rank = _ItemDetail(84, 6, 
+    progressive_willpower_rank = _ItemDetail(88, 6, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_physique_rank = _ItemDetail(85, 6, 
+    progressive_physique_rank = _ItemDetail(89, 6, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_promiscuity_rank = _ItemDetail(86, 6, 
+    progressive_promiscuity_rank = _ItemDetail(90, 6, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_exhibitionism_rank = _ItemDetail(87, 6, 
+    progressive_exhibitionism_rank = _ItemDetail(91, 6, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
-    progressive_deviancy_rank = _ItemDetail(88, 6, 
+    progressive_deviancy_rank = _ItemDetail(92, 6, 
             ItemClassification.progression 
         , [
-            DoLOptionFilters.type_skills.value])
+            DoLOptionFilters.type_skills.value
+        ])
 
 
     # -- Tentacle Forest Upgrades
-    upgrade_flatsbridge = _ItemDetail(89, 1,
+    upgrade_flatsbridge = _ItemDetail(93, 1,
             ItemClassification.progression  
         , [
             DoLOptionFilters.type_upgrade.value, 
-            DoLOptionFilters.type_upgrade_tentacleforest.value
+            DoLOptionFilters.type_upgrade_tentacleforest.value,
+            DoLOptionFilters.toggle_tentacles.value,
     ])
     
-    upgrade_forestroad = _ItemDetail(90, 1,
+    upgrade_forestroad = _ItemDetail(94, 1,
             ItemClassification.progression  
         , [
             DoLOptionFilters.type_upgrade.value, 
-            DoLOptionFilters.type_upgrade_tentacleforest.value
+            DoLOptionFilters.type_upgrade_tentacleforest.value,
+            DoLOptionFilters.toggle_tentacles.value,
     ])
     
-    upgrade_fieldoffice = _ItemDetail(91, 1,
+    upgrade_fieldoffice = _ItemDetail(95, 1,
             ItemClassification.progression  
         , [
             DoLOptionFilters.type_upgrade.value, 
-            DoLOptionFilters.type_upgrade_tentacleforest.value
+            DoLOptionFilters.type_upgrade_tentacleforest.value,
+            DoLOptionFilters.toggle_tentacles.value,
     ])
     
-    upgrade_residentialthicket = _ItemDetail(92, 1,
+    upgrade_residentialthicket = _ItemDetail(96, 1,
             ItemClassification.progression  
         , [
             DoLOptionFilters.type_upgrade.value, 
-            DoLOptionFilters.type_upgrade_tentacleforest.value
+            DoLOptionFilters.type_upgrade_tentacleforest.value,
+            DoLOptionFilters.toggle_tentacles.value,
     ])
     
-    upgrade_schoolgreen = _ItemDetail(93, 1,
+    upgrade_schoolgreen = _ItemDetail(97, 1,
             ItemClassification.progression  
         , [
             DoLOptionFilters.type_upgrade.value, 
-            DoLOptionFilters.type_upgrade_tentacleforest.value
+            DoLOptionFilters.type_upgrade_tentacleforest.value,
+            DoLOptionFilters.toggle_tentacles.value,
     ])
 
-    upgrade_hookahparlour = _ItemDetail(94, 1,
+    upgrade_hookahparlour = _ItemDetail(98, 1,
             ItemClassification.progression  
         , [
             DoLOptionFilters.type_upgrade.value, 
-            DoLOptionFilters.type_upgrade_general.value
+            DoLOptionFilters.type_upgrade_general.value,
+            DoLOptionFilters.toggle_tentacles.value,
     ])
 
 
     # -- General World Upgrades
-    upgrade_cafe = _ItemDetail(95, 1,
+    upgrade_cafe = _ItemDetail(99, 1,
             ItemClassification.filler  # just gives more tips and a small new event  
         , [
             DoLOptionFilters.type_upgrade.value, 
             DoLOptionFilters.type_upgrade_general.value
     ])
 
-    upgrade_adultshop = _ItemDetail(96, 1,
+    upgrade_adultshop = _ItemDetail(100, 1,
             ItemClassification.useful  
         , [
             DoLOptionFilters.type_upgrade.value, 
@@ -7227,70 +7600,70 @@ class DoLItemData(Enum):
 
 
     # -- Alex Farm Upgrades
-    upgrade_farm_wall = _ItemDetail(97, 4,
+    upgrade_farm_wall = _ItemDetail(101, 4,
             ItemClassification.useful  
         , [
             DoLOptionFilters.type_upgrade.value, 
             DoLOptionFilters.type_upgrade_alexfarm.value
     ])
 
-    upgrade_farm_security = _ItemDetail(98, 2,
+    upgrade_farm_security = _ItemDetail(102, 2,
             ItemClassification.progression  # watchtower feat  
         , [
             DoLOptionFilters.type_upgrade.value, 
             DoLOptionFilters.type_upgrade_alexfarm.value
     ])
 
-    upgrade_farm_kennel = _ItemDetail(99, 1,
+    upgrade_farm_kennel = _ItemDetail(103, 1,
             ItemClassification.useful  
         , [
             DoLOptionFilters.type_upgrade.value, 
             DoLOptionFilters.type_upgrade_alexfarm.value
     ])
 
-    upgrade_farm_woodland = _ItemDetail(100, 3,
+    upgrade_farm_woodland = _ItemDetail(104, 3,
             ItemClassification.useful  
         , [
             DoLOptionFilters.type_upgrade.value, 
             DoLOptionFilters.type_upgrade_alexfarm.value
     ])
 
-    upgrade_farm_barn = _ItemDetail(101, 2,
+    upgrade_farm_barn = _ItemDetail(105, 2,
             ItemClassification.useful  
         , [
             DoLOptionFilters.type_upgrade.value, 
             DoLOptionFilters.type_upgrade_alexfarm.value
     ])
 
-    upgrade_farm_coop = _ItemDetail(102, 2,
+    upgrade_farm_coop = _ItemDetail(106, 2,
             ItemClassification.useful  
         , [
             DoLOptionFilters.type_upgrade.value, 
             DoLOptionFilters.type_upgrade_alexfarm.value
     ])
 
-    upgrade_farm_irrigation = _ItemDetail(103, 1,
+    upgrade_farm_irrigation = _ItemDetail(107, 1,
             ItemClassification.useful  
         , [
             DoLOptionFilters.type_upgrade.value, 
             DoLOptionFilters.type_upgrade_alexfarm.value
     ])
 
-    upgrade_farm_stable = _ItemDetail(104, 1,
+    upgrade_farm_stable = _ItemDetail(108, 1,
             ItemClassification.useful  
         , [
             DoLOptionFilters.type_upgrade.value, 
             DoLOptionFilters.type_upgrade_alexfarm.value
     ])
 
-    upgrade_farm_parasite = _ItemDetail(105, 2,
+    upgrade_farm_parasite = _ItemDetail(109, 2,
             ItemClassification.progression  # parasite barn required to deliver  
         , [
             DoLOptionFilters.type_upgrade.value, 
             DoLOptionFilters.type_upgrade_alexfarm.value
     ])
 
-    upgrade_farm_greenhouse = _ItemDetail(106, 1,
+    upgrade_farm_greenhouse = _ItemDetail(110, 1,
             ItemClassification.useful  
         , [
             DoLOptionFilters.type_upgrade.value, 
@@ -7304,212 +7677,254 @@ class DoLItemData(Enum):
     # NOTE: appearance for some TF's is required for some checks
     # also appearance is planned to also give the race trait
 
-    transformation_wolffull = _ItemDetail(107, 1,
+    transformation_wolffull = _ItemDetail(111, 1,
             ItemClassification.progression # dog pound
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_full.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value
+        ])
     
-    transformation_catfull = _ItemDetail(108, 1,
+    transformation_catfull = _ItemDetail(112, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_full.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value
+        ])
     
-    transformation_cowfull = _ItemDetail(109, 1,
+    transformation_cowfull = _ItemDetail(113, 1,
             ItemClassification.useful 
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_full.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value,
+            DoLOptionFilters.req_badend.value,
+        ])
     
-    transformation_harpyfull = _ItemDetail(110, 1,
+    transformation_harpyfull = _ItemDetail(114, 1,
             ItemClassification.progression   # Wings, Flight feat
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_full.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value,
+            DoLOptionFilters.req_badend.value,
+            DoLOptionFilters.req_loveinterest.value,
+        ])
     
-    transformation_foxfull = _ItemDetail(111, 1,
+    transformation_foxfull = _ItemDetail(115, 1,
             ItemClassification.progression   # Gwylan Outfit  
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_full.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value
+        ])
     
-    transformation_angelfull = _ItemDetail(112, 1,
+    transformation_angelfull = _ItemDetail(116, 1,
             ItemClassification.progression   # Wings
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_full.value, 
-            DoLOptionFilters.toggle_transformation_divine.value])
+            DoLOptionFilters.toggle_transformation_divine.value
+        ])
     
-    transformation_fallenangelfull = _ItemDetail(113, 1,
+    transformation_fallenangelfull = _ItemDetail(117, 1,
             ItemClassification.progression   # Wings
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_full.value, 
-            DoLOptionFilters.toggle_transformation_divine.value])
+            DoLOptionFilters.toggle_transformation_divine.value
+        ])
     
-    transformation_demonfull = _ItemDetail(114, 1,
+    transformation_demonfull = _ItemDetail(118, 1,
             ItemClassification.progression   # Wings
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_full.value, 
-            DoLOptionFilters.toggle_transformation_divine.value])
+            DoLOptionFilters.toggle_transformation_divine.value
+        ])
 
 
-    transformation_wolfappear = _ItemDetail(115, 1,
+    transformation_wolfappear = _ItemDetail(119, 1,
             ItemClassification.progression # dog pound
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value
+        ])
     
-    transformation_catappear = _ItemDetail(116, 1,
+    transformation_catappear = _ItemDetail(120, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value
+        ])
     
-    transformation_cowappear = _ItemDetail(117, 1,
+    transformation_cowappear = _ItemDetail(121, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value,
+            DoLOptionFilters.req_badend.value,
+        ])
     
-    transformation_harpyappear = _ItemDetail(118, 1,
+    transformation_harpyappear = _ItemDetail(122, 1,
             ItemClassification.progression   # flight learn req
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value,
+            DoLOptionFilters.req_badend.value,
+            DoLOptionFilters.req_loveinterest.value,
+        ])
     
-    transformation_foxappear = _ItemDetail(119, 1,
+    transformation_foxappear = _ItemDetail(123, 1,
             ItemClassification.progression   # Gwylan Outfit
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value
+        ])
     
-    transformation_angelappear = _ItemDetail(120, 1,
+    transformation_angelappear = _ItemDetail(124, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_divine.value])
+            DoLOptionFilters.toggle_transformation_divine.value
+        ])
     
-    transformation_fallenangelappear = _ItemDetail(121, 1,
+    transformation_fallenangelappear = _ItemDetail(125, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_divine.value])
+            DoLOptionFilters.toggle_transformation_divine.value
+        ])
     
-    transformation_demonappear = _ItemDetail(122, 1,
+    transformation_demonappear = _ItemDetail(126, 1,
             ItemClassification.progression   # feat req
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_divine.value])
+            DoLOptionFilters.toggle_transformation_divine.value
+        ])
 
 
-    transformation_heterochromia = _ItemDetail(123, 1,
+    transformation_heterochromia = _ItemDetail(127, 1,
             ItemClassification.filler
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value
+        ])
     
-    transformation_sturyhorns = _ItemDetail(124, 1,
+    transformation_sturdyhorns = _ItemDetail(128, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value,
+            DoLOptionFilters.req_badend.value,
+        ])
     
-    transformation_strongwings = _ItemDetail(125, 1,
+    transformation_strongwings = _ItemDetail(129, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value,
+            DoLOptionFilters.req_badend.value,
+            DoLOptionFilters.req_loveinterest.value,
+        ])
     
-    transformation_thrillofthechase = _ItemDetail(126, 1,
+    transformation_thrillofthechase = _ItemDetail(130, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value
+        ])
     
-    transformation_fangs = _ItemDetail(127, 1,
+    transformation_fangs = _ItemDetail(131, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value
+        ])
     
-    transformation_sharpeyes = _ItemDetail(128, 1,
+    transformation_sharpeyes = _ItemDetail(132, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value
+        ])
     
-    transformation_mateforlife = _ItemDetail(129, 1,
+    transformation_mateforlife = _ItemDetail(133, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_animal.value])
+            DoLOptionFilters.toggle_transformation_animal.value
+        ])
     
-    transformation_radiant = _ItemDetail(130, 1,
+    transformation_radiant = _ItemDetail(134, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_divine.value])
+            DoLOptionFilters.toggle_transformation_divine.value
+        ])
     
-    transformation_darkhorns = _ItemDetail(131, 1,
+    transformation_darkhorns = _ItemDetail(135, 1,
             ItemClassification.useful
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_divine.value])
+            DoLOptionFilters.toggle_transformation_divine.value
+        ])
     
-    transformation_wings = _ItemDetail(132, 1,
+    transformation_wings = _ItemDetail(136, 1,
             ItemClassification.progression
         , [
             DoLOptionFilters.type_transformation.value, 
             DoLOptionFilters.randomize_tf_parts.value, 
-            DoLOptionFilters.toggle_transformation_either.value])
+            DoLOptionFilters.toggle_transformation_either.value
+        ])
 
-    transformation_flight = _ItemDetail(133, 1,
+    transformation_flight = _ItemDetail(137, 1,
             ItemClassification.progression
         , [
             DoLOptionFilters.type_transformation.value, 
-            DoLOptionFilters.toggle_transformation_either.value])
+            # DoLOptionFilters.toggle_transformation_either.value,
+            DoLOptionFilters.toggle_transformation_animal.value,
+            DoLOptionFilters.req_badend.value,
+            DoLOptionFilters.req_loveinterest.value,
+        ])
 
 
     # -- Access Items
-    accessitem_adoptionpapers = _ItemDetail(134, 1,
+    accessitem_adoptionpapers = _ItemDetail(138, 1,
             ItemClassification.progression
         , [    
-            DoLOptionFilters.type_accessitem.value])
+            DoLOptionFilters.type_accessitem.value
+        ])
 
-    accessitem_fakeid = _ItemDetail(135, 1,
+    accessitem_fakeid = _ItemDetail(139, 1,
             ItemClassification.progression
         , [    
-            DoLOptionFilters.type_accessitem.value])
+            DoLOptionFilters.type_accessitem.value
+        ])
 
-    accessitem_mazekey = _ItemDetail(136, 1,
+    accessitem_mazekey = _ItemDetail(140, 1,
             ItemClassification.progression
         , [    
-            DoLOptionFilters.type_accessitem.value])
+            DoLOptionFilters.type_accessitem.value
+        ])
 
 
 DEFAULT_ITEM_CLASSIFICATIONS = {DoLItemNames[item.name].value: item.value.types for item in DoLItemData}

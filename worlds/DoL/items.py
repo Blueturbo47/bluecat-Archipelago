@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from BaseClasses import Item, ItemClassification
+
 from .data import DEFAULT_ITEM_CLASSIFICATIONS, ITEM_NAME_TO_ID, DoLLocationData, DoLLocationTypes, DoLLocationNames, DoLItemNames, DoLOptionFilters, DoLRules, DoLItemData, ROptionFilter
 
 from typing import TYPE_CHECKING
@@ -48,57 +49,21 @@ def create_all_items(world: DoLWorld) -> None:
                 genrules_bools.append(resolution)
         return genrules_bools
 
-
-    # -- old loc to item
-    # def loctoitemgen(loc:DoLLocationData):
-    #     locname = DoLLocationNames[loc.name].value
-    #     locgenrules = loc.value.rules_generation
-
-    #     if not all(convertGenRules(locgenrules)):
-    #         # print(f"{locname}'s genrule prevented gen: {locgenrules}")
-    #         return
-
-    #     # go through the rules for generation
-    #     # match the rule for generation
-    #     # rules are already processed above, so 
-    #     # no need to check them twice
-    #     # includes returns to prevent double generation
-    #     for genrule in locgenrules:
-    #         match(genrule):
-    #             case(DoLOptionFilters.type_antiques.value):
-    #                 # print(f"Generated Item: Artifact, Name: '{locname[0:locname.find(":") - 1]}' type {locname.__class__}")
-    #                 item = world.create_item(locname[0:locname.find(":") - 1])
-    #                 itempool.append(item)
-    #                 return
-    #             case(DoLOptionFilters.type_skills.value):
-    #                 # print(f"Generated Item: Skill, Name: 'Progressive {locname[0:locname.find("Rank") + 4]}'")
-    #                 itempool.append(world.create_item(f"Progressive {locname[0:locname.find("Rank") + 4]}"))
-    #                 return
-
-    # # create the items we want 1 to 1 with our locations
-    # # item should not be created unless we want it to
-    # for i in DoLLocationData:
-    #     # print(f"Attempting to generate item '{i.name}'")
-        
-    #     # NOTE: this is done via a function so we 
-    #     # can instantly next via a return
-    #     loctoitemgen(i)
-
     for itemdata in DoLItemData:
         # print(f"Attempting to generate item {itemdata.name}")
         itemname = DoLItemNames[itemdata.name].value
         itemnumber = itemdata.value.item_multiplier
         itemgenrules = itemdata.value.rules_generation
+        
 
         if all(convertGenRules(itemgenrules)):
             # print(f"Generated Item {itemname}")
+            # print(f"Gen Item {itemname}, {itemnumber}")
             for _ in range(itemnumber):
                 generateditem = world.create_item(itemname)
                 itempool.append(generateditem)
         # else: print(f"{itemname}'s genrule prevented gen: {itemgenrules}")
         
-        
-
     # filling rest of items
     number_of_items = len(itempool)
     number_of_unfilled_locations = len(world.multiworld.get_unfilled_locations(world.player))
